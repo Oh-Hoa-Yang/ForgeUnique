@@ -5,12 +5,12 @@
       <p style="padding: 20px;">PLEASE ENTER YOUR PASSCODE:</p>
       <form style="width: 100%; justify-content: center;">
         <div class="passcode-wrapper">
-          <ion-input ref="input0" v-model="passcode[0]" maxlength="1" @input="moveToNext(0)" />
-          <ion-input ref="input1" v-model="passcode[1]" maxlength="1" @input="moveToNext(1)" />
-          <ion-input ref="input2" v-model="passcode[2]" maxlength="1" @input="moveToNext(2)" />
-          <ion-input ref="input3" v-model="passcode[3]" maxlength="1" @input="moveToNext(3)" />
-          <ion-input ref="input4" v-model="passcode[4]" maxlength="1" @input="moveToNext(4)" />
-          <ion-input ref="input5" v-model="passcode[5]" maxlength="1" @input="checkPasscode()" />
+          <ion-input ref="field0" @keyup="gotoNextField(1)" v-model="passcode[0]" maxlength="1"></ion-input>
+          <ion-input ref="field1" @keyup="gotoNextField(2)" v-model="passcode[1]" maxlength="1"></ion-input>
+          <ion-input ref="field2" @keyup="gotoNextField(3)" v-model="passcode[2]" maxlength="1"></ion-input>
+          <ion-input ref="field3" @keyup="gotoNextField(4)" v-model="passcode[3]" maxlength="1"></ion-input>
+          <ion-input ref="field4" @keyup="gotoNextField(5)" v-model="passcode[4]" maxlength="1"></ion-input>
+          <ion-input ref="field5" @keyup="checkPasscode" v-model="passcode[5]" maxlength="1"></ion-input>
         </div>
         <div style="margin-right: 2%;">
           <a style="text-align:end; color: #FD8395;" href="/forgot_password">
@@ -27,33 +27,41 @@ import { ref, nextTick } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';  
 import CryptoJS from 'crypto-js';
 
+// Initialize passcode
 const passcode = ref(['', '', '', '', '', '']);
-// Import toastError and toastSuccess
-const { toastError, toastSuccess } = useAppToast();  
 
-// Define refs for each input field
-const inputRefs = Array.from({ length: 6 }, () => ref(null));
+// Use toast for notifications
+const { toastError, toastSuccess } = useAppToast();
 
-// Handle input field focus on the next input when a digit is entered
-const moveToNext = async (index) => {
-  if (passcode.value[index].length === 1 && index < 5) {
+// Define individual refs for each input field
+const field0 = ref(null);
+const field1 = ref(null);
+const field2 = ref(null);
+const field3 = ref(null);
+const field4 = ref(null);
+const field5 = ref(null);
+
+// Function to move focus to the next input field
+const gotoNextField = async (nextFieldIndex) => {
+  const nextField = eval(`field${nextFieldIndex}`);
+
+  if (nextField && nextField.value) {
     await nextTick();
-    const nextInputRef = inputRefs[index + 1];
-    
-
-    // ----- NEED TO TEST LATER WHEN CONVERTING TO APP -----
-    // if (nextInputRef && nextInputRef.value) {
-    //   // Try focusing the next input element after a slight delay to ensure it works across environments
-    //   setTimeout(() => {
-    //     nextInputRef.value.setFocus();  // Focus on the next input field
-    //   }, 10);
-    // }
+    const nativeInput = nextField.value.$el.querySelector('input');  // Access the native input element
+    if (nativeInput) {
+      nativeInput.focus();  // Set focus to the next input field
+    } else {
+      console.error(`Input element not found for field${nextFieldIndex}`);
+    }
+  } else {
+    console.error(`Next field field${nextFieldIndex} not found`);
   }
 };
 
+// Function to check and verify passcode
 const checkPasscode = async () => {
-  const enteredPasscode = passcode.value.join('');  // Combine passcode values
-  const hashedPasscode = CryptoJS.SHA256(enteredPasscode).toString();  // Hash the passcode
+  const enteredPasscode = passcode.value.join('');  // Join the digits to form the passcode
+  const hashedPasscode = CryptoJS.SHA256(enteredPasscode).toString();  // Hash the passcode using SHA256
 
   const user = useSupabaseUser();  // Get the current logged-in user
 
@@ -62,35 +70,36 @@ const checkPasscode = async () => {
     return;
   }
 
-  // Verify the hashed passcode with the one stored in the database
   const supabase = useSupabaseClient();
+
+  // Query Supabase to get the stored hashed passcode for the logged-in user
   const { data, error } = await supabase
     .from('Users')
     .select('passcode')
-    .eq('user_id', user.value.id);  // Compare against the logged-in user's ID
+    .eq('user_id', user.value.id);
 
   if (error) {
-    toastError({ title: 'Error', description: 'Error fetching passcode: ' + error.message });
+    toastError({ title: 'Error', description: `Error fetching passcode: ${error.message}` });
     return;
   }
 
   if (data && data.length > 0 && data[0].passcode === hashedPasscode) {
     toastSuccess({ title: 'Success', description: 'Passcode verified!' });
-    navigateTo('/homepage');  
+    navigateTo('/homepage');  // Redirect to homepage upon successful verification
   } else {
     toastError({ title: 'Incorrect Passcode', description: 'The passcode you entered is incorrect. Please try again!' });
     resetPasscode();  // Reset the passcode if incorrect
   }
 };
 
-// Function to reset the passcode and focus back to the first input
+// Function to reset the passcode and refocus on the first input
 const resetPasscode = async () => {
-  // Reset the passcode array to empty
   passcode.value = ['', '', '', '', '', ''];
-
-  // Wait for DOM update and then focus on the first input
   await nextTick();
-  inputRefs[0].value.setFocus();  // Focus back on the first input
+  const firstInput = field0.value.$el.querySelector('input');
+  if (firstInput) {
+    firstInput.focus();  // Focus back on the first input field
+  }
 };
 </script>
 
@@ -109,9 +118,9 @@ const resetPasscode = async () => {
 .passcode-wrapper ion-input {
   width: 50px;
   text-align: center;
-  border: 1px solid black;  /* Black border for each input */
-  margin-right: 5px;  /* Add spacing between the inputs */
-  font-size: 24px;  /* Increase font size for better visibility */
+  border: 1px solid black;
+  margin-right: 5px;
+  font-size: 24px;
 }
 
 .custom-background {
