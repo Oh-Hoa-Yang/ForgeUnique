@@ -5,12 +5,12 @@
       <p style="padding: 20px;">PLEASE ENTER YOUR PASSCODE:</p>
       <form style="width: 100%; justify-content: center;">
         <div class="passcode-wrapper">
-          <ion-input ref="field0" type="tel" @keyup="gotoNextField(1)" v-model="passcode[0]" maxlength="1"></ion-input>
-          <ion-input ref="field1" type="tel" @keyup="gotoNextField(2)" v-model="passcode[1]" maxlength="1"></ion-input>
-          <ion-input ref="field2" type="tel" @keyup="gotoNextField(3)" v-model="passcode[2]" maxlength="1"></ion-input>
-          <ion-input ref="field3" type="tel" @keyup="gotoNextField(4)" v-model="passcode[3]" maxlength="1"></ion-input>
-          <ion-input ref="field4" type="tel" @keyup="gotoNextField(5)" v-model="passcode[4]" maxlength="1"></ion-input>
-          <ion-input ref="field5" type="tel" @keyup="checkPasscode" v-model="passcode[5]" maxlength="1"></ion-input>
+          <ion-input ref="field0" @keyup="gotoNextField(1)" v-model="passcode[0]" maxlength="1"></ion-input>
+          <ion-input ref="field1" @keyup="gotoNextField(2)" v-model="passcode[1]" maxlength="1"></ion-input>
+          <ion-input ref="field2" @keyup="gotoNextField(3)" v-model="passcode[2]" maxlength="1"></ion-input>
+          <ion-input ref="field3" @keyup="gotoNextField(4)" v-model="passcode[3]" maxlength="1"></ion-input>
+          <ion-input ref="field4" @keyup="gotoNextField(5)" v-model="passcode[4]" maxlength="1"></ion-input>
+          <ion-input ref="field5" @keyup="checkPasscode" v-model="passcode[5]" maxlength="1"></ion-input>
         </div>
         <div style="margin-right: 2%;">
           <a style="text-align:end; color: #FD8395;" href="/forgot_password">
@@ -47,19 +47,16 @@ const gotoNextField = async (nextFieldIndex) => {
 
   if (nextField && nextField.value) {
     await nextTick();
-    setTimeout(() => {
-      const nativeInput = nextField.value.$el.querySelector('input');  // Access native input element
-      if (nativeInput) {
-        nativeInput.focus();  // Set focus on the next input field
-      } else {
-        console.error(`Input element not found for field${nextFieldIndex}`);
-      }
-    }, 100);  // Small delay (100ms) to ensure focus works on iOS
+    const nativeInput = nextField.value.$el.querySelector('input');  // Access the native input element
+    if (nativeInput) {
+      nativeInput.focus();  // Set focus to the next input field
+    } else {
+      console.error(`Input element not found for field${nextFieldIndex}`);
+    }
   } else {
     console.error(`Next field field${nextFieldIndex} not found`);
   }
 };
-
 
 // Function to check and verify passcode
 const checkPasscode = async () => {
