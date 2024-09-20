@@ -6,7 +6,7 @@
       <form style="width: 100%; justify-content: center;" @submit.prevent>
         <div class="passcode-wrapper">
           <ion-input v-for="(digit, index) in passcode" :key="index" :ref="'inputField' + index" :readonly="true"
-            v-model="passcode[index]" maxlength="1"></ion-input>
+            v-model="passcode[index]" maxlength="1" type="password"></ion-input>
         </div>
         <div style="margin-right: 2%;">
           <a style="text-align:end; color: #FD8395;" href="/forgot_password">
