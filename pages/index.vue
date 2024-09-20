@@ -3,19 +3,38 @@
     <ion-content class="ion-padding custom-background">
       <img class="center-img" src="/public/img/ForgeUniquePhoto.png" alt="ForgeUnique Logo" />
       <p style="padding: 20px;">PLEASE ENTER YOUR PASSCODE:</p>
-      <form style="width: 100%; justify-content: center;">
+      <form style="width: 100%; justify-content: center;" @submit.prevent>
         <div class="passcode-wrapper">
-          <ion-input ref="field0" @keyup="gotoNextField(1)" v-model="passcode[0]" maxlength="1"></ion-input>
-          <ion-input ref="field1" @keyup="gotoNextField(2)" v-model="passcode[1]" maxlength="1"></ion-input>
-          <ion-input ref="field2" @keyup="gotoNextField(3)" v-model="passcode[2]" maxlength="1"></ion-input>
-          <ion-input ref="field3" @keyup="gotoNextField(4)" v-model="passcode[3]" maxlength="1"></ion-input>
-          <ion-input ref="field4" @keyup="gotoNextField(5)" v-model="passcode[4]" maxlength="1"></ion-input>
-          <ion-input ref="field5" @keyup="checkPasscode" v-model="passcode[5]" maxlength="1"></ion-input>
+          <ion-input v-for="(digit, index) in passcode" :key="index" :ref="'inputField' + index" :readonly="true"
+            v-model="passcode[index]" maxlength="1"></ion-input>
         </div>
         <div style="margin-right: 2%;">
           <a style="text-align:end; color: #FD8395;" href="/forgot_password">
             <p style="font-style:italic; padding-right:20px;">FORGOT PASSCODE?</p>
           </a>
+        </div>
+        <!-- Custom Numeric Keypad -->
+        <div class="keypad-wrapper">
+          <div class="keypad-row">
+            <button type="button" @click="inputDigit(1)">1</button>
+            <button type="button" @click="inputDigit(2)">2</button>
+            <button type="button" @click="inputDigit(3)">3</button>
+          </div>
+          <div class="keypad-row">
+            <button type="button" @click="inputDigit(4)">4</button>
+            <button type="button" @click="inputDigit(5)">5</button>
+            <button type="button" @click="inputDigit(6)">6</button>
+          </div>
+          <div class="keypad-row">
+            <button type="button" @click="inputDigit(7)">7</button>
+            <button type="button" @click="inputDigit(8)">8</button>
+            <button type="button" @click="inputDigit(9)">9</button>
+          </div>
+          <div class="keypad-row">
+            <button type="button" @click="deleteLastDigit">DEL</button>
+            <button type="button" @click="inputDigit(0)">0</button>
+            <button type="button" @click="resetPasscode">C</button>
+          </div>
         </div>
       </form>
     </ion-content>
@@ -24,37 +43,47 @@
 
 <script setup>
 import { ref, nextTick } from 'vue';
-import { useAppToast } from '~/composables/useAppToast';  
+import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';
 
 // Initialize passcode
 const passcode = ref(['', '', '', '', '', '']);
+let currentIndex = ref(0);
 
 // Use toast for notifications
 const { toastError, toastSuccess } = useAppToast();
 
-// Define individual refs for each input field
-const field0 = ref(null);
-const field1 = ref(null);
-const field2 = ref(null);
-const field3 = ref(null);
-const field4 = ref(null);
-const field5 = ref(null);
+const inputFields = []; // Store input fields as an array of refs
 
-// Function to move focus to the next input field
-const gotoNextField = async (nextFieldIndex) => {
-  const nextField = eval(`field${nextFieldIndex}`);
-
-  if (nextField && nextField.value) {
+// Handle digit input
+const inputDigit = async (digit) => {
+  if (currentIndex.value < 6) {
+    passcode.value[currentIndex.value] = digit.toString();
+    currentIndex.value++;
     await nextTick();
-    const nativeInput = nextField.value.$el.querySelector('input');  // Access the native input element
-    if (nativeInput) {
-      nativeInput.focus();  // Set focus to the next input field
+
+    if (currentIndex.value < 6) {
+      const nextField = inputFields[currentIndex.value]; // Access the next field
+      if (nextField) {
+        nextField.focus();  // Set focus to the next input field
+      }
     } else {
-      console.error(`Input element not found for field${nextFieldIndex}`);
+      // When the last digit is entered, call checkPasscode
+      checkPasscode();
     }
-  } else {
-    console.error(`Next field field${nextFieldIndex} not found`);
+  }
+};
+
+// Handle deleting the last digit and moving back
+const deleteLastDigit = async () => {
+  if (currentIndex.value > 0) {
+    currentIndex.value--;
+    passcode.value[currentIndex.value] = '';  // Clear the last entered digit
+    await nextTick();
+    const prevField = inputFields[currentIndex.value];
+    if (prevField) {
+      prevField.focus();  // Set focus back to the previous input field
+    }
   }
 };
 
@@ -94,13 +123,20 @@ const checkPasscode = async () => {
 
 // Function to reset the passcode and refocus on the first input
 const resetPasscode = async () => {
-  passcode.value = ['', '', '', '', '', ''];
+  passcode.value = ['', '', '', '', '', ''];  // Clear the entire passcode
+  currentIndex.value = 0;
   await nextTick();
-  const firstInput = field0.value.$el.querySelector('input');
-  if (firstInput) {
-    firstInput.focus();  // Focus back on the first input field
+  if (inputFields[0]) {
+    inputFields[0].focus();  // Focus back on the first input field
   }
 };
+
+// onMounted lifecycle to store the references to input fields
+onMounted(() => {
+  for (let i = 0; i < 6; i++) {
+    inputFields[i] = document.querySelector(`[ref="inputField${i}"] input`);
+  }
+});
 </script>
 
 <style scoped>
@@ -121,6 +157,34 @@ const resetPasscode = async () => {
   border: 1px solid black;
   margin-right: 5px;
   font-size: 24px;
+}
+
+.keypad-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.keypad-row {
+  display: flex;
+  justify-content: center;
+  margin: 5px;
+}
+
+button {
+  width: 70px;
+  height: 70px;
+  font-size: 24px;
+  margin: 5px;
+  border: none;
+  background-color: #FFC2D1;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+button:active {
+  background-color: #ccc;
 }
 
 .custom-background {
