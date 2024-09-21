@@ -1,100 +1,65 @@
 <template>
   <ion-page>
     <ion-content class="ion-padding custom-background">
-      <img class="center-img" src="/public/img/ForgeUniquePhoto.png" alt="ForgeUnique Logo">
-      <p style="padding: 20px;">RESET YOUR PASSCODE:</p>
-      <form v-if="!otpSent" @submit.prevent="sendOtp" style="width: 100%; justify-content: center;">
+      <img class="center-img" src="/public/img/ForgeUniquePhoto.png" alt="ForgeUnique Logo" />
+      <p style="padding: 20px; text-align: center;">Please enter your password to verify your identity:</p>
+      <form @submit.prevent="checkPassword" style="width: 100%; justify-content: center;">
         <ion-item>
-          <ion-label position="stacked">Email</ion-label>
-          <ion-input v-model="email" type="email" placeholder="Please enter your email" style="font-style:italic" required></ion-input>
+          <ion-label position="stacked">Password</ion-label>
+          <ion-input v-model="password" type="password" name="password" placeholder="Please enter your password"
+            style="font-style: italic;" required>
+            <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
+          </ion-input>
         </ion-item>
-        <ion-button style="width: 100%;" type="submit" class="custom-button">Send OTP</ion-button>
+        <ion-button style="width: 100%;" type="submit" class="custom-button">Verify</ion-button>
       </form>
-      
-      <form v-else @submit.prevent="verifyOtpAndResetPasscode" style="width: 100%; justify-content: center;">
-        <ion-item>
-          <ion-label position="stacked">OTP</ion-label>
-          <ion-input v-model="otp" type="number" placeholder="Please enter the OTP" style="font-style:italic" required></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">New Passcode</ion-label>
-          <ion-input v-model="newPasscode" type="number" placeholder="Enter new passcode" maxlength="6" style="font-style:italic" required></ion-input>
-        </ion-item>
-        <ion-button style="width: 100%;" type="submit" class="custom-button">Reset Passcode</ion-button>
-      </form>
+      <a style="text-align:center; color:#FD8395;" href="/">
+        <p>Return</p>
+      </a>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
-// import { ref } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
-import CryptoJS from 'crypto-js';
 
-const email = ref('');
-const otp = ref('');
-const newPasscode = ref('');
-const otpSent = ref(false);
+const password = ref('');
 const { toastError, toastSuccess } = useAppToast();
 
-// Step 1: Send OTP to the email
-const sendOtp = async () => {
+// Check Password 
+const checkPassword = async () => {
   const supabase = useSupabaseClient();
+  const user = useSupabaseUser();
 
-  if (!email.value) {
-    toastError({ title: 'Error', description: 'Please enter your email.' });
+  if (!password.value) {
+    toastError({ title: 'Error', description: 'Password is required.' });
     return;
   }
 
-  // Simulate sending OTP to email
-  const { error } = await supabase
-    .rpc('send_otp', { email: email.value });  // A stored procedure that sends the OTP
+  if (!user.value) {
+    toastError({ title: 'Error', description: 'No user logged in' });
+    return;
+  }
+
+  // Authenticate the user by re-entering the password
+  const { error } = await supabase.auth.signInWithPassword({
+    email: user.value.email,  // Using user's email for sign-in
+    password: password.value, // Use the entered password to authenticate
+  });
 
   if (error) {
-    toastError({ title: 'Error', description: 'Failed to send OTP: ' + error.message });
+    toastError({ title: 'Incorrect Password', description: 'The password you entered is incorrect. Please try again!' });
   } else {
-    otpSent.value = true;
-    toastSuccess({ title: 'Success', description: 'OTP sent! Please check your email.' });
-  }
-};
-
-// Step 2: Verify OTP and reset the passcode
-const verifyOtpAndResetPasscode = async () => {
-  if (!otp.value || !newPasscode.value) {
-    toastError({ title: 'Error', description: 'Please enter the OTP and new passcode.' });
-    return;
-  }
-
-  const supabase = useSupabaseClient();
-
-  // Verify the OTP with the Supabase stored procedure
-  const { error: otpError } = await supabase.rpc('verify_otp', { email: email.value, otp: otp.value });
-
-  if (otpError) {
-    toastError({ title: 'Error', description: 'Invalid OTP: ' + otpError.message });
-    return;
-  }
-
-  // Hash the new passcode before storing it in the database
-  const hashedPasscode = CryptoJS.SHA256(newPasscode.value).toString();
-
-  // Update the passcode in the Users table
-  const { error: passcodeError } = await supabase
-    .from('Users')
-    .update({ passcode: hashedPasscode })
-    .eq('email', email.value);
-
-  if (passcodeError) {
-    toastError({ title: 'Error', description: 'Failed to reset passcode: ' + passcodeError.message });
-  } else {
-    toastSuccess({ title: 'Success', description: 'Passcode reset successfully!' });
-    navigateTo('/login');
+    toastSuccess({ title: 'Success', description: 'Password verified! Redirecting...' });
+    navigateTo('/reset-passcode');  // Redirect to reset passcode page
   }
 };
 </script>
 
 <style scoped>
-.center-img, ion-item, ion-button {
+.center-img,
+ion-item,
+ion-button {
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -108,6 +73,10 @@ const verifyOtpAndResetPasscode = async () => {
 
 .custom-button {
   --background: #FFC2D1;
+  --background-activated: #ffadb9;
+  --background-focused: #ffadb9;
+  --background-hover: #ffadb9;
+  --background-pressed: #ffadb9;
   --color: black;
 }
 </style>

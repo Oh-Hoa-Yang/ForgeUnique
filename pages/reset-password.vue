@@ -7,12 +7,16 @@
         <ion-item>
           <ion-label position="stacked">New Password</ion-label>
           <ion-input v-model="password" type="password" name="password" placeholder="Enter new password"
-            style="font-style: italic;" required />
+            style="font-style: italic;" required>
+            <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
+          </ion-input>
         </ion-item>
         <ion-item>
           <ion-label position="stacked">Confirm Password</ion-label>
-          <ion-input v-model="confirmPassword" type="password" name="confirmPassword" placeholder="Confirm new password"
-            style="font-style: italic;" required />
+          <ion-input v-model="confirmPassword" type="password" name="confirmPassword"
+            placeholder="Please enter your new password again" style="font-style: italic;" required>
+            <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
+          </ion-input>
         </ion-item>
         <ion-button style="width: 100%;" type="submit" class="custom-button">Reset Password</ion-button>
       </form>
@@ -49,7 +53,7 @@ const resetPassword = async () => {
     toastError({ title: 'Error', description: 'Failed to reset password.' });
   } else {
     toastSuccess({ title: 'Success', description: 'Password reset successfully!' });
-    navigateTo('/login');  
+    navigateTo('/login');
   }
 };
 </script>
@@ -57,8 +61,7 @@ const resetPassword = async () => {
 <style scoped>
 .center-img,
 ion-item,
-ion-button 
-{
+ion-button {
   display: block;
   margin-left: auto;
   margin-right: auto;

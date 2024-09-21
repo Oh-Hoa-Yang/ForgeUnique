@@ -11,7 +11,9 @@
         <ion-item>
           <ion-label position="stacked">Password</ion-label>
           <ion-input v-model="password" name="password" type="password" placeholder="Please enter your password"
-            style="font-style:italic" required></ion-input>
+            style="font-style:italic" required>
+            <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
+          </ion-input>
         </ion-item>
         <div style="margin-right: 2%;">
           <a style="text-align:end; color: #FD8395;" href="/forgot_password">
@@ -66,8 +68,9 @@ const handleLogin = async () => {
 .center-img,
 ion-item,
 ion-button
+
 /* hr  */
-{
+  {
   display: block;
   margin-left: auto;
   margin-right: auto;
