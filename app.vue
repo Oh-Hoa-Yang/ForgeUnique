@@ -1,6 +1,11 @@
 <template>
-	<ion-app>
-		<ion-router-outlet />
+  <ion-app>
+    <!-- Main router outlet for all page content, with correct content ID -->
+    <ion-router-outlet></ion-router-outlet>
     <UNotifications />
-	</ion-app>
+  </ion-app>
 </template>
+
+<script setup>
+// No additional script needed here
+</script>
