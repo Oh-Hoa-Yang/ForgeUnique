@@ -80,7 +80,7 @@
   </ion-app>
 </template>
 
-<script setup>
+<script lang="ts">
 import { IonTabs, IonTab, IonTabBar, IonTabButton, IonIcon, IonMenu, IonMenuButton } from '@ionic/vue';
 import Home from '~/components/home.vue';
 import Calendar from '~/components/calendar.vue';
@@ -88,24 +88,26 @@ import Progress from '~/components/progress.vue';
 
 import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon } from 'ionicons/icons';
 
-// You don't need to explicitly export, just define everything
-const components = {
-  IonTabs,
-  IonTab,
-  IonTabBar,
-  IonTabButton,
-  IonIcon,
-  IonMenu,
-  IonMenuButton,
-  Home,
-  Calendar,
-  Progress,
-};
-
-const icons = {
-  homeIcon,
-  calendarIcon,
-  progressIcon,
+export default {
+  components: {
+    IonTabs,
+    IonTab,
+    IonTabBar,
+    IonTabButton,
+    IonIcon,
+    IonMenu,
+    IonMenuButton,
+    Home,
+    Calendar,
+    Progress,
+  },
+  data() {
+    return {
+      homeIcon,
+      calendarIcon,
+      progressIcon,
+    };
+  },
 };
 </script>
 
