@@ -40,7 +40,7 @@
 
     <!-- Main Content (imported component) -->
     <ion-content>
-      <Home />
+      <Calendar />
     </ion-content>
 
     <!-- Bottom Navigation -->
@@ -64,7 +64,7 @@
 import { useRouter, useRoute } from 'vue-router';
 import { IonIcon, IonPage } from '@ionic/vue';
 import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon, menuOutline as menuIcon } from 'ionicons/icons';
-import Home from '~/components/home.vue';
+import Calendar from '~/components/calendar.vue';
 
 const router = useRouter();
 const route = useRoute();
