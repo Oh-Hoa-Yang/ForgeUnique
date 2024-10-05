@@ -7,19 +7,9 @@
         <button class="expense-button" @click="navigateToPage('/expensehome')">
           <div class="expense">
             <h3 style="text-align: center; font-weight: bold;">Expense</h3>
-            <br />
-            <p style="text-align: start;">
-              <b>Monthly Budget:</b> <br />{{ monthlyBudget }} MYR
-            </p>
-            <br />
-            <p style="text-align: start;">
-              <b>Total Monthly Expenses:</b> <br />{{ totalExpenses }} MYR
-            </p>
-            <br />
-            <p style="text-align: start;">
-              <b>Today Expenses:</b> <br />{{ todayExpenses }} MYR
-            </p>
-            <br />
+            <p><b>Monthly Budget:</b> {{ monthlyBudget }} MYR</p>
+            <p><b>Total Monthly Expenses:</b> {{ totalExpenses }} MYR</p>
+            <p><b>Today Expenses:</b> {{ todayExpenses }} MYR</p>
           </div>
         </button>
 
@@ -55,28 +45,24 @@
 
         <!-- Sketchbook List and Create Button -->
         <div v-if="!selectedSketch">
-          <!-- Available Sketchbooks with pagination -->
           <div class="sketchbooks">
             <h4>Available Sketchbooks</h4>
             <ul>
-              <li v-for="sketch in paginatedSketchbooks" :key="sketch.id" :class="{ active: selectedSketch === sketch.id }">
+              <li v-for="sketch in paginatedSketchbooks" :key="sketch.id" :class="{ active: selectedSketch === sketch.id }" @click="selectSketchbook(sketch)">
                 {{ sketch.title }}
-                <!-- Edit and Delete Buttons next to each other -->
                 <div class="action-buttons">
-                  <button @click="openEditModal(sketch)" class="edit-btn">✏️</button>
-                  <button @click="deleteSketchbook(sketch.id)" class="delete-btn">❌</button>
+                  <button @click.stop="openEditModal(sketch)">✏️</button>
+                  <button @click.stop="deleteSketchbook(sketch.id)">❌</button>
                 </div>
               </li>
             </ul>
 
-            <!-- Pagination controls -->
             <div class="pagination-controls">
               <button @click="previousPage" :disabled="currentPage === 1">Previous</button>
               <span>Page {{ currentPage }} of {{ totalPages }}</span>
               <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
             </div>
 
-            <!-- Button to create a new sketchbook -->
             <div class="create-button">
               <button @click="openModal">+</button>
             </div>
@@ -100,47 +86,44 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppToast } from '~/composables/useAppToast';
 
 const { toastError, toastSuccess } = useAppToast();
 
-// Expense and To-Do Data (Dummy Data)
 const monthlyBudget = ref(2000);
 const totalExpenses = ref(1500);
 const todayExpenses = ref(50);
 const todos = ref([{ id: 1, description: 'fyp project - Chap 3.4' }]);
 
-// Sketchbook Data
 const newSketchbookTitle = ref('');
 const sketchbooks = ref([]);
 const selectedSketch = ref(null);
 const currentPageNumber = ref(1);
-const totalPages = ref(10); // Assume 10 pages for now
+const totalPages = ref(1); 
 const currentPage = ref(1);
-const itemsPerPage = ref(5); // Display 5 sketchbooks per page
+const itemsPerPage = ref(5);
 const showModal = ref(false);
 const showEditModal = ref(false);
-const editedSketchbook = ref(null); // For editing
+const editedSketchbook = ref(null);
 const editedSketchbookTitle = ref('');
 
-// Vue Signature options
+const supabase = useSupabaseClient();
 const router = useRouter();
 
-// Modal management
 const openModal = () => {
   showModal.value = true;
 };
 
 const closeModal = () => {
   showModal.value = false;
-  newSketchbookTitle.value = ''; // Reset input
+  newSketchbookTitle.value = ''; 
 };
 
 const openEditModal = (sketch) => {
   editedSketchbook.value = sketch;
-  editedSketchbookTitle.value = sketch.title; // Pre-fill with the current title
+  editedSketchbookTitle.value = sketch.title;
   showEditModal.value = true;
 };
 
@@ -150,16 +133,24 @@ const closeEditModal = () => {
   editedSketchbookTitle.value = '';
 };
 
-// Paginate sketchbooks
 const paginatedSketchbooks = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value;
   const end = start + itemsPerPage.value;
   return sketchbooks.value.slice(start, end);
 });
 
-const supabase = useSupabaseClient();
+const previousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+};
 
-// Fetch authenticated user from Supabase
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+};
+
 const fetchUser = async () => {
   const { data, error } = await supabase.auth.getUser();
   if (error) {
@@ -169,7 +160,6 @@ const fetchUser = async () => {
   return data.user;
 };
 
-// Create Sketchbook in Supabase
 const createSketchbook = async () => {
   const user = await fetchUser();
 
@@ -180,38 +170,22 @@ const createSketchbook = async () => {
         .insert([{ title: newSketchbookTitle.value, user_id: user.id }]);
 
       if (error) {
-        toastError({
-          title: 'Error',
-          description: 'Failed to create sketchbook!'
-        });
+        toastError({ title: 'Error', description: 'Failed to create sketchbook!' });
         return;
       }
 
-      // After success, close modal, show toast, refresh data
       closeModal();
-      toastSuccess({
-        title: 'Successful',
-        description: 'Sketchbook created successfully!'
-      });
-
-      await fetchSketchbooks(); // Refresh the list of sketchbooks
-
+      toastSuccess({ title: 'Successful', description: 'Sketchbook created successfully!' });
+      await fetchSketchbooks(); 
     } catch (e) {
       console.error('Error:', e);
-      toastError({
-        title: 'Error',
-        description: 'An error occurred while creating the sketchbook.'
-      });
+      toastError({ title: 'Error', description: 'An error occurred while creating the sketchbook.' });
     }
   } else {
-    toastError({
-      title: 'Error',
-      description: 'User is not authenticated!'
-    });
+    toastError({ title: 'Error', description: 'User is not authenticated!' });
   }
 };
 
-// Delete Sketchbook from Supabase
 const deleteSketchbook = async (sketchId) => {
   try {
     const { data, error } = await supabase
@@ -220,27 +194,17 @@ const deleteSketchbook = async (sketchId) => {
       .eq('id', sketchId);
 
     if (error) {
-      toastError({
-        title: 'Error',
-        description: 'Failed to delete sketchbook!'
-      });
+      toastError({ title: 'Error', description: 'Failed to delete sketchbook!' });
     } else {
-      toastSuccess({
-        title: 'Deleted',
-        description: 'Sketchbook deleted successfully!'
-      });
-      await fetchSketchbooks(); // Refresh list after deletion
+      toastSuccess({ title: 'Deleted', description: 'Sketchbook deleted successfully!' });
+      await fetchSketchbooks(); 
     }
   } catch (e) {
     console.error('Error deleting sketchbook:', e);
-    toastError({
-      title: 'Error',
-      description: 'An error occurred while deleting the sketchbook.'
-    });
+    toastError({ title: 'Error', description: 'An error occurred while deleting the sketchbook.' });
   }
 };
 
-// Edit Sketchbook Title in Supabase
 const editSketchbookTitle = async () => {
   try {
     const { data, error } = await supabase
@@ -249,28 +213,23 @@ const editSketchbookTitle = async () => {
       .eq('id', editedSketchbook.value.id);
 
     if (error) {
-      toastError({
-        title: 'Error',
-        description: 'Failed to update sketchbook title!'
-      });
+      toastError({ title: 'Error', description: 'Failed to update sketchbook title!' });
     } else {
-      toastSuccess({
-        title: 'Updated',
-        description: 'Sketchbook title updated successfully!'
-      });
+      toastSuccess({ title: 'Updated', description: 'Sketchbook title updated successfully!' });
       closeEditModal();
-      await fetchSketchbooks(); // Refresh list after update
+      await fetchSketchbooks(); 
     }
   } catch (e) {
     console.error('Error updating sketchbook:', e);
-    toastError({
-      title: 'Error',
-      description: 'An error occurred while updating the sketchbook title.'
-    });
+    toastError({ title: 'Error', description: 'An error occurred while updating the sketchbook title.' });
   }
 };
 
-// Fetch available sketchbooks from Supabase
+const selectSketchbook = (sketch) => {
+  selectedSketch.value = sketch;
+  currentPageNumber.value = 1; 
+};
+
 const fetchSketchbooks = async () => {
   const { data, error } = await supabase
     .from('Sketches')
@@ -286,7 +245,6 @@ const fetchSketchbooks = async () => {
   totalPages.value = Math.ceil(sketchbooks.value.length / itemsPerPage.value);
 };
 
-// Fetch sketchbooks on mount
 onMounted(() => {
   fetchSketchbooks();
 });
@@ -297,7 +255,6 @@ onMounted(() => {
   --background: #FFEDF5;
 }
 
-/* Container for grid layout */
 .container {
   display: grid;
   grid-template-columns: 1fr;
@@ -308,7 +265,6 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-/* Row for expense and to-do list */
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -316,7 +272,6 @@ onMounted(() => {
   height: 40%;
 }
 
-/* Button behavior for expense */
 .expense-button {
   background-color: transparent;
   border: none;
@@ -332,11 +287,6 @@ onMounted(() => {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.expense-button:active {
-  transform: translateY(0);
-}
-
-/* Expense section */
 .expense {
   background-color: #fff;
   padding: 20px;
@@ -350,7 +300,6 @@ onMounted(() => {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
-/* To-Do list section */
 .todo-list {
   background-color: #f9f9f9;
   padding: 20px;
@@ -358,7 +307,6 @@ onMounted(() => {
   border-radius: 8px;
 }
 
-/* Sketching Plan section */
 .sketch-plan {
   background-color: #fff;
   padding: 10px;
@@ -370,19 +318,16 @@ onMounted(() => {
   justify-content: space-between;
 }
 
-/* Adding some spacing */
 h3 {
   margin-bottom: 10px;
 }
 
-/* Sketchbook creation */
 .create-sketchbook {
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
 }
 
-/* Sketchbooks section */
 .sketchbooks ul {
   list-style: none;
   padding: 0;
@@ -414,14 +359,12 @@ h3 {
   cursor: pointer;
 }
 
-/* Page navigation */
 .page-navigation {
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
 }
 
-/* Back button */
 .back-button {
   margin-top: 10px;
   background-color: #f0f0f0;
@@ -431,7 +374,6 @@ h3 {
   border-radius: 5px;
 }
 
-/* Modal styling */
 .modal-overlay {
   position: fixed;
   top: 0;
