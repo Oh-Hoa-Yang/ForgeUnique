@@ -26,12 +26,21 @@
     <div class="menu-content">
       <div class="menu-header">
         <h3 style="color: black;">Menu</h3>
-        <button class="close-menu" @click="closeMenu">X</button>
+        <button class="close-menu" @click="closeMenu">x</button>
       </div>
       <div class="menu-items">
-        <button @click="navigateToPage('/homepage')">Home</button>
-        <button @click="navigateToPage('/calendarpage')">Calendar</button>
-        <button @click="navigateToPage('/progresspage')">Progress</button>
+        <button @click="navigateToPage('/homepage')">
+          <ion-icon :icon="homeIcon" class="menu-icon" /> 
+          Home
+        </button>
+        <button @click="navigateToPage('/calendarpage')">
+          <ion-icon :icon="calendarIcon" class="menu-icon" /> 
+          Calendar
+        </button>
+        <button @click="navigateToPage('/progresspage')">
+          <ion-icon :icon="progressIcon" class="menu-icon" /> 
+          Progress
+        </button>
       </div>
     </div>
   </div>
@@ -41,6 +50,8 @@
 import { useRouter } from 'vue-router';
 import { IonIcon } from '@ionic/vue';
 import { menuOutline as menuIcon } from 'ionicons/icons';
+import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon } from 'ionicons/icons';
+
 const router = useRouter();
 const menuVisible = ref(false);
 
@@ -165,16 +176,29 @@ ion-toolbar {
   color: black;
 }
 
-.menu-items button {
-  display: block;
-  width: 100%;
+/* Menu Items */
+.menu-items {
+  display: flex;
+  flex-direction: column;
   padding: 16px;
+}
+
+.menu-items button {
+  display: flex;
+  align-items: center;
+  padding: 10px;
   border: none;
   background: none;
   text-align: left;
-  cursor: pointer;
   font-size: 16px;
   color: #666;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.menu-items button ion-icon {
+  margin-right: 10px; /* Add space between icon and text */
+  color: #FD8395;
 }
 
 .menu-items button:hover {
