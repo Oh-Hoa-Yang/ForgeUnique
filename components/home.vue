@@ -215,33 +215,46 @@ const fetchUser = async () => {
   return data.user;
 };
 
-// Fetch sketchbooks
+// Modify the fetchSketchbooks function
 const fetchSketchbooks = async () => {
   if (!authenticatedUser.value) {
-    toastError({ title: 'Error', description: 'User is not authenticated!' });
-    return;
+    // Fetch the authenticated user again
+    const { data: userData, error } = await supabase.auth.getUser();
+    if (error || !userData) {
+      toastError({ title: 'Error', description: 'User is not authenticated!' });
+      return;
+    }
+    authenticatedUser.value = userData.user;
   }
 
-  const { data, error } = await supabase
-    .from('Sketches')
-    .select('*')
-    .eq('user_id', authenticatedUser.value.id) // Fetch sketches only for the current user
-    .order('title', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('Sketches')
+      .select('*')
+      .eq('user_id', authenticatedUser.value.id) // Fetch sketches only for the current user
+      .order('title', { ascending: true });
 
-  if (error) {
-    toastError({ title: 'Error', description: 'Failed to fetch sketchbooks!' });
-    return;
+    if (error) {
+      toastError({ title: 'Error', description: 'Failed to fetch sketchbooks!' });
+    } else {
+      sketchbooks.value = data;
+      totalPages.value = Math.ceil(sketchbooks.value.length / itemsPerPage.value);
+    }
+  } catch (e) {
+    console.error('Error fetching sketchbooks:', e);
   }
-
-  sketchbooks.value = data;
-  totalPages.value = Math.ceil(sketchbooks.value.length / itemsPerPage.value);
 };
 
-// Create a new sketchbook
+// Modify the createSketchbook function
 const createSketchbook = async () => {
   if (!authenticatedUser.value) {
-    toastError({ title: 'Error', description: 'User is not authenticated!' });
-    return;
+    // Fetch the authenticated user again
+    const { data: userData, error } = await supabase.auth.getUser();
+    if (error || !userData) {
+      toastError({ title: 'Error', description: 'User is not authenticated!' });
+      return;
+    }
+    authenticatedUser.value = userData.user;
   }
 
   if (!newSketchbookTitle.value) {
@@ -426,11 +439,16 @@ const backToSketchbookList = () => {
 
 // On mounted, fetch the list of sketchbooks
 onMounted(async () => {
-  const { data: userData, error } = await supabase.auth.getUser();
-  if (error || !userData) {
-    toastError({ title: 'Error', description: 'User is not authenticated!' });
-  } else {
-    authenticatedUser.value = userData.user;
+  if (!authenticatedUser.value) {
+    const { data: userData, error } = await supabase.auth.getUser();
+    if (error || !userData) {
+      toastError({ title: 'Error', description: 'User is not authenticated!' });
+    } else {
+      authenticatedUser.value = userData.user;
+    }
+  }
+  // Fetch sketchbooks only after ensuring user is authenticated
+  if (authenticatedUser.value) {
     await fetchSketchbooks();
   }
 });
