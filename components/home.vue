@@ -51,7 +51,8 @@
               <button @click="openModal" class="add-sketchbook-button">+</button>
             </div>
             <ul>
-              <li v-for="sketch in paginatedSketchbooks" :key="sketch.id" :class="{ active: selectedSketch === sketch.id }">
+              <li v-for="sketch in paginatedSketchbooks" :key="sketch.id"
+                :class="{ active: selectedSketch === sketch.id }">
                 <span @click="selectSketchbook(sketch)">
                   {{ sketch.title }}
                 </span>
@@ -127,7 +128,7 @@ const newSketchbookTitle = ref('');
 const sketchbooks = ref([]);
 const selectedSketch = ref(null);
 const currentPageNumber = ref(1);
-const totalPages = ref(1); 
+const totalPages = ref(1);
 const currentPage = ref(1);
 const itemsPerPage = ref(5);
 const showModal = ref(false);
@@ -141,6 +142,8 @@ const undoStack = ref([]); // Store sketch actions for undo
 const redoStack = ref([]); // Store redo actions
 const signaturePad = ref(null); // Reference for signature pad
 const tool = ref('pencil'); // Selected tool (pencil/eraser)
+
+let authenticatedUser = ref(null);
 
 // Signature pad options
 const signatureOptions = ref({
@@ -159,7 +162,7 @@ const openModal = () => {
 
 const closeModal = () => {
   showModal.value = false;
-  newSketchbookTitle.value = ''; 
+  newSketchbookTitle.value = '';
 };
 
 const openEditModal = (sketch) => {
@@ -214,13 +217,19 @@ const fetchUser = async () => {
 
 // Fetch sketchbooks
 const fetchSketchbooks = async () => {
+  if (!authenticatedUser.value) {
+    toastError({ title: 'Error', description: 'User is not authenticated!' });
+    return;
+  }
+
   const { data, error } = await supabase
     .from('Sketches')
     .select('*')
+    .eq('user_id', authenticatedUser.value.id) // Fetch sketches only for the current user
     .order('title', { ascending: true });
 
   if (error) {
-    console.error('Error fetching sketchbooks:', error);
+    toastError({ title: 'Error', description: 'Failed to fetch sketchbooks!' });
     return;
   }
 
@@ -228,30 +237,33 @@ const fetchSketchbooks = async () => {
   totalPages.value = Math.ceil(sketchbooks.value.length / itemsPerPage.value);
 };
 
-// Sketchbook operations
+// Create a new sketchbook
 const createSketchbook = async () => {
-  const user = await fetchUser();
-
-  if (newSketchbookTitle.value && user) {
-    try {
-      const { data, error } = await supabase
-        .from('Sketches')
-        .insert([{ title: newSketchbookTitle.value, user_id: user.id }]);
-
-      if (error) {
-        toastError({ title: 'Error', description: 'Failed to create sketchbook!' });
-        return;
-      }
-
-      closeModal();
-      toastSuccess({ title: 'Successful', description: 'Sketchbook created successfully!' });
-      await fetchSketchbooks(); 
-    } catch (e) {
-      console.error('Error:', e);
-      toastError({ title: 'Error', description: 'An error occurred while creating the sketchbook.' });
-    }
-  } else {
+  if (!authenticatedUser.value) {
     toastError({ title: 'Error', description: 'User is not authenticated!' });
+    return;
+  }
+
+  if (!newSketchbookTitle.value) {
+    toastError({ title: 'Error', description: 'Please enter a title for the sketchbook!' });
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('Sketches')
+      .insert([{ title: newSketchbookTitle.value, user_id: authenticatedUser.value.id }]);
+
+    if (error) {
+      toastError({ title: 'Error', description: 'Failed to create sketchbook!' });
+      return;
+    }
+
+    toastSuccess({ title: 'Success', description: 'Sketchbook created successfully!' });
+    closeModal();
+    await fetchSketchbooks(); // Refresh the list of sketchbooks
+  } catch (e) {
+    toastError({ title: 'Error', description: 'An error occurred while creating the sketchbook.' });
   }
 };
 
@@ -266,7 +278,7 @@ const deleteSketchbook = async (sketchId) => {
       toastError({ title: 'Error', description: 'Failed to delete sketchbook!' });
     } else {
       toastSuccess({ title: 'Deleted', description: 'Sketchbook deleted successfully!' });
-      await fetchSketchbooks(); 
+      await fetchSketchbooks();
     }
   } catch (e) {
     console.error('Error deleting sketchbook:', e);
@@ -286,7 +298,7 @@ const editSketchbookTitle = async () => {
     } else {
       toastSuccess({ title: 'Updated', description: 'Sketchbook title updated successfully!' });
       closeEditModal();
-      await fetchSketchbooks(); 
+      await fetchSketchbooks();
     }
   } catch (e) {
     console.error('Error updating sketchbook:', e);
@@ -413,8 +425,14 @@ const backToSketchbookList = () => {
 };
 
 // On mounted, fetch the list of sketchbooks
-onMounted(() => {
-  fetchSketchbooks();
+onMounted(async () => {
+  const { data: userData, error } = await supabase.auth.getUser();
+  if (error || !userData) {
+    toastError({ title: 'Error', description: 'User is not authenticated!' });
+  } else {
+    authenticatedUser.value = userData.user;
+    await fetchSketchbooks();
+  }
 });
 </script>
 
@@ -529,13 +547,13 @@ h3 {
   background-color: #fdf5e6;
 }
 
-.sketchbooks-header{
+.sketchbooks-header {
   display: flex;
   justify-content: flex;
   align-items: center;
 }
 
-.add-sketchbook-button{
+.add-sketchbook-button {
   display: flex;
   justify-content: flex-end;
 }
