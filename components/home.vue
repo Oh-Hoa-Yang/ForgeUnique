@@ -115,6 +115,14 @@
 </template>
 
 <script setup>
+const user = useSupabaseUser();
+
+if (user.value) {
+  console.log("User is authenticated:", user.value);
+} else {
+  console.log("User is not authenticated.");
+}
+
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppToast } from '~/composables/useAppToast';
