@@ -183,6 +183,7 @@ const selectTool = (selectedTool) => {
     signatureOptions.value.penColor = '#FFF'; // Set to white (eraser effect)
   }
 };
+
 // Pagination controls
 const paginatedSketchbooks = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value;

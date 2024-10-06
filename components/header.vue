@@ -41,6 +41,10 @@
           <ion-icon :icon="progressIcon" class="menu-icon" /> 
           Progress
         </button>
+        <button @click="logout">
+          <ion-icon :icon="logoutIcon" class="menu-icon" /> 
+          Logout
+        </button>
       </div>
     </div>
   </div>
@@ -50,8 +54,11 @@
 import { useRouter } from 'vue-router';
 import { IonIcon } from '@ionic/vue';
 import { menuOutline as menuIcon } from 'ionicons/icons';
-import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon } from 'ionicons/icons';
+import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
+import { useAppToast } from '~/composables/useAppToast';
 
+const supabase = useSupabaseClient();
+const { toastError, toastSuccess } = useAppToast();
 const router = useRouter();
 const menuVisible = ref(false);
 
@@ -69,6 +76,22 @@ const closeMenu = () => {
 const navigateToPage = (path) => {
   menuVisible.value = false; // Close menu on navigation
   router.push(path);
+};
+
+// Logout function
+const logout = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toastError({ title: 'Error', description: 'Failed to log out!' });
+    } else {
+      toastSuccess({ title: 'Logged out', description: 'Successfully logged out!' });
+      router.push('/login'); // Redirect to login page after logout
+    }
+  } catch (e) {
+    toastError({ title: 'Error', description: 'An error occurred while logging out!' });
+    console.error('Error logging out:', e);
+  }
 };
 </script>
 
