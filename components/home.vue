@@ -1,5 +1,5 @@
 <template>
-  <ion-content v-if="authenticatedUser" class="custom-background">
+  <ion-content class="custom-background">
     <div class="container">
       <!-- Expense and To-Do List Sections (first row) -->
       <div class="row">
@@ -109,20 +109,9 @@
       </div>
     </div>
   </ion-content>
-  <ion-content v-else class="custom-background">
-    <p>NOT AUTH</p>
-  </ion-content>
 </template>
 
 <script setup>
-const user = useSupabaseUser();
-
-if (user.value) {
-  console.log("User is authenticated:", user.value);
-} else {
-  console.log("User is not authenticated.");
-}
-
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppToast } from '~/composables/useAppToast';
