@@ -7,9 +7,9 @@
         <button class="expense-button" @click="navigateToPage('/expensehome')">
           <div class="expense">
             <h3 style="text-align: center; font-weight: bold;">Expense</h3>
-            <p><b>Monthly Budget:</b> {{ monthlyBudget }} MYR</p>
-            <p><b>Total Monthly Expenses:</b> {{ totalExpenses }} MYR</p>
-            <p><b>Today Expenses:</b> {{ todayExpenses }} MYR</p>
+            <p><b>Monthly Budget:</b> <br>{{ monthlyBudget }} MYR</p><br>
+            <p><b>Total Monthly Expenses:</b><br> {{ totalExpenses }} MYR</p><br>
+            <p><b>Today Expenses:</b> <br>{{ todayExpenses }} MYR</p>
           </div>
         </button>
 
@@ -27,7 +27,7 @@
         </div>
       </div>
 
-      <!-- Sketching Plan Section (second row) -->
+      <!-- Sketching Plan Section -->
       <div class="sketch-plan">
         <h3>Sketching Plan</h3>
 
@@ -46,10 +46,15 @@
         <!-- Sketchbook List and Create Button -->
         <div v-if="!selectedSketch">
           <div class="sketchbooks">
-            <h4>Available Sketchbooks</h4>
+            <div class="sketchbooks-header">
+              <h4>Available Sketchbooks</h4>
+              <button @click="openModal" class="add-sketchbook-button">+</button>
+            </div>
             <ul>
-              <li v-for="sketch in paginatedSketchbooks" :key="sketch.id" :class="{ active: selectedSketch === sketch.id }" @click="selectSketchbook(sketch)">
-                {{ sketch.title }}
+              <li v-for="sketch in paginatedSketchbooks" :key="sketch.id" :class="{ active: selectedSketch === sketch.id }">
+                <span @click="selectSketchbook(sketch)">
+                  {{ sketch.title }}
+                </span>
                 <div class="action-buttons">
                   <button @click.stop="openEditModal(sketch)">✏️</button>
                   <button @click.stop="deleteSketchbook(sketch.id)">❌</button>
@@ -60,13 +65,33 @@
             <div class="pagination-controls">
               <button @click="previousPage" :disabled="currentPage === 1">Previous</button>
               <span>Page {{ currentPage }} of {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
-            </div>
-
-            <div class="create-button">
-              <button @click="openModal">+</button>
+              <button @click="nextSketchbookPage" :disabled="currentPage === totalPages">Next</button>
             </div>
           </div>
+        </div>
+
+        <!-- Sketching Canvas Section -->
+        <div v-if="selectedSketch" class="canvas-container">
+          <h4>Sketchbook: {{ selectedSketch.title }} (Page {{ currentPageNumber }})</h4>
+
+          <!-- Tool Selection -->
+          <div class="tool-selection">
+            <button @click="selectTool('pencil')">✏️ Pencil</button>
+            <button @click="selectTool('eraser')">🧽 Eraser</button>
+          </div>
+
+          <div class="canvas-controls">
+            <button @click="prevPage">Previous Page</button>
+            <button @click="nextSketchPage">Next Page</button>
+            <button @click="undoAction">Undo</button>
+            <button @click="redoAction">Redo</button>
+            <button @click="saveCanvas">Save</button>
+            <button @click="clearCanvas">Clear</button>
+            <button @click="backToSketchbookList">Back</button>
+          </div>
+
+          <!-- Sketch Canvas -->
+          <vue-signature :options="signatureOptions" ref="signaturePad" @end="onSketchEnd" class="signature-canvas" />
         </div>
 
         <!-- Modal for editing a sketchbook title -->
@@ -86,9 +111,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppToast } from '~/composables/useAppToast';
+import VueSignature from 'vue3-signature';
 
 const { toastError, toastSuccess } = useAppToast();
 
@@ -108,6 +134,21 @@ const showModal = ref(false);
 const showEditModal = ref(false);
 const editedSketchbook = ref(null);
 const editedSketchbookTitle = ref('');
+const sketchPages = ref([]); // Pages in the selected sketchbook
+const selectedPageActions = ref([]); // Actions for the selected page
+
+const undoStack = ref([]); // Store sketch actions for undo
+const redoStack = ref([]); // Store redo actions
+const signaturePad = ref(null); // Reference for signature pad
+const tool = ref('pencil'); // Selected tool (pencil/eraser)
+
+// Signature pad options
+const signatureOptions = ref({
+  backgroundColor: '#FFF',
+  penColor: 'black',  // Default color for pencil
+  width: 728,  // Match the container's full width
+  height: 550  // Make the height taller to occupy more space
+});
 
 const supabase = useSupabaseClient();
 const router = useRouter();
@@ -133,6 +174,16 @@ const closeEditModal = () => {
   editedSketchbookTitle.value = '';
 };
 
+// Tool selection
+const selectTool = (selectedTool) => {
+  tool.value = selectedTool;
+  if (selectedTool === 'pencil') {
+    signatureOptions.value.penColor = 'black'; // Set to pencil color
+  } else if (selectedTool === 'eraser') {
+    signatureOptions.value.penColor = '#FFF'; // Set to white (eraser effect)
+  }
+};
+// Pagination controls
 const paginatedSketchbooks = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value;
   const end = start + itemsPerPage.value;
@@ -145,7 +196,7 @@ const previousPage = () => {
   }
 };
 
-const nextPage = () => {
+const nextSketchbookPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
@@ -160,6 +211,23 @@ const fetchUser = async () => {
   return data.user;
 };
 
+// Fetch sketchbooks
+const fetchSketchbooks = async () => {
+  const { data, error } = await supabase
+    .from('Sketches')
+    .select('*')
+    .order('title', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching sketchbooks:', error);
+    return;
+  }
+
+  sketchbooks.value = data;
+  totalPages.value = Math.ceil(sketchbooks.value.length / itemsPerPage.value);
+};
+
+// Sketchbook operations
 const createSketchbook = async () => {
   const user = await fetchUser();
 
@@ -225,26 +293,125 @@ const editSketchbookTitle = async () => {
   }
 };
 
-const selectSketchbook = (sketch) => {
+// Select a sketchbook and load its pages
+const selectSketchbook = async (sketch) => {
   selectedSketch.value = sketch;
-  currentPageNumber.value = 1; 
-};
+  undoStack.value = []; // Clear previous undo actions
+  redoStack.value = []; // Clear previous redo actions
 
-const fetchSketchbooks = async () => {
-  const { data, error } = await supabase
-    .from('Sketches')
+  // Load pages for the selected sketchbook
+  const { data: pages, error } = await supabase
+    .from('SketchPages')
     .select('*')
-    .order('title', { ascending: true });
+    .eq('sketch_id', sketch.id)
+    .order('page_number', { ascending: true });
 
   if (error) {
-    console.error('Error fetching sketchbooks:', error);
+    toastError({ title: 'Error', description: 'Failed to load sketch pages!' });
     return;
   }
 
-  sketchbooks.value = data;
-  totalPages.value = Math.ceil(sketchbooks.value.length / itemsPerPage.value);
+  sketchPages.value = pages;
+  if (sketchPages.value.length > 0) {
+    currentPageNumber.value = 1;
+    await loadPageActions(sketchPages.value[0].id); // Load actions for the first page
+  }
 };
 
+// Load actions for a specific page
+const loadPageActions = async (sketchpage_id) => {
+  const { data: actions, error } = await supabase
+    .from('PageActions')
+    .select('*')
+    .eq('sketchpage_id', sketchpage_id);
+
+  if (error) {
+    toastError({ title: 'Error', description: 'Failed to load page actions!' });
+    return;
+  }
+
+  selectedPageActions.value = actions.length > 0 ? JSON.parse(actions[0].actionData) : [];
+  signaturePad.value.fromData(selectedPageActions.value); // Load sketch data into the canvas
+};
+
+// Navigate to previous page
+const prevPage = async () => {
+  if (currentPageNumber.value > 1) {
+    currentPageNumber.value--;
+    const previousPage = sketchPages.value[currentPageNumber.value - 1];
+    await loadPageActions(previousPage.id); // Load previous page actions
+  }
+};
+
+// Navigate to next page
+const nextSketchPage = async () => {
+  if (currentPageNumber.value < sketchPages.value.length) {
+    currentPageNumber.value++;
+    const nextPage = sketchPages.value[currentPageNumber.value - 1];
+    await loadPageActions(nextPage.id); // Load next page actions
+  }
+};
+
+// Canvas sketching functions
+const onSketchEnd = () => {
+  const data = signaturePad.value.toData(); // Capture current sketch
+  undoStack.value.push(data); // Save action for undo
+  redoStack.value = []; // Clear redo stack after a new action
+};
+
+const undoAction = () => {
+  if (undoStack.value.length > 0) {
+    const lastAction = undoStack.value.pop(); // Remove last action
+    redoStack.value.push(lastAction); // Save it for redo
+    signaturePad.value.fromData(undoStack.value); // Re-render canvas without the last action
+  }
+};
+
+const redoAction = () => {
+  if (redoStack.value.length > 0) {
+    const redoAction = redoStack.value.pop(); // Get last undone action
+    undoStack.value.push(redoAction); // Re-add it to the actions
+    signaturePad.value.fromData(undoStack.value); // Re-render canvas
+  }
+};
+
+const saveCanvas = async () => {
+  const user = await fetchUser();
+  if (!user || !selectedSketch.value || sketchPages.value.length === 0) {
+    toastError({ title: 'Error', description: 'User or Sketchbook not found!' });
+    return;
+  }
+
+  const currentPage = sketchPages.value[currentPageNumber.value - 1];
+  const sketchData = JSON.stringify(undoStack.value); // Convert the sketch actions to JSON
+
+  try {
+    const { data, error } = await supabase
+      .from('PageActions')
+      .upsert([{ sketchpage_id: currentPage.id, actionData: sketchData, user_id: user.id }], { onConflict: ['sketchpage_id'] });
+
+    if (error) {
+      toastError({ title: 'Error', description: 'Failed to save sketch!' });
+    } else {
+      toastSuccess({ title: 'Saved', description: 'Sketch saved successfully!' });
+    }
+  } catch (e) {
+    console.error('Error saving canvas:', e);
+    toastError({ title: 'Error', description: 'An error occurred while saving the sketch.' });
+  }
+};
+
+const clearCanvas = () => {
+  signaturePad.value.clear(); // Clear the canvas
+  undoStack.value = []; // Reset undo stack
+  redoStack.value = []; // Reset redo stack
+};
+
+const backToSketchbookList = () => {
+  selectedSketch.value = null;
+};
+
+// On mounted, fetch the list of sketchbooks
 onMounted(() => {
   fetchSketchbooks();
 });
@@ -312,10 +479,23 @@ onMounted(() => {
   padding: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  height: 60%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+.canvas-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.signature-canvas {
+  width: 100%;
+  height: 550px;
+  border: 1px solid #ccc;
 }
 
 h3 {
@@ -348,18 +528,28 @@ h3 {
   background-color: #fdf5e6;
 }
 
+.sketchbooks-header{
+  display: flex;
+  justify-content: flex;
+  align-items: center;
+}
+
+.add-sketchbook-button{
+  display: flex;
+  justify-content: flex-end;
+}
+
 .action-buttons {
   display: flex;
   gap: 8px;
 }
 
-.action-buttons button {
-  background: none;
-  border: none;
-  cursor: pointer;
+.canvas-controls {
+  display: flex;
+  gap: 10px;
 }
 
-.page-navigation {
+.pagination-controls {
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
