@@ -1,5 +1,5 @@
 <template>
-  <ion-content class="custom-background">
+  <ion-content v-if="authenticatedUser" class="custom-background">
     <div class="container">
       <!-- Expense and To-Do List Sections (first row) -->
       <div class="row">
@@ -108,6 +108,9 @@
         </div>
       </div>
     </div>
+  </ion-content>
+  <ion-content v-else class="custom-background">
+    <p>NOT AUTH</p>
   </ion-content>
 </template>
 
