@@ -143,7 +143,7 @@ const redoStack = ref([]); // Store redo actions
 const signaturePad = ref(null); // Reference for signature pad
 const tool = ref('pencil'); // Selected tool (pencil/eraser)
 
-let authenticatedUser = ref(null);
+const user = useSupabaseUser()
 
 // Signature pad options
 const signatureOptions = ref({
@@ -154,13 +154,8 @@ const signatureOptions = ref({
 });
 
 const supabase = useSupabaseClient();const session = await supabase.auth.getSession();
-if (session) {
-  authenticatedUser.value = session.user;
-}
 
 const router = useRouter();
-
-
 
 const openModal = () => {
   showModal.value = true;
@@ -223,21 +218,21 @@ const fetchUser = async () => {
 
 // Modify the fetchSketchbooks function
 const fetchSketchbooks = async () => {
-  if (!authenticatedUser.value) {
+  if (!user.value) {
     // Fetch the authenticated user again
     const { data: userData, error } = await supabase.auth.getUser();
     if (error || !userData) {
       toastError({ title: 'Error', description: 'User is not authenticated!' });
       return;
     }
-    authenticatedUser.value = userData.user;
+    user.value = userData.user;
   }
 
   try {
     const { data, error } = await supabase
       .from('Sketches')
       .select('*')
-      .eq('user_id', authenticatedUser.value.id) // Fetch sketches only for the current user
+      .eq('user_id', user.value.id) // Fetch sketches only for the current user
       .order('title', { ascending: true });
 
     if (error) {
@@ -253,14 +248,14 @@ const fetchSketchbooks = async () => {
 
 // Modify the createSketchbook function
 const createSketchbook = async () => {
-  if (!authenticatedUser.value) {
+  if (!user.value) {
     // Fetch the authenticated user again
     const { data: userData, error } = await supabase.auth.getUser();
     if (error || !userData) {
       toastError({ title: 'Error', description: 'User is not authenticated!' });
       return;
     }
-    authenticatedUser.value = userData.user;
+    user.value = userData.user;
   }
 
   if (!newSketchbookTitle.value) {
@@ -271,7 +266,7 @@ const createSketchbook = async () => {
   try {
     const { data, error } = await supabase
       .from('Sketches')
-      .insert([{ title: newSketchbookTitle.value, user_id: authenticatedUser.value.id }]);
+      .insert([{ title: newSketchbookTitle.value, user_id: user.value.id }]);
 
     if (error) {
       toastError({ title: 'Error', description: 'Failed to create sketchbook!' });
@@ -445,16 +440,16 @@ const backToSketchbookList = () => {
 
 // On mounted, fetch the list of sketchbooks
 onMounted(async () => {
-  if (!authenticatedUser.value) {
+  if (!user.value) {
     const { data: userData, error } = await supabase.auth.getUser();
     if (error || !userData) {
       toastError({ title: 'Error', description: 'User is not authenticated!' });
     } else {
-      authenticatedUser.value = userData.user;
+      user.value = userData.user;
     }
   }
   // Fetch sketchbooks only after ensuring user is authenticated
-  if (authenticatedUser.value) {
+  if (user.value) {
     await fetchSketchbooks();
   }
 });
