@@ -86,6 +86,7 @@ const logout = async () => {
       toastError({ title: 'Error', description: 'Failed to log out!' });
     } else {
       toastSuccess({ title: 'Logged out', description: 'Successfully logged out!' });
+      reloadNuxtApp();
       router.push('/login'); // Redirect to login page after logout
     }
   } catch (e) {
