@@ -153,8 +153,14 @@ const signatureOptions = ref({
   height: 550  // Make the height taller to occupy more space
 });
 
-const supabase = useSupabaseClient();
+const supabase = useSupabaseClient();const session = await supabase.auth.getSession();
+if (session) {
+  authenticatedUser.value = session.user;
+}
+
 const router = useRouter();
+
+
 
 const openModal = () => {
   showModal.value = true;
