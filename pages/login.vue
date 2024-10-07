@@ -35,6 +35,11 @@ const email = ref('');
 const password = ref('');
 const { toastError, toastSuccess } = useAppToast();
 
+definePageMeta({
+  middleware: 'auth'
+})
+
+
 const handleLogin = async () => {
   const supabase = useSupabaseClient();
 
