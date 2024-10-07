@@ -6,6 +6,9 @@ export default defineNuxtConfig({
   plugins: ['plugins/signature.js'],
 
   supabase: {
+    url: "https://otqcodzxgjtfswxviqtx.supabase.co",
+    key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90cWNvZHp4Z2p0ZnN3eHZpcXR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjA4MzY4MzEsImV4cCI6MjAzNjQxMjgzMX0.9fXj-L3eKobdQHbReueKkE09i67x158eBLQgoP2bSZY",
+    serviceKey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90cWNvZHp4Z2p0ZnN3eHZpcXR4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyMDgzNjgzMSwiZXhwIjoyMDM2NDEyODMxfQ.ie8JNpPBpD1hcTYx69QwKKp9oBqsrMPEBJwstH-PCrg",
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
