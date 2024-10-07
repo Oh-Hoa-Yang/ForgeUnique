@@ -153,7 +153,7 @@ const signatureOptions = ref({
   height: 550  // Make the height taller to occupy more space
 });
 
-const supabase = useSupabaseClient();const session = await supabase.auth.getSession();
+const supabase = useSupabaseClient(); const session = await supabase.auth.getSession();
 
 const router = useRouter();
 
@@ -266,7 +266,7 @@ const createSketchbook = async () => {
   try {
     const { data, error } = await supabase
       .from('Sketches')
-      .insert([{ title: newSketchbookTitle.value, user_id: user.value.id }]);
+      .insert([{ title: newSketchbookTitle.value }]);
 
     if (error) {
       toastError({ title: 'Error', description: 'Failed to create sketchbook!' });
