@@ -440,19 +440,13 @@ const backToSketchbookList = () => {
 
 // On mounted, fetch the list of sketchbooks
 onMounted(async () => {
-  if (!user.value) {
-    const { data: userData, error } = await supabase.auth.getUser();
-    if (error || !userData) {
-      toastError({ title: 'Error', description: 'User is not authenticated!' });
-    } else {
-      user.value = userData.user;
-    }
+  const { data: session, error } = await supabase.auth.getSession();
+  if (error) {
+    console.error("Error retrieving session:", error);
   }
-  // Fetch sketchbooks only after ensuring user is authenticated
-  if (user.value) {
-    await fetchSketchbooks();
-  }
+  console.log("Session in homepage:", session);
 });
+
 </script>
 
 <style scoped>
