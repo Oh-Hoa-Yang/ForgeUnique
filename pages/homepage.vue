@@ -24,6 +24,12 @@ definePageMeta({
 })
 
 const supabase = useSupabaseClient();
+
+// Ensure session is available when navigating to the homepage
 const { data: session, error } = await supabase.auth.getSession();
-console.log(session); 
+if (error || !session) {
+  console.error("Session error:", error);
+} else {
+  console.log("Session is:", session);
+}
 </script>
