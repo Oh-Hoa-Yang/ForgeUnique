@@ -42,15 +42,20 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, onMounted } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';
 
-// Initialize passcode
+// Initialize Supabase client and user
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();  // Retrieve logged-in user directly here
+
+// Logging user information for debugging
+console.log('Logged in user:', user.value);
+
 const passcode = ref(['', '', '', '', '', '']);
 let currentIndex = ref(0);
 
-// Use toast for notifications
 const { toastError, toastSuccess } = useAppToast();
 
 const inputFields = []; // Store input fields as an array of refs
@@ -92,20 +97,16 @@ const checkPasscode = async () => {
   const enteredPasscode = passcode.value.join('');  // Join the digits to form the passcode
   const hashedPasscode = CryptoJS.SHA256(enteredPasscode).toString();  // Hash the passcode using SHA256
 
-  const user = useSupabaseUser();  // Get the current logged-in user
-
   if (!user.value) {
     toastError({ title: 'Error', description: 'No user logged in' });
     return;
   }
 
-  const supabase = useSupabaseClient();
-
   // Query Supabase to get the stored hashed passcode for the logged-in user
   const { data, error } = await supabase
     .from('Users')
     .select('passcode')
-    .eq('user_id', user.value.id);
+    .eq('user_id', user.value.id);  // Use user.value.id directly
 
   if (error) {
     toastError({ title: 'Error', description: `Error fetching passcode: ${error.message}` });

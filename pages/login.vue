@@ -29,20 +29,20 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router'; 
 import { useAppToast } from '~/composables/useAppToast';  // Assuming you have a toast function for notifications
 
 const email = ref('');
 const password = ref('');
 const { toastError, toastSuccess } = useAppToast();
+const supabase = useSupabaseClient();  // Initialize supabase once
+const router = useRouter();  // Initialize router
 
-definePageMeta({
-  middleware: 'auth'
-})
-
+// Remove the getSession call here, since we don't need it in the login page
+// Session should be checked after login success
 
 const handleLogin = async () => {
-  const supabase = useSupabaseClient();
-
   // Ensure both email and password are filled
   if (!email.value || !password.value) {
     toastError({ title: 'Error', description: 'Email and password are required.' });
@@ -63,8 +63,8 @@ const handleLogin = async () => {
   else if (user) {
     toastSuccess({ title: 'Success', description: 'Logged in successfully!' });
 
-    navigateTo('/'); // Navigate to index.vue
-    // window.location.reload();  // Force page reload after redirect
+    // Redirect the user to homepage or index page
+    router.push('/');  // Use router.push() to navigate to the home page
   }
 };
 </script>
@@ -72,10 +72,7 @@ const handleLogin = async () => {
 <style scoped>
 .center-img,
 ion-item,
-ion-button
-
-/* hr  */
-  {
+ion-button {
   display: block;
   margin-left: auto;
   margin-right: auto;
