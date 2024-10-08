@@ -18,4 +18,12 @@
 import Home from '~/components/home.vue';
 import Header from '~/components/header.vue';
 import Footer from '~/components/footer.vue';
+
+definePageMeta({
+  middleware: 'auth'
+})
+
+const supabase = useSupabaseClient();
+const { data: session, error } = await supabase.auth.getSession();
+console.log(session); 
 </script>

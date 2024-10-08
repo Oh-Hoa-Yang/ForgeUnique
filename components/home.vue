@@ -266,7 +266,7 @@ const createSketchbook = async () => {
   try {
     const { data, error } = await supabase
       .from('Sketches')
-      .insert([{ title: newSketchbookTitle.value }]);
+      .insert([{ title: newSketchbookTitle.value, user_id: user.value.id }]);
 
     if (error) {
       toastError({ title: 'Error', description: 'Failed to create sketchbook!' });
