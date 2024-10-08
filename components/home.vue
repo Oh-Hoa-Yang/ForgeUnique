@@ -143,7 +143,11 @@ const redoStack = ref([]); // Store redo actions
 const signaturePad = ref(null); // Reference for signature pad
 const tool = ref('pencil'); // Selected tool (pencil/eraser)
 
+//Initialize the user 
+const supabase = useSupabaseClient(); 
 const user = useSupabaseUser()
+// Logging user information for debugging
+console.log('Session of the user:', user.value);
 
 // Signature pad options
 const signatureOptions = ref({
@@ -153,7 +157,7 @@ const signatureOptions = ref({
   height: 550  // Make the height taller to occupy more space
 });
 
-const supabase = useSupabaseClient(); const session = await supabase.auth.getSession();
+const session = await supabase.auth.getSession();
 
 const router = useRouter();
 
@@ -439,13 +443,13 @@ const backToSketchbookList = () => {
 };
 
 // On mounted, fetch the list of sketchbooks
-onMounted(async () => {
-  const { data: session, error } = await supabase.auth.getSession();
-  if (error) {
-    console.error("Error retrieving session:", error);
-  }
-  console.log("Session in homepage:", session);
-});
+// onMounted(async () => {
+//   const { data: session, error } = await supabase.auth.getSession();
+//   if (error) {
+//     console.error("Error retrieving session:", error);
+//   }
+//   console.log("Session in homepage:", session);
+// });
 
 </script>
 
