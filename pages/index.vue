@@ -46,6 +46,8 @@ import { ref, nextTick, onMounted } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';
 
+const router = useRouter();  // Initialize router
+
 // Initialize Supabase client and user
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();  // Retrieve logged-in user directly here
@@ -115,7 +117,7 @@ const checkPasscode = async () => {
 
   if (data && data.length > 0 && data[0].passcode === hashedPasscode) {
     toastSuccess({ title: 'Success', description: 'Passcode verified!' });
-    navigateTo('/homepage');  // Redirect to home upon successful verification
+    router.push('/homepage');  // Redirect to home upon successful verification
   } else {
     toastError({ title: 'Incorrect Passcode', description: 'The passcode you entered is incorrect. Please try again!' });
     resetPasscode();  // Reset the passcode if incorrect

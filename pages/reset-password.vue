@@ -53,7 +53,7 @@ const resetPassword = async () => {
     toastError({ title: 'Error', description: 'Failed to reset password.' });
   } else {
     toastSuccess({ title: 'Success', description: 'Password reset successfully!' });
-    navigateTo('/login');
+    router.push('/login');
   }
 };
 </script>

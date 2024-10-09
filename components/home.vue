@@ -4,7 +4,7 @@
       <!-- Expense and To-Do List Sections (first row) -->
       <div class="row">
         <!-- Expense Section (Button Behavior) -->
-        <button class="expense-button" @click="navigateToPage('/expensehome')">
+        <button class="expense-button" @click="router.push('/expensehome')">
           <div class="expense">
             <h3 style="text-align: center; font-weight: bold;">Expense</h3>
             <p><b>Monthly Budget:</b> <br>{{ monthlyBudget }} MYR</p><br>
@@ -113,7 +113,6 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRouter } from 'vue-router';
 import { useAppToast } from '~/composables/useAppToast';
 import VueSignature from 'vue3-signature';
 
@@ -156,8 +155,6 @@ const signatureOptions = ref({
   width: 728,  // Match the container's full width
   height: 550  // Make the height taller to occupy more space
 });
-
-const session = await supabase.auth.getSession();
 
 const router = useRouter();
 
@@ -217,6 +214,7 @@ const fetchUser = async () => {
     console.error('Error fetching user:', error);
     return null;
   }
+  console.log('Fetched User ID:', data.user.id); // Log the user ID
   return data.user;
 };
 
@@ -227,9 +225,16 @@ const fetchSketchbooks = async () => {
     const { data: userData, error } = await supabase.auth.getUser();
     if (error || !userData) {
       toastError({ title: 'Error', description: 'User is not authenticated!' });
+      console.error('Authentication error:', error); // Log the error for debugging 
       return;
     }
     user.value = userData.user;
+  }
+
+  if (!user.value || !user.value.id){
+    console.error('User ID is missing:',user.value);
+    toastError({title:'Error',description:'User ID is not available'}); 
+    return;
   }
 
   try {
@@ -240,6 +245,7 @@ const fetchSketchbooks = async () => {
       .order('title', { ascending: true });
 
     if (error) {
+      console.error('Supabase fetch error:', error); // More detailed error logging 
       toastError({ title: 'Error', description: 'Failed to fetch sketchbooks!' });
     } else {
       sketchbooks.value = data;

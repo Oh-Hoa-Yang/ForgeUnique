@@ -22,6 +22,7 @@
 
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
+const router = useRouter();  // Initialize router
 
 const password = ref('');
 const { toastError, toastSuccess } = useAppToast();
@@ -51,7 +52,7 @@ const checkPassword = async () => {
     toastError({ title: 'Incorrect Password', description: 'The password you entered is incorrect. Please try again!' });
   } else {
     toastSuccess({ title: 'Success', description: 'Password verified! Redirecting...' });
-    navigateTo('/reset-passcode');  // Redirect to reset passcode page
+    router.push('/reset-passcode');  // Redirect to reset passcode page
   }
 };
 </script>

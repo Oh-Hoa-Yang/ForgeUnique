@@ -31,6 +31,7 @@
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';  // For Hashing 
+const router = useRouter();  // Initialize router
 
 const newPasscode = ref('');
 const confirmPasscode = ref('');
@@ -90,7 +91,7 @@ const resetPasscode = async () => {
       toastError({ title: 'Error', description: `Failed to reset passcode: ${error.message}` });
     } else {
       toastSuccess({ title: 'Success', description: 'Passcode has been reset!' });
-      navigateTo('/');  // Redirect user to index page after successful reset
+      router.push('/');  // Redirect user to index page after successful reset
     }
   } catch (err) {
     console.error("Unexpected error: ", err);
