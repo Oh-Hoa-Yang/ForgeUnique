@@ -1,15 +1,9 @@
 <template>
-  <!-- Main Page with Content -->
   <ion-page id="main-content">
-    <!-- Header Component -->
     <Header />
-
-    <!-- Main Content (imported component) -->
     <ion-content>
       <Calendar />
     </ion-content>
-
-    <!-- Footer Component -->
     <Footer />
   </ion-page>
 </template>

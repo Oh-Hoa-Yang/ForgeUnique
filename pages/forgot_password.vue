@@ -11,14 +11,15 @@
         </ion-item>
         <ion-button style="width: 100%;" type="submit" class="custom-button">Send Reset Link</ion-button>
       </form>
-        <a style="text-align:center; color:#FD8395;" href="/login">
-          <p>Sign in or Sign up</p>
-        </a>
+      <a style="text-align:center; color:#FD8395;" href="/login">
+        <p>Sign in or Sign up</p>
+      </a>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
 
 const email = ref('');
@@ -32,9 +33,8 @@ const sendResetLink = async () => {
     return;
   }
 
-  // Supabase's built-in API for sending password reset emails
   const { error } = await supabase.auth.resetPasswordForEmail(email.value, {
-    redirectTo: 'http://localhost:3000/reset-password'  // Your reset password page /
+    redirectTo: 'http://localhost:3000/reset-password',
   });
 
   if (error) {
@@ -48,8 +48,7 @@ const sendResetLink = async () => {
 <style scoped>
 .center-img,
 ion-item,
-ion-button
-{
+ion-button {
   display: block;
   margin-left: auto;
   margin-right: auto;

@@ -29,9 +29,10 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
-import CryptoJS from 'crypto-js';  // For Hashing 
-const router = useRouter();  // Initialize router
+import CryptoJS from 'crypto-js'; 
+const router = useRouter(); 
 
 const newPasscode = ref('');
 const confirmPasscode = ref('');
@@ -39,28 +40,25 @@ const { toastError, toastSuccess } = useAppToast();
 const passcodeError = ref(null);
 
 const validatePasscode = (passcode) => {
-  return /^\d{6}$/.test(passcode);  // Ensure exactly 6 digits
+  return /^\d{6}$/.test(passcode);  
 };
 
 const resetPasscode = async () => {
   const supabase = useSupabaseClient();
   const user = useSupabaseUser();
 
-  // Step 1: Check if user is logged in
   if (!user.value) {
     toastError({ title: 'Error', description: 'No user logged in.' });
     return;
   }
   
-  console.log("User Info: ", user.value); // Debugging the user details
+  console.log("User Info: ", user.value); 
   
-  // Step 2: Check if passcode fields are filled
   if (!newPasscode.value || !confirmPasscode.value) {
     toastError({ title: 'Error', description: 'Both fields are required.' });
     return;
   }
 
-  // Step 3: Validate passcode
   passcodeError.value = null;
   
   if (!validatePasscode(newPasscode.value)) {
@@ -75,23 +73,21 @@ const resetPasscode = async () => {
     return;
   }
 
-  // Step 4: Hash the passcode before storing
   const hashedPasscode = CryptoJS.SHA256(newPasscode.value).toString();
 
-  // Step 5: Update the passcode in the Users table
   try {
     const { data, error } = await supabase
-      .from('Users')  // Assuming your public table is named 'Users'
+      .from('Users')
       .update({ passcode: hashedPasscode })
       .eq('user_id', user.value.id);
 
-    console.log("Supabase Response: ", data, error); // Debugging the result
+    console.log("Supabase Response: ", data, error); 
 
     if (error) {
       toastError({ title: 'Error', description: `Failed to reset passcode: ${error.message}` });
     } else {
       toastSuccess({ title: 'Success', description: 'Passcode has been reset!' });
-      router.push('/');  // Redirect user to index page after successful reset
+      router.push('/');  
     }
   } catch (err) {
     console.error("Unexpected error: ", err);

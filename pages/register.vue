@@ -9,7 +9,6 @@
             <ion-input v-model="email" name="email" type="email" placeholder="Please enter your email"
               style="font-style:italic" required></ion-input>
           </ion-item>
-
           <ion-item>
             <ion-label position="stacked">Password</ion-label>
             <ion-input v-model="password" name="password" type="password" placeholder="Please enter your password"
@@ -71,136 +70,126 @@
 </template>
 
 <script setup>
-import { useAppToast } from '~/composables/useAppToast'
-import CryptoJS from 'crypto-js'
+import { ref } from 'vue';
+import { useAppToast } from '~/composables/useAppToast';
+import CryptoJS from 'crypto-js';
 
-const success = ref(false)
-const pending = ref(false)
-const { toastError, toastSuccess } = useAppToast()
-const supabase = useSupabaseClient()
+const success = ref(false);
+const pending = ref(false);
+const { toastError, toastSuccess } = useAppToast();
+const supabase = useSupabaseClient();
 
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const passcode = ref('')
-const confirmPasscode = ref('')
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+const passcode = ref('');
+const confirmPasscode = ref('');
 
-// Use for the error shown below the user inputs -> password and passcode 
-const passwordError = ref(null)
-const passcodeError = ref(null)
+// Error messages
+const passwordError = ref(null);
+const passcodeError = ref(null);
 
-// Set the rules to validate the password -> min (8 length, 1 upper letter, 1 lower letter, and a symbol)
+// Password validation
 const validatePassword = (password) => {
-  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-  return regex.test(password)
-}
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  return regex.test(password);
+};
 
-// Set the rules to validate the passcode -> exactly 6 digits needed
+// Passcode validation
 const validatePasscode = (passcode) => {
-  return /^\d{6}$/.test(passcode)
-}
+  return /^\d{6}$/.test(passcode);
+};
 
 const handleRegister = async () => {
   if (pending.value) return;  // Prevent multiple requests if one is already in progress
   
-  passwordError.value = null
-  passcodeError.value = null
+  passwordError.value = null;
+  passcodeError.value = null;
 
   // Validate password rules
   if (!validatePassword(password.value)) {
-    const errorMessage = 'Password must be at least 8 characters long, and include an uppercase letter, a lowercase letter, a number, and a special character.'
-    passwordError.value = errorMessage
-    toastError({ title: 'Password Error', description: errorMessage })
-    return
+    const errorMessage = 'Password must be at least 8 characters long, and include an uppercase letter, a lowercase letter, a number, and a special character.';
+    passwordError.value = errorMessage;
+    toastError({ title: 'Password Error', description: errorMessage });
+    return;
   }
 
-  // Check if password and confirm password match
+  // Password match check
   if (password.value !== confirmPassword.value) {
-    const errorMessage = 'Passwords do not match.'
-    toastError({ title: 'Password Error', description: errorMessage })
-    return
+    toastError({ title: 'Password Error', description: 'Passwords do not match.' });
+    return;
   }
   
   // Validate passcode rules
   if (!validatePasscode(passcode.value)) {
-    const errorMessage = 'Passcode must be exactly 6 digits.'
-    passcodeError.value = errorMessage
-    toastError({ title: 'Passcode Error', description: errorMessage })
-    return
+    const errorMessage = 'Passcode must be exactly 6 digits.';
+    passcodeError.value = errorMessage;
+    toastError({ title: 'Passcode Error', description: errorMessage });
+    return;
   }
 
-  // Check if passcode and confirm passcode match
+  // Passcode match check
   if (passcode.value !== confirmPasscode.value) {
-    const errorMessage = 'Passcodes do not match.'
-    toastError({ title: 'Passcode Error', description: errorMessage })
-    return
+    toastError({ title: 'Passcode Error', description: 'Passcodes do not match.' });
+    return;
   }
 
-  pending.value = true
+  pending.value = true;
 
   try {
-    // Register user using Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: email.value,
       password: password.value,
       options: {
-        emailRedirectTo: 'http://localhost:3000/login', // Deep Link scheme for the app - 'forgeunique://login'
+        emailRedirectTo: 'http://localhost:3000/login',
       },
-    })
+    });
 
     if (error) {
-      // Handle specific error for DUPLICATE email
       if (error.message.includes("already registered")) {
         toastError({ title: 'Registration Error', description: 'This email is already registered. Please use a different email.' });
-      } 
-      else {
+      } else {
         toastError({ title: 'Error sending email', description: error.message });
       }
       return;
     }
 
-
-    // Checks if the data.user object is available after the registration process with Supabase -- JUST FOR DEVELOPMENT
     if (!data.user) {
       toastError({ title: 'Unexpected Error', description: 'User data is not available after registration.' });
       return;
     }
 
-    // Hash the passcode using SHA-256
-    const hashedPasscode = CryptoJS.SHA256(passcode.value).toString()
-
-    // Insert hashed passcode into the `Users` table
+    const hashedPasscode = CryptoJS.SHA256(passcode.value).toString();
+    
     const { error: insertError } = await supabase
-      .from('Users')  // Users table in Supabase - {Table Editor}
+      .from('Users')  
       .insert({
-        user_id: data.user.id, //To match the user_id with the auth.id 
-        passcode: hashedPasscode,  // Store hashed passcode
-      })
+        user_id: data.user.id,
+        passcode: hashedPasscode,  
+      });
 
     if (insertError) {
-      toastError({ title: 'Registration Error', description: "This email is already registered. Please use a different email" })
-      console.error("Registration Error")
-      return
+      toastError({ title: 'Registration Error', description: "This email is already registered. Please use a different email" });
+      console.error("Registration Error");
+      return;
     }
 
-    success.value = true
+    success.value = true;
     toastSuccess({
       title: 'Registration Successful',
       description: 'A confirmation email has been sent. Please verify your email.'
-    })
+    });
 
-    // Redirect user to the registration page after 5 minutes 
     setTimeout(() => {
-      navigateTo('/login')
-    }, 5 * 60 * 1000)
+      navigateTo('/login');
+    }, 5 * 60 * 1000);
 
   } catch (err) {
-    toastError({ title: 'Unexpected Error', description: err.message })
+    toastError({ title: 'Unexpected Error', description: err.message });
   } finally {
-    pending.value = false
+    pending.value = false;
   }
-}
-
+};
 </script>
 
 <style scoped>
@@ -228,7 +217,7 @@ hr {
   --color: black;
 }
 
-/* for error message - validate password and passcode rules */
+/* for error message */
 .error-message {
   color: red;
   font-size: 12px;

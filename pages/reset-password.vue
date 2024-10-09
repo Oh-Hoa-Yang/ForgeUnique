@@ -25,6 +25,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
 
 const password = ref('');
@@ -34,7 +35,7 @@ const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
 
 const resetPassword = async () => {
-  const token = route.query.token;  // Get token from the URL query params
+  const token = route.query.token;  
 
   if (password.value !== confirmPassword.value) {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
@@ -43,10 +44,9 @@ const resetPassword = async () => {
 
   const supabase = useSupabaseClient();
 
-  // Reset password using the token from the email link
   const { error } = await supabase.auth.updateUser({
     password: password.value,
-    access_token: token  // Use the token to authenticate the user
+    access_token: token  
   });
 
   if (error) {

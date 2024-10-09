@@ -1,19 +1,18 @@
 <template>
-  <div>
-    Redirecting...
-  </div>
+  <div>Redirecting...</div>
 </template>
 
 <script setup>
-const user = useSupabaseUser()
+import { watch } from 'vue';
+const user = useSupabaseUser();
 
-watch (user, (user) => {
+watch(user, (user) => {
   if (user) {
-    console.log(message= 'Signed In!')
+    console.log('Signed In!');
   }
-}, { immediate: true})
+}, { immediate: true });
 </script>
 
 <style>
-
+/* Add any styles if needed */
 </style>

@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-// Similar to home.vue and calendar.vue
+// This component is ready for any future logic or data binding.
 </script>
 
 <style scoped>

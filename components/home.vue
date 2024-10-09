@@ -208,6 +208,7 @@ const nextSketchbookPage = () => {
   }
 };
 
+/*
 const fetchUser = async () => {
   const { data, error } = await supabase.auth.getUser();
   if (error) {
@@ -447,6 +448,7 @@ const clearCanvas = () => {
 const backToSketchbookList = () => {
   selectedSketch.value = null;
 };
+*/
 
 // On mounted, fetch the list of sketchbooks
 // onMounted(async () => {

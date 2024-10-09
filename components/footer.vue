@@ -4,11 +4,9 @@
     <button @click="navigateToPage('/calendarpage')" :class="{ active: isActive('/calendarpage') }" class="tab-button">
       <ion-icon :icon="calendarIcon"></ion-icon>
     </button>
-
     <button @click="navigateToPage('/homepage')" :class="{ active: isActive('/homepage') }" class="tab-button">
       <ion-icon :icon="homeIcon"></ion-icon>
     </button>
-
     <button @click="navigateToPage('/progresspage')" :class="{ active: isActive('/progresspage') }" class="tab-button">
       <ion-icon :icon="progressIcon"></ion-icon>
     </button>
@@ -17,25 +15,23 @@
 
 <script setup>
 import { useRouter, useRoute } from 'vue-router';
-import { IonIcon } from '@ionic/vue';
 import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon } from 'ionicons/icons';
 
 const router = useRouter();
 const route = useRoute();
 
-// Function to navigate using Nuxt's router.push
+// Navigate using Nuxt's router.push
 const navigateToPage = (path) => {
   router.push(path);
 };
 
-// Function to check if the current route is active
+// Check if the current route is active
 const isActive = (path) => {
   return route.path === path;
 };
 </script>
 
 <style scoped>
-/* Custom styling for the bottom navigation buttons */
 .bottom-nav {
   display: flex;
   justify-content: space-around;

@@ -13,7 +13,6 @@
             <p style="font-style:italic; padding-right:20px;">FORGOT PASSCODE?</p>
           </a>
         </div>
-        <!-- Custom Numeric Keypad -->
         <div class="keypad-wrapper">
           <div class="keypad-row">
             <button type="button" @click="inputDigit(1)">1</button>
@@ -46,23 +45,13 @@ import { ref, nextTick, onMounted } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';
 
-const router = useRouter();  // Initialize router
-
-// Initialize Supabase client and user
-const supabase = useSupabaseClient();
-const user = useSupabaseUser();  // Retrieve logged-in user directly here
-
-// Logging user information for debugging
-console.log('Logged in user:', user.value);
+const router = useRouter(); 
 
 const passcode = ref(['', '', '', '', '', '']);
 let currentIndex = ref(0);
-
 const { toastError, toastSuccess } = useAppToast();
-
 const inputFields = []; // Store input fields as an array of refs
 
-// Handle digit input
 const inputDigit = async (digit) => {
   if (currentIndex.value < 6) {
     passcode.value[currentIndex.value] = digit.toString();
@@ -70,45 +59,44 @@ const inputDigit = async (digit) => {
     await nextTick();
 
     if (currentIndex.value < 6) {
-      const nextField = inputFields[currentIndex.value]; // Access the next field
+      const nextField = inputFields[currentIndex.value];
       if (nextField) {
-        nextField.focus();  // Set focus to the next input field
+        nextField.focus();
       }
     } else {
-      // When the last digit is entered, call checkPasscode
       checkPasscode();
     }
   }
 };
 
-// Handle deleting the last digit and moving back
 const deleteLastDigit = async () => {
   if (currentIndex.value > 0) {
     currentIndex.value--;
-    passcode.value[currentIndex.value] = '';  // Clear the last entered digit
+    passcode.value[currentIndex.value] = '';
     await nextTick();
     const prevField = inputFields[currentIndex.value];
     if (prevField) {
-      prevField.focus();  // Set focus back to the previous input field
+      prevField.focus();
     }
   }
 };
 
-// Function to check and verify passcode
 const checkPasscode = async () => {
-  const enteredPasscode = passcode.value.join('');  // Join the digits to form the passcode
-  const hashedPasscode = CryptoJS.SHA256(enteredPasscode).toString();  // Hash the passcode using SHA256
+  const enteredPasscode = passcode.value.join('');
+  const hashedPasscode = CryptoJS.SHA256(enteredPasscode).toString();
+
+  const supabase = useSupabaseClient();
+  const user = useSupabaseUser();
 
   if (!user.value) {
     toastError({ title: 'Error', description: 'No user logged in' });
     return;
   }
 
-  // Query Supabase to get the stored hashed passcode for the logged-in user
   const { data, error } = await supabase
     .from('Users')
     .select('passcode')
-    .eq('user_id', user.value.id);  // Use user.value.id directly
+    .eq('user_id', user.value.id);
 
   if (error) {
     toastError({ title: 'Error', description: `Error fetching passcode: ${error.message}` });
@@ -117,24 +105,22 @@ const checkPasscode = async () => {
 
   if (data && data.length > 0 && data[0].passcode === hashedPasscode) {
     toastSuccess({ title: 'Success', description: 'Passcode verified!' });
-    router.push('/homepage');  // Redirect to home upon successful verification
+    router.push('/homepage');
   } else {
     toastError({ title: 'Incorrect Passcode', description: 'The passcode you entered is incorrect. Please try again!' });
-    resetPasscode();  // Reset the passcode if incorrect
+    resetPasscode();
   }
 };
 
-// Function to reset the passcode and refocus on the first input
 const resetPasscode = async () => {
-  passcode.value = ['', '', '', '', '', ''];  // Clear the entire passcode
+  passcode.value = ['', '', '', '', '', ''];
   currentIndex.value = 0;
   await nextTick();
   if (inputFields[0]) {
-    inputFields[0].focus();  // Focus back on the first input field
+    inputFields[0].focus();
   }
 };
 
-// onMounted lifecycle to store the references to input fields
 onMounted(() => {
   for (let i = 0; i < 6; i++) {
     inputFields[i] = document.querySelector(`[ref="inputField${i}"] input`);
