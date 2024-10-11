@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxtjs/supabase", "@nuxtjs/ionic", "@nuxt/ui", "@nuxt/icon"],
   ssr: false,
-  plugins: ['plugins/signature.js'],
+  // plugins: ['plugins/signature.js'],
 
   supabase: {
     url: "https://otqcodzxgjtfswxviqtx.supabase.co",
@@ -13,7 +13,7 @@ export default defineNuxtConfig({
       login: '/login',
       callback: '/confirm',
       include: undefined,
-      exclude: ["/register", "/forgot_password"],
+      exclude: ["/register", "/forgot_password"], 
       cookieRedirect: false
     },
     clientOptions: {

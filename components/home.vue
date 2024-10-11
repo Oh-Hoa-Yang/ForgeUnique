@@ -156,7 +156,7 @@ const signatureOptions = ref({
   height: 550  // Make the height taller to occupy more space
 });
 
-const router = useRouter();
+const router = useIonRouter();
 
 const openModal = () => {
   showModal.value = true;

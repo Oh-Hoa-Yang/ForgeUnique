@@ -54,7 +54,7 @@ import { useAppToast } from '~/composables/useAppToast';
 
 const supabase = useSupabaseClient();
 const { toastError, toastSuccess } = useAppToast();
-const router = useRouter();
+const router = useIonRouter();
 const menuVisible = ref(false);
 
 const toggleMenu = () => {

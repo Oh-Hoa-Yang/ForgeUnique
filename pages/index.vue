@@ -45,7 +45,7 @@ import { ref, nextTick, onMounted } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';
 
-const router = useRouter(); 
+const router = useIonRouter(); 
 
 const passcode = ref(['', '', '', '', '', '']);
 let currentIndex = ref(0);

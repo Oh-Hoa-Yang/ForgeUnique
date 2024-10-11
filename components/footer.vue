@@ -17,7 +17,7 @@
 import { useRouter, useRoute } from 'vue-router';
 import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon } from 'ionicons/icons';
 
-const router = useRouter();
+const router = useIonRouter();
 const route = useRoute();
 
 // Navigate using Nuxt's router.push

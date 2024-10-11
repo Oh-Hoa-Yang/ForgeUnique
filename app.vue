@@ -2,7 +2,7 @@
   <ion-app>
     <!-- Main router outlet for all page content, with correct content ID -->
     <ion-router-outlet></ion-router-outlet>
-    <UNotifications />
+    <!-- <UNotifications /> -->
   </ion-app>
 </template>
 

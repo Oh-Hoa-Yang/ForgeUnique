@@ -18,17 +18,17 @@
     "@capacitor/keyboard": "6.0.1",
     "@capacitor/status-bar": "6.0.0",
     "@iconify/vue": "^4.1.2",
-    "@nuxt/icon": "^1.5.1",
-    "@nuxt/ui": "^2.18.4",
+    "@nuxt/icon": "^1.5.5",
+    "@nuxt/ui": "^2.18.7",
     "@nuxtjs/ionic": "^0.15.1",
     "@nuxtjs/supabase": "^1.4.0",
+    "@selemondev/vue3-signature-pad": "^1.1.0",
     "crypto-js": "^4.2.0",
-    "nuxt": "^3.13.1",
-    "vue": "latest",
-    "vue3-signature": "^0.2.4"
+    "nuxt": "^3.13.2",
+    "vue": "latest"
   },
   "devDependencies": {
     "@capacitor/cli": "6.1.0",
-    "supabase": "^1.192.5"
+    "supabase": "^1.204.3"
   }
 }

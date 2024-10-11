@@ -78,7 +78,7 @@ const success = ref(false);
 const pending = ref(false);
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient();
-
+const router = useIonRouter()
 const email = ref('');
 const password = ref('');
 const confirmPassword = ref('');
@@ -102,7 +102,7 @@ const validatePasscode = (passcode) => {
 
 const handleRegister = async () => {
   if (pending.value) return;  // Prevent multiple requests if one is already in progress
-  
+
   passwordError.value = null;
   passcodeError.value = null;
 
@@ -119,7 +119,7 @@ const handleRegister = async () => {
     toastError({ title: 'Password Error', description: 'Passwords do not match.' });
     return;
   }
-  
+
   // Validate passcode rules
   if (!validatePasscode(passcode.value)) {
     const errorMessage = 'Passcode must be exactly 6 digits.';
@@ -160,12 +160,12 @@ const handleRegister = async () => {
     }
 
     const hashedPasscode = CryptoJS.SHA256(passcode.value).toString();
-    
+
     const { error: insertError } = await supabase
-      .from('Users')  
+      .from('Users')
       .insert({
         user_id: data.user.id,
-        passcode: hashedPasscode,  
+        passcode: hashedPasscode,
       });
 
     if (insertError) {
@@ -181,7 +181,7 @@ const handleRegister = async () => {
     });
 
     setTimeout(() => {
-      navigateTo('/login');
+      router.push('/login');
     }, 5 * 60 * 1000);
 
   } catch (err) {

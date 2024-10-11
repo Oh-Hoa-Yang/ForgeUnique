@@ -21,13 +21,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useAppToast } from '~/composables/useAppToast';
 
 const password = ref('');
 const { toastError, toastSuccess } = useAppToast();
-const router = useRouter();  // Initialize router
+const router = useIonRouter();  // Initialize router
 
 const checkPassword = async () => {
   const supabase = useSupabaseClient();

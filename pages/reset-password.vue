@@ -30,7 +30,7 @@ import { useAppToast } from '~/composables/useAppToast';
 
 const password = ref('');
 const confirmPassword = ref('');
-const router = useRouter();
+const router = useIonRouter();
 const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
 
