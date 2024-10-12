@@ -22,11 +22,16 @@
 
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
+const router = useRouter();  // Initialize router
 
 const password = ref('');
 const { toastError, toastSuccess } = useAppToast();
+<<<<<<< HEAD
 const router = useIonRouter();  // Initialize router
+=======
+>>>>>>> parent of b836782 (make it consistence for all)
 
+// Check Password 
 const checkPassword = async () => {
   const supabase = useSupabaseClient();
   const user = useSupabaseUser();
@@ -43,8 +48,8 @@ const checkPassword = async () => {
 
   // Authenticate the user by re-entering the password
   const { error } = await supabase.auth.signInWithPassword({
-    email: user.value.email,
-    password: password.value,
+    email: user.value.email,  // Using user's email for sign-in
+    password: password.value, // Use the entered password to authenticate
   });
 
   if (error) {

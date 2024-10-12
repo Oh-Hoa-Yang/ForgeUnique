@@ -26,30 +26,22 @@
         router-link="/register">Register</ion-button>
     </ion-content>
   </ion-page>
-  
-  <Toast :header="header" :message="Error" :open="Toasts" color="danger" :icon="ioniconsCheckmarkCircleOutline" />
-
 </template>
 
 <script setup>
-// import Toast from '~/components/Toast.vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router'; 
+import { useAppToast } from '~/composables/useAppToast'; 
 
-import { useAppToast } from '~/composables/useAppToast';
-const Toasts = ref(false)
-const Error = ref('')
-const header = ref('')
-const message = ref('')
 const email = ref('');
 const password = ref('');
-
 const { toastError, toastSuccess } = useAppToast();
-
-const supabase = useSupabaseClient();
-const router = useIonRouter();
+const supabase = useSupabaseClient(); 
+const router = useRouter();  
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
-    toastError({ header: 'Error', message: 'Email and password are required.' });
+    toastError({ title: 'Error', description: 'Email and password are required.' });
     return;
   }
 
@@ -60,22 +52,9 @@ const handleLogin = async () => {
 
   if (error) {
     toastError({ title: 'Login Error', description: error.message });
-    // header.value = "Login Error"
-    // Error.value = error.message
-    // Toasts.value = true
-
-    // setTimeout(() => {
-    //   Toasts.value = false
-    // }, 3000)
   } else if (user) {
     toastSuccess({ title: 'Success', description: 'Logged in successfully!' });
-    // header.value = "Success"
-    // Error.value = "Logged in successfully!"
-    // Toasts.value = true
-    // router.push('/');
-    // setTimeout(() => {
-    //   Toasts.value = false
-    // }, 3000)
+    router.push('/'); 
   }
 };
 </script>

@@ -1,4 +1,5 @@
 <template>
+  <!-- Including Header directly -->
   <ion-header>
     <ion-toolbar color="light">
       <ion-buttons slot="start">
@@ -10,6 +11,7 @@
       <ion-title class="slogan">"Forge Your Unique Path"</ion-title>
 
       <ion-buttons slot="end">
+        <!-- Menu Button using IonIcon -->
         <button class="icon-button" @click="toggleMenu">
           <ion-icon :icon="menuIcon"></ion-icon>
         </button>
@@ -17,6 +19,7 @@
     </ion-toolbar>
   </ion-header>
 
+  <!-- Sliding Menu with Overlay -->
   <div :class="['menu-wrapper', { open: menuVisible }]">
     <div class="menu-overlay" @click="closeMenu"></div>
 
@@ -49,7 +52,9 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { menuOutline as menuIcon, homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
+import { IonIcon } from '@ionic/vue';
+import { menuOutline as menuIcon } from 'ionicons/icons';
+import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
 import { useAppToast } from '~/composables/useAppToast';
 
 const supabase = useSupabaseClient();
@@ -57,15 +62,17 @@ const { toastError, toastSuccess } = useAppToast();
 const router = useIonRouter();
 const menuVisible = ref(false);
 
+// Function to toggle menu visibility
 const toggleMenu = () => {
   menuVisible.value = !menuVisible.value;
 };
 
+// Function to close the menu
 const closeMenu = () => {
   menuVisible.value = false;
 };
 
-// Navigate using Nuxt's router.push
+// Function to navigate using Nuxt's router.push
 const navigateToPage = (path) => {
   menuVisible.value = false; // Close menu on navigation
   router.push(path);
@@ -79,6 +86,7 @@ const logout = async () => {
       toastError({ title: 'Error', description: 'Failed to log out!' });
     } else {
       toastSuccess({ title: 'Logged out', description: 'Successfully logged out!' });
+      reloadNuxtApp();
       router.push('/login'); // Redirect to login page after logout
     }
   } catch (e) {
@@ -89,6 +97,7 @@ const logout = async () => {
 </script>
 
 <style scoped>
+/* Styling for the header */
 ion-toolbar {
   display: flex;
   justify-content: space-between;
@@ -111,6 +120,7 @@ ion-toolbar {
   text-align: center;
 }
 
+/* Styling for the menu icon button */
 .icon-button {
   background-color: transparent;
   border: none;
@@ -149,6 +159,9 @@ ion-toolbar {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
 
 .menu-content {
@@ -161,10 +174,17 @@ ion-toolbar {
   transition: right 0.3s ease;
 }
 
+.menu-wrapper.open .menu-overlay {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
 .menu-wrapper.open .menu-content {
   right: 0;
 }
 
+/* Menu Header */
 .menu-header {
   display: flex;
   justify-content: space-between;
@@ -180,6 +200,7 @@ ion-toolbar {
   color: black;
 }
 
+/* Menu Items */
 .menu-items {
   display: flex;
   flex-direction: column;

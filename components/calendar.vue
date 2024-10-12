@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-// This component is ready for any future logic or data binding.
+// Similar to home.vue
 </script>
 
 <style scoped>
