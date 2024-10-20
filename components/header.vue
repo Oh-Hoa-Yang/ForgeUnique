@@ -51,15 +51,14 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
 import { IonIcon } from '@ionic/vue';
 import { menuOutline as menuIcon } from 'ionicons/icons';
 import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
 import { useAppToast } from '~/composables/useAppToast';
 
+const router = useRouter();
 const supabase = useSupabaseClient();
 const { toastError, toastSuccess } = useAppToast();
-const router = useIonRouter();
 const menuVisible = ref(false);
 
 // Function to toggle menu visibility
@@ -82,18 +81,19 @@ const navigateToPage = (path) => {
 const logout = async () => {
   try {
     const { error } = await supabase.auth.signOut();
-    if (error) {
-      toastError({ title: 'Error', description: 'Failed to log out!' });
-    } else {
+    if (!error) {
       toastSuccess({ title: 'Logged out', description: 'Successfully logged out!' });
       reloadNuxtApp();
-      router.push('/login'); // Redirect to login page after logout
+      router.push('/login');
+    } else {
+      handleError({ title: 'Error',  description:'Failed to log out!'});
     }
   } catch (e) {
-    toastError({ title: 'Error', description: 'An error occurred while logging out!' });
     console.error('Error logging out:', e);
+    toastError({ title: 'Error', description: 'An unexpected error occurred while logging out!' });
   }
 };
+
 </script>
 
 <style scoped>

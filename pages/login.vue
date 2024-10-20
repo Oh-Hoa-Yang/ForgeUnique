@@ -29,27 +29,21 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router'; 
 import { useAppToast } from '~/composables/useAppToast'; 
-
 const email = ref('');
 const password = ref('');
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient(); 
 const router = useRouter();  
-
 const handleLogin = async () => {
   if (!email.value || !password.value) {
     toastError({ title: 'Error', description: 'Email and password are required.' });
     return;
   }
-
   const { data: { user }, error } = await supabase.auth.signInWithPassword({
     email: email.value,
     password: password.value,
   });
-
   if (error) {
     toastError({ title: 'Login Error', description: error.message });
   } else if (user) {
@@ -69,11 +63,9 @@ ion-button {
   width: 100%;
   padding: 20px;
 }
-
 .custom-background {
   --background: #FFEDF5;
 }
-
 .custom-button {
   --background: #FFC2D1;
   --background-activated: #ffadb9;

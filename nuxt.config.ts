@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxtjs/supabase", "@nuxtjs/ionic", "@nuxt/ui", "@nuxt/icon"],
   ssr: false,
-  // plugins: ['plugins/signature.js'],
+  plugins: ['plugins/signature.js'],
 
   supabase: {
     url: "https://otqcodzxgjtfswxviqtx.supabase.co",
@@ -21,7 +21,7 @@ export default defineNuxtConfig({
         flowType: 'pkce',
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        persistSession: true
+        persistSession: true,
       }
     }
   },

@@ -61,7 +61,7 @@
           <ion-card-content>
             We have sent an email to <strong>{{ email }}</strong> for verification.
             <strong>Important:</strong> The link will expire in 5 minutes.
-          </ion-card-content>
+          </ion-card-content>    
           <p style="font-style:italic">Redirecting to the registration page in 5 minutes if not verified...</p>
         </ion-card>
       </div>
