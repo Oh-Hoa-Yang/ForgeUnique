@@ -77,7 +77,7 @@
           <div style="display: flex; align-items: center;">
             <button @click="backToSketchbookList">
               < </button>
-                <h4><b>Sketchbook: {{ selectedSketch.title }}</b> (Page {{ currentPageNumber }})</h4>
+                <h4><b>Sketchbook: {{ selectedSketch?.title }}</b> (Page {{ currentPageNumber }})</h4>
           </div>
 
           <!-- Tool Selection -->
@@ -97,8 +97,10 @@
           </div>
 
           <!-- Sketch Canvas -->
-          <vue-signature-pad :options="signatureOptions" ref="signaturePad" @end="onSketchEnd"
-            class="signature-canvas" />
+          <div class="signature-container">
+            <vue-signature-pad ref="signaturePad" :options="signatureOptions" class="signature-canvas"
+              @end="onSketchEnd" />
+          </div>
         </div>
 
         <!-- Modal for editing a sketchbook title -->
@@ -135,7 +137,7 @@ const signatureOptions = ref({
   maxWidth: 2,
   minwidth: 2,
   canvasWidth: 728,
-  canvasHeight: 550,
+  canvasHeight: 800,
 })
 
 const selectTool = (tool) => {
@@ -152,13 +154,24 @@ const selectTool = (tool) => {
 
 const signaturePad = ref(null) //Refer to the Sketch Canvas of template too for vue-signature-pad
 
-
+// onMounted should not try to access signaturePad at all since it won't be rendered yet  -- so console error for here is normal (for testing)
 onMounted(async () => {
   user.value = await fetchUser();
   if (!user.value) {
     toastError({ title: 'Error', description: 'User is not authenticated!' });
     return;
   }
+
+  //Ensure signaturePad is ready after the DOM is fully rendered
+  await nextTick();
+
+  if (signaturePad.value && typeof signaturePad.value.clear === 'function') {
+    console.log('Signature pad initialized correctly');
+  } else {
+    console.error('Signature pad not initialized correctly');
+  }
+
+
   await fetchSketchbooks(); // Fetch all sketchbooks on load
 });
 
@@ -169,7 +182,7 @@ const todos = ref([{ id: 1, description: 'fyp project - Chap 3.4' }]); // Fix fo
 
 const newSketchbookTitle = ref('');
 const sketchbooks = ref([]);
-const selectedSketch = ref(null);
+const selectedSketch = ref(null); //For user to select the Sketchbook
 const showModal = ref(false);
 const showEditModal = ref(false);
 const editedSketchbookTitle = ref('');
@@ -218,26 +231,87 @@ const selectSketchbook = async (sketch) => {
   if (!signaturePad.value) {
     console.error('Signature pad not initialized correctly');
   } else {
-    console.log('Signature pad initialized correctly');
+    console.log('Signature pad initialized correctly', signaturePad.value);
   }
 }
 
+const isSaved = ref(true); //New flag to track if the sketch has been saved
+
+//Function to handle canvas save
 const saveCanvas = async () => {
-  const sketchData = signaturePad.value.saveSignature(); // Get signature as data 
-  const currentPage = await getOrCreatePage(); // Get or create the current page
+  //Chcek the signatureURL whether is availble and has the methof toDataURL
+  if (!signaturePad.value || typeof signaturePad.value.saveSignature !== 'function') {
+    console.error('Signature pad not initialized or missing saveSignature method');
+    toastError({ title: 'Error', description: 'Sketchpad is not ready. Try again.' });
+    return;
+  }
+
+  //Saving Canvas as image
+  const sketchData = signaturePad.value.saveSignature('image/png'); // Get signature as a base64 data URl
+  if (!sketchData) {
+    console.error('Failed to generate data URL');
+    return;
+  }
+
+  //Convert the base64 string to a Blob (Create Blob from the base64 URL)
+  const byteString = atob(sketchData.split(',')[1]);
+  const mimeString = sketchData.split(',')[0].split(':')[1].split(';')[0];
+  const arrayBuffer = new ArrayBuffer(byteString.length);
+  const intArray = new Uint8Array(arrayBuffer);
+
+  for (let i = 0; i < byteString.length; i++) {
+    intArray[i] = byteString.charCodeAt(i);
+  }
+
+  const blob = new Blob([intArray], { type: mimeString });
+  console.log("Blob object created:", blob);
+  const fileName = `${selectedSketch.value.id}_${currentPageNumber.value}.png`; // Create a unique file name
 
   try {
-    const { data, error } = await supabase
-      .from('PageActions')
-      .insert([{ actionData: sketchData, sketchpage_id: currentPage.id }]);
+    //Upload the Blob to Supabase Storage 
+    const { uploadError } = await supabase
+      .storage
+      .from('sketches') //bucket name
+      .upload(`sketches/${fileName}`, blob, { contentType: 'image/png', });
 
-    if (error) {
-      toastError({ title: 'Error', description: 'Failed to save sketch data!' });
-    } else {
-      toastSuccess({ title: 'Success', description: 'Sketch saved successfully!' });
+    if (uploadError) {
+      console.error('Error uploading image:', uploadError); //Log full error
+      throw uploadError;
     }
-  } catch (e) {
-    console.error('Error saving sketch:', e);
+
+    //Get the public URL of the uploaded image
+    const { publicUrl, error: urlError } = supabase
+      .storage
+      .from('sketches')//bucket name
+      .getPublicUrl(`sketches/${fileName}`);
+
+    if (urlError) {
+      console.error('Error fetching public URL:', urlError);
+      throw urlError;
+    }
+    console.log("Public URL of uploaded image:", publicUrl)
+
+    //Save the image URL to the PageActions table 
+    const currentPage = await getOrCreatePage(); //Get or create the current page
+    const { error: pageError } = await supabase
+      .from('PageActions')
+      .insert([{ actionData: publicUrl, sketchpage_id: currentPage.id }])
+
+    if (pageError) {
+      console.error("Error saving public URL to PageActions:", pageError);
+      throw pageError;
+    }
+    console.log("Successfully inserted public URL into PageActions table");
+
+    //Disable undo/redo after saving 
+    undoStack.value = [];
+    redoStack.value = [];
+
+    toastSuccess({ title: 'Success', description: 'Sketch saved successfully!' });
+    isSaved.value = true; //Set the flag to true after saving
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    toastError({ title: 'Error', description: 'Failed to upload sketch image!' });
   }
 }
 
@@ -251,9 +325,14 @@ const getOrCreatePage = async () => {
       .select('*')
       .single();
 
+      if (error) {
+        console.error('Error creating or fetching page:', error);
+        throw error;
+      }
+
     currentPage = data;
   }
-
+  console.log('Fetching or created current page:', currentPage);
   return currentPage;
 };
 
@@ -283,10 +362,12 @@ const onSketchEnd = async () => {
     undoStack.value.push(data); // Save current state for undo
     redoStack.value = []; // Clear redo stack on a new action
     console.log('undo stack updated:', undoStack.value);
+    isSaved.value = false; //Set the flag to false when there is a new sketch
   } else {
     console.log('No drawing actions detected, skipping save to undo stack.')
   }
 };
+
 
 const undoAction = () => {
   if (undoStack.value.length > 1) {
@@ -307,38 +388,66 @@ const redoAction = () => {
   }
 };
 
+
 //PAGE NAV FOR SKETCH - CANVAS
 const prevPage = async () => {
   if (currentPageNumber.value > 1) {
-    await saveCanvas(); // Save the current page before navigating
+    if (!isSaved.value) {
+      await saveCanvas(); // Save the current page before navigating
+    }
     currentPageNumber.value--;
     await loadCanvasData();
   }
 };
 
 const nextSketchPage = async () => {
-  await saveCanvas(); // Save the current page before navigating
+  if (!isSaved.value) {
+    await saveCanvas(); // Save the current page before navigating
+  }
   currentPageNumber.value++;
   await loadCanvasData();
 };
 
 const loadCanvasData = async () => {
-  const page = await fetchPage(currentPageNumber.value);
+  const currentPage = await fetchPage(currentPageNumber.value);
+  if (!currentPage || !currentPage.id) {
+    console.error('Invalid page');
+    return;
+  }
 
-  if (page) {
-    const { data, error } = await supabase
-      .from('PageActions')
-      .select('*')
-      .eq('sketchpage_id', page.id)
-      .single();
+  //Fetch the actionData (image URL) from PageActions table using sketchpage_id
+  const { data, error } = await supabase
+    .from('PageActions')
+    .select('actionData')
+    .eq('sketchpage_id', currentPage.id)
+    .single() //Assuming onepage can have one image, hence using 'single'
 
-    if (data && data.actionData) {
-      signaturePad.value.fromData(JSON.parse(data.actionData)); // Load sketch data
+  if (error) {
+    console.error('Error fetching image from PageActions:', error);
+    signaturePad.value.clear();
+    return;
+  }
+
+  const pageData = await fetchPage(currentPageNumber.value);
+
+  //Check if signaturePad exists and if the canvas needs to be cleared
+  if (signaturePad.value && typeof signaturePad.value.clear === 'function') {
+    if (pageData && pageData.actionData) {
+      const imageUrl = pageData.actionData; //Assuming this is the URL saved in PageActions
+
+      //Fetch the image and draw it on the canvas
+      const img = new Image();
+      img.src = imageUrl;
+
+      img.onload = () => {
+        //Draw the image on the signature pad canvas
+        signaturePad.value.fromDataURL(imageUrl); //Load the image into the canvas
+      };
     } else {
-      signaturePad.value.clear(); // Clear canvas if no data exists
+      signaturePad.value.clear();
     }
   } else {
-    signaturePad.value.clear(); // Clear canvas if no data exists
+    console.error('Signature pad is not initialized properly');
   }
 };
 
@@ -414,6 +523,10 @@ const deleteSketchbook = async (sketchId) => {
   } catch (error) {
     toastError({ title: 'Error', description: 'Failed to delete sketchbook!' });
   }
+  await supabase
+    .storage
+    .from('sketches')
+    .remove([`sketches/${fileName}`]);
 };
 
 // Modal control
@@ -521,16 +634,23 @@ ion-button {
   border-radius: 8px;
 }
 
+.signature-container {
+  width: 100%;
+  height: 1200px;
+  position: relative;
+}
+
 .signature-canvas {
   touch-action: none;
   /* Prevent touch scrolling on the canvas */
-  -ms-touch-action: none;
+  /* -ms-touch-action: none; */
   /* For Internet Explorer */
-  -webkit-user-select: none;
-  /* Disable user selection */
+  /* -webkit-user-select: none; */
+  /* Disable user selection for Webkit-based browsers */
   user-select: none;
-  width: 100%;
-  height: 550px;
+  /* Disable user selection */
+  width: 100% !important;
+  height: 100% !important;
   border: 1px solid #ccc;
 }
 
