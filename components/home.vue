@@ -262,7 +262,7 @@ const saveCanvas = async () => {
   const blob = await (await fetch(`data:image/png;base64,${base64Data}`)).blob()
   console.log("Blob object created:", blob);
 
-  const fileName = `${selectedSketch.value.id}_${currentPageNumber.value}.png`; // Create a unique file name
+  const fileName = `${selectedSketch.value.id}_${currentPageNumber.value}_${Date.now()}.png`; // Create a unique file name
 
   try {
     //Remove the existing image from Supabase storage (if it exists)
@@ -281,7 +281,7 @@ const saveCanvas = async () => {
     const { error: uploadError } = await supabase
       .storage
       .from('sketches') //bucket name
-      .upload(fileName, blob, { contentType: 'image/png', });
+      .upload(fileName, blob, { contentType: 'image/png' });
 
     if (uploadError) {
       console.error('Error uploading image:', uploadError); //Log full error
@@ -303,25 +303,53 @@ const saveCanvas = async () => {
     const publicUrl = data.publicUrl;
     console.log("Public URL of uploaded image:", publicUrl)
 
-    //Save the image URL to the PageActions table 
-    const currentPage = await getOrCreatePage(); //Get or create the current page
-    const { error: pageError } = await supabase
+    const currentPage = await getOrCreatePage();
+    
+    //Check if there's already an existing record of that page - different actions
+    const { data: existingPageAction, error: fetchError } = await supabase
       .from('PageActions')
-      .upsert([{ actionData: publicUrl, sketchpage_id: currentPage.id }])
+      .select('*')
       .eq('sketchpage_id', currentPage.id)
+      .maybeSingle();
 
-    if (pageError) {
-      console.error("Error saving public URL to PageActions:", pageError);
-      throw pageError;
+    if (fetchError) {
+      console.error('Error checking for existing PageActions record:', fetchError);
+      return;
     }
-    console.log("Successfully inserted public URL into PageActions table");
 
-    //Disable undo/redo after saving 
-    undoStack.value = [];
-    redoStack.value = [];
+    if (existingPageAction) {
+      //Update the exisitng record with the new image URL
+      const { error: updateError } = await supabase
+        .from('PageActions')
+        .update({ actionData: publicUrl }) //Update with the new URL
+        .eq('id', existingPageAction.id) //Match by the exisitng record's ID
 
-    toastSuccess({ title: 'Success', description: 'Sketch saved successfully!' });
-    isSaved.value = true; //Set the flag to true after saving
+      if (updateError) {
+        console.error('Error uploading public URL in PageActions: ', updateError)
+        throw updateError;
+      }
+
+      console.log("Successfully updated public URL in PageActions table");
+
+    } else {
+      //No existing record, insert new
+      const { error: insertError } = await supabase
+        .from('PageActions')
+        .insert([{ actionData: publicUrl, sketchpage_id: currentPage.id }])
+
+      if (insertError) {
+        console.error("Error saving public URL to PageActions:", insertError);
+        throw insertError;
+      }
+      console.log("Successfully inserted public URL into PageActions table");
+
+      //Disable undo/redo after saving 
+      undoStack.value = [];
+      redoStack.value = [];
+
+      toastSuccess({ title: 'Success', description: 'Sketch saved successfully!' });
+      isSaved.value = true; //Set the flag to true after saving
+    }
   } catch (error) {
     console.error('Error uploading image:', error);
     toastError({ title: 'Error', description: 'Failed to upload sketch image!' });
@@ -443,13 +471,12 @@ const loadCanvasData = async () => {
 
   if (error) {
     console.error('Error fetching image from PageActions:', error);
-    signaturePad.value.clear();
     return;
   }
 
   if (data && data.actionData) {
     const imageUrl = data.actionData;
-    console.log('Image URL fetched: ', imageUrl);
+    // console.log('Image URL fetched: ', imageUrl);
 
     //Ensure signaturePad is available and initialized 
     if (signaturePad.value && typeof signaturePad.value.fromDataURL === 'function') {
