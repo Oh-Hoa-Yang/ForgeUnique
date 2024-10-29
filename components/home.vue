@@ -253,26 +253,20 @@ const saveCanvas = async () => {
     return;
   }
 
-  //Convert the base64 string to a Blob (Create Blob from the base64 URL)
-  const byteString = atob(sketchData.split(',')[1]);
-  const mimeString = sketchData.split(',')[0].split(':')[1].split(';')[0];
-  const arrayBuffer = new ArrayBuffer(byteString.length);
-  const intArray = new Uint8Array(arrayBuffer);
-
-  for (let i = 0; i < byteString.length; i++) {
-    intArray[i] = byteString.charCodeAt(i);
-  }
-
-  const blob = new Blob([intArray], { type: mimeString });
-  console.log("Blob object created:", blob);
-  const fileName = `${selectedSketch.value.id}_${currentPageNumber.value}.png`; // Create a unique file name
-
+  //Saving Canvas as image (base64 string)
   try {
+    //Simplify Blob Creation
+    const base64Data = sketchData.split(',')[1]
+    const blob = await (await fetch(`data:image/png;base64,${base64Data}`)).blob()
+    console.log("Blob object created:", blob);
+
+    const fileName = `${selectedSketch.value.id}_${currentPageNumber.value}.png`; // Create a unique file name
+
     //Upload the Blob to Supabase Storage 
-    const { uploadError } = await supabase
+    const { error: uploadError } = await supabase
       .storage
       .from('sketches') //bucket name
-      .upload(`sketches/${fileName}`, blob, { contentType: 'image/png', });
+      .upload(fileName, blob, { contentType: 'image/png', });
 
     if (uploadError) {
       console.error('Error uploading image:', uploadError); //Log full error
@@ -280,15 +274,18 @@ const saveCanvas = async () => {
     }
 
     //Get the public URL of the uploaded image
-    const { publicUrl, error: urlError } = supabase
+    const { data, error: urlError } = await supabase
       .storage
-      .from('sketches')//bucket name
-      .getPublicUrl(`sketches/${fileName}`);
+      .from('sketches')
+      .getPublicUrl(fileName)
 
-    if (urlError) {
-      console.error('Error fetching public URL:', urlError);
-      throw urlError;
+    if (urlError || !data.publicUrl) {
+      console.error('Error fetching public URL: ', urlError)
+      toastError({ title: 'Error', description: 'Failed to generate public URL for the image.' });
+      return;
     }
+
+    const publicUrl = data.publicUrl;
     console.log("Public URL of uploaded image:", publicUrl)
 
     //Save the image URL to the PageActions table 
@@ -309,6 +306,7 @@ const saveCanvas = async () => {
 
     toastSuccess({ title: 'Success', description: 'Sketch saved successfully!' });
     isSaved.value = true; //Set the flag to true after saving
+
   } catch (error) {
     console.error('Error uploading image:', error);
     toastError({ title: 'Error', description: 'Failed to upload sketch image!' });
@@ -325,10 +323,10 @@ const getOrCreatePage = async () => {
       .select('*')
       .single();
 
-      if (error) {
-        console.error('Error creating or fetching page:', error);
-        throw error;
-      }
+    if (error) {
+      console.error('Error creating or fetching page:', error);
+      throw error;
+    }
 
     currentPage = data;
   }
@@ -526,7 +524,7 @@ const deleteSketchbook = async (sketchId) => {
   await supabase
     .storage
     .from('sketches')
-    .remove([`sketches/${fileName}`]);
+    .remove([`${selectedSketch.value.id}_${currentPageNumber.value}.png`])
 };
 
 // Modal control
