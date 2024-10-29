@@ -228,10 +228,13 @@ const selectSketchbook = async (sketch) => {
   // Wait for the sketchbook canvas to render before interacting with it 
   await nextTick();
 
-  if (!signaturePad.value) {
-    console.error('Signature pad not initialized correctly');
-  } else {
+  if (signaturePad.value && typeof signaturePad.value.fromDataURL === 'function') {
     console.log('Signature pad initialized correctly', signaturePad.value);
+    //Load the canvas image
+    await loadCanvasData();
+
+  } else {
+    console.log('Signature pad not initialized correctly');
   }
 }
 
@@ -246,7 +249,7 @@ const saveCanvas = async () => {
     return;
   }
 
-  //Saving Canvas as image
+  //Get the current sketch data as a base64 image
   const sketchData = signaturePad.value.saveSignature('image/png'); // Get signature as a base64 data URl
   if (!sketchData) {
     console.error('Failed to generate data URL');
@@ -254,13 +257,25 @@ const saveCanvas = async () => {
   }
 
   //Saving Canvas as image (base64 string)
-  try {
-    //Simplify Blob Creation
-    const base64Data = sketchData.split(',')[1]
-    const blob = await (await fetch(`data:image/png;base64,${base64Data}`)).blob()
-    console.log("Blob object created:", blob);
+  //Simplify Blob Creation
+  const base64Data = sketchData.split(',')[1]
+  const blob = await (await fetch(`data:image/png;base64,${base64Data}`)).blob()
+  console.log("Blob object created:", blob);
 
-    const fileName = `${selectedSketch.value.id}_${currentPageNumber.value}.png`; // Create a unique file name
+  const fileName = `${selectedSketch.value.id}_${currentPageNumber.value}.png`; // Create a unique file name
+
+  try {
+    //Remove the existing image from Supabase storage (if it exists)
+    const { error: deleteError } = await supabase
+      .storage
+      .from('sketches')
+      .remove([fileName])
+
+    if (deleteError && deleteError.statusCode !== '404') {
+      //Log if the delete failed (ignore 404 errors since it means the file didn't exist)
+      console.error('Error deleting previous image: ', deleteError);
+      throw deleteError;
+    }
 
     //Upload the Blob to Supabase Storage 
     const { error: uploadError } = await supabase
@@ -292,7 +307,8 @@ const saveCanvas = async () => {
     const currentPage = await getOrCreatePage(); //Get or create the current page
     const { error: pageError } = await supabase
       .from('PageActions')
-      .insert([{ actionData: publicUrl, sketchpage_id: currentPage.id }])
+      .upsert([{ actionData: publicUrl, sketchpage_id: currentPage.id }])
+      .eq('sketchpage_id', currentPage.id)
 
     if (pageError) {
       console.error("Error saving public URL to PageActions:", pageError);
@@ -306,7 +322,6 @@ const saveCanvas = async () => {
 
     toastSuccess({ title: 'Success', description: 'Sketch saved successfully!' });
     isSaved.value = true; //Set the flag to true after saving
-
   } catch (error) {
     console.error('Error uploading image:', error);
     toastError({ title: 'Error', description: 'Failed to upload sketch image!' });
@@ -335,18 +350,23 @@ const getOrCreatePage = async () => {
 };
 
 const fetchPage = async (pageNumber) => {
-  const { data, error } = await supabase
-    .from('SketchPages')
-    .select('*')
-    .eq('page_number', pageNumber)
-    .eq('sketch_id', selectedSketch.value.id)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('SketchPages')
+      .select('*')
+      .eq('page_number', pageNumber)
+      .eq('sketch_id', selectedSketch.value.id)
+      .maybeSingle();
 
-  if (error) {
+    if (error) {
+      console.error('Error fetching page:', error);
+      return null;
+    }
+    return data;
+  } catch (error) {
+    console.error('Unexpected error fetching page:', error);
     return null;
   }
-
-  return data;
 };
 
 //UNDO AND REDO Actions
@@ -408,6 +428,7 @@ const nextSketchPage = async () => {
 
 const loadCanvasData = async () => {
   const currentPage = await fetchPage(currentPageNumber.value);
+
   if (!currentPage || !currentPage.id) {
     console.error('Invalid page');
     return;
@@ -426,26 +447,20 @@ const loadCanvasData = async () => {
     return;
   }
 
-  const pageData = await fetchPage(currentPageNumber.value);
+  if (data && data.actionData) {
+    const imageUrl = data.actionData;
+    console.log('Image URL fetched: ', imageUrl);
 
-  //Check if signaturePad exists and if the canvas needs to be cleared
-  if (signaturePad.value && typeof signaturePad.value.clear === 'function') {
-    if (pageData && pageData.actionData) {
-      const imageUrl = pageData.actionData; //Assuming this is the URL saved in PageActions
-
-      //Fetch the image and draw it on the canvas
-      const img = new Image();
-      img.src = imageUrl;
-
-      img.onload = () => {
-        //Draw the image on the signature pad canvas
-        signaturePad.value.fromDataURL(imageUrl); //Load the image into the canvas
-      };
+    //Ensure signaturePad is available and initialized 
+    if (signaturePad.value && typeof signaturePad.value.fromDataURL === 'function') {
+      //Load the image into canvas 
+      signaturePad.value.fromDataURL(imageUrl);
+      console.log('Image loaded on canvas');
     } else {
-      signaturePad.value.clear();
+      console.error('Signature pad not initialized properly');
     }
   } else {
-    console.error('Signature pad is not initialized properly');
+    signaturePad.value.clear();  //Ckear the canvas if no image is found
   }
 };
 
