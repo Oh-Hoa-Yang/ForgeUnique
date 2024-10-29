@@ -90,8 +90,6 @@
 
           <div class="canvas-controls">
             <button @click="prevPage">Previous</button>
-            <button @click="undoAction">Undo</button>
-            <button @click="redoAction">Redo</button>
             <button @click="saveCanvas">Save</button>
             <button @click="nextSketchPage">Next</button>
           </div>
@@ -304,7 +302,7 @@ const saveCanvas = async () => {
     console.log("Public URL of uploaded image:", publicUrl)
 
     const currentPage = await getOrCreatePage();
-    
+
     //Check if there's already an existing record of that page - different actions
     const { data: existingPageAction, error: fetchError } = await supabase
       .from('PageActions')
@@ -390,6 +388,13 @@ const fetchPage = async (pageNumber) => {
       console.error('Error fetching page:', error);
       return null;
     }
+
+    if (!data) {
+      console.log('No data found for page', pageNumber);
+      return null;
+    }
+
+    console.log('Fetching page data: ', data);
     return data;
   } catch (error) {
     console.error('Unexpected error fetching page:', error);
@@ -414,26 +419,31 @@ const onSketchEnd = async () => {
   }
 };
 
-
-const undoAction = () => {
-  if (undoStack.value.length > 1) {
-    redoStack.value.push(undoStack.value.pop()); //Move last state to redo stack
-    signaturePad.value.fromData(undoStack.value[undoStack.value.length - 1]); // Load the previous state
-  } else {
-    console.log('No more undo actions available')
+const nextSketchPage = async () => {
+  if (!isSaved.value) {
+    await saveCanvas(); // Save the current page before navigating
   }
-};
 
-const redoAction = () => {
-  if (redoStack.value.length > 0) {
-    const lastRedo = redoStack.value.pop();
-    undoStack.value.push(lastRedo); //Add the last redo action to undo stack
-    signaturePad.value.fromData(lastRedo); // Load the redo state   -- undoStack.value
-  } else {
-    console.log('No more redo actions available');
+  currentPageNumber.value++;
+
+  await nextTick();
+
+  //Explicitly clear the canvas before loading the new page
+  if (signaturePad.value && typeof signaturePad.value.clear === 'function') {
+    signaturePad.value.clear();
   }
-};
 
+  // //Check if the next poge exists before navigating 
+  // const nextPage = await fetchPage(nextPageNumber);
+
+  // if (!nextPage) {
+  //   //If the next page doesn't exist, create it
+  //   await createPage(nextPageNumber);
+  // }
+
+  // currentPageNumber.value = nextPageNumber;
+  await loadCanvasData();
+};
 
 //PAGE NAV FOR SKETCH - CANVAS
 const prevPage = async () => {
@@ -441,55 +451,84 @@ const prevPage = async () => {
     if (!isSaved.value) {
       await saveCanvas(); // Save the current page before navigating
     }
-    currentPageNumber.value--;
-    await loadCanvasData();
-  }
-};
 
-const nextSketchPage = async () => {
-  if (!isSaved.value) {
-    await saveCanvas(); // Save the current page before navigating
+    currentPageNumber.value--;
+
+    await nextTick(); //Ensure the DOM is ready before clearing the pad
+
+    //Explicitly clear the canvas before loading the previous page 
+    if (signaturePad.value && typeof signaturePad.value.clear === 'function') {
+      signaturePad.value.clear();
+    }
+    await loadCanvasData();
+  } else {
+    console.log('Your are already on the first page')
   }
-  currentPageNumber.value++;
-  await loadCanvasData();
 };
 
 const loadCanvasData = async () => {
   const currentPage = await fetchPage(currentPageNumber.value);
+
+  //Ensure the signaturePad is initialized 
+  if (!signaturePad.value) {
+    console.error('Signature pad is not initialized.');
+    return;
+  }
+
+  //Clear the canvas first before loading any data
+  signaturePad.value.clearCanvas();
 
   if (!currentPage || !currentPage.id) {
     console.error('Invalid page');
     return;
   }
 
-  //Fetch the actionData (image URL) from PageActions table using sketchpage_id
+  try {
+    //Fetch the actionData (image URL) from PageActions table using sketchpage_id
+    const { data, error } = await supabase
+      .from('PageActions')
+      .select('actionData')
+      .eq('sketchpage_id', currentPage.id)
+      .maybeSingle() //Safely handle cases where no rows are found
+
+    if (error) {
+      throw new Error('Error fetching image from PageActions:' + error.message);
+    }
+
+    if (data && data.actionData) {
+      const imageUrl = data.actionData;
+
+      //Ensure signaturePad is available and initialized 
+      if (signaturePad.value && typeof signaturePad.value.fromDataURL === 'function') {
+        //Load the image into canvas 
+        signaturePad.value.fromDataURL(imageUrl);
+        console.log('Image loaded on canvas');
+      } else {
+        console.error('Signature pad not initialized properly');
+      }
+    } else {
+      console.log('No image found for the current page, clearing the canvas')
+      signaturePad.value.clearCanvas();  //Clear the canvas if no image is found
+    }
+  } catch (error) {
+    console.error('Error fetching image from PageActions: ', error)
+  }
+}
+
+const createPage = async (pageNumber) => {
   const { data, error } = await supabase
-    .from('PageActions')
-    .select('actionData')
-    .eq('sketchpage_id', currentPage.id)
-    .single() //Assuming onepage can have one image, hence using 'single'
+    .from('SketchPages')
+    .insert([{ page_number: pageNumber, sketch_id: selectedSketch.value.id }])
+    .select('*')
+    .single()
 
   if (error) {
-    console.error('Error fetching image from PageActions:', error);
-    return;
+    console.error('Error creating new pages: ', error)
+    throw error;
   }
-
-  if (data && data.actionData) {
-    const imageUrl = data.actionData;
-    // console.log('Image URL fetched: ', imageUrl);
-
-    //Ensure signaturePad is available and initialized 
-    if (signaturePad.value && typeof signaturePad.value.fromDataURL === 'function') {
-      //Load the image into canvas 
-      signaturePad.value.fromDataURL(imageUrl);
-      console.log('Image loaded on canvas');
-    } else {
-      console.error('Signature pad not initialized properly');
-    }
-  } else {
-    signaturePad.value.clear();  //Ckear the canvas if no image is found
-  }
-};
+  console.log('New page created: ', data)
+  return data;
+}
 
 
 //BACK FUNCTION FOR CANVAS TO BOOK TITLE SELECTION
