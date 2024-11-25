@@ -2,7 +2,7 @@
   <ion-page>
     <ion-content class="ion-padding custom-background">
       <img class="center-img" src="/public/img/ForgeUniquePhoto.png" alt="ForgeUnique Logo" />
-      <p style="padding: 20px; text-align: center;">Please enter your new password:</p>
+      <p style="padding: 20px; text-align: start; font-size: 20px;" ><b>Please enter your new password:</b></p>
       <form @submit.prevent="resetPassword" style="width: 100%; justify-content: center;">
         <ion-item>
           <ion-label position="stacked">New Password</ion-label>

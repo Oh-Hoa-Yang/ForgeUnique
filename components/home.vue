@@ -15,15 +15,56 @@
 
         <!-- To-Do List Section -->
         <div class="todo-list">
-          <h3 style="text-align: center; font-weight: bold;">To-Do List</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-weight: bold;">To-Do List</h3>
+            <button @click="openAddTodoModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395;">+</button>
+          </div>
           <ul>
-            <li v-for="item in todos" :key="item.id">
-              {{ item.description }}
-              <button @click="editItem(item)" slot="end">✏️</button>
-              <button @click="deleteItem(item)">❌</button>
-              <button @click="markAsComplete(item)">✔️</button>
+            <li v-for="todo in todos.filter(todo => todo.todosStatus === 'incomplete')" :key="todo.id" style="display: flex; justify-content: space-between; align-items: center;">
+              <span :class="{ priority: todo.todosPriority }">{{ todo.todosPriority }}</span>
+              <h4>{{ todo.todosDescription }}</h4>
+              <div>
+                <button @click="editItem(todo)">✏️</button>
+                <button @click="confirmDelete(todo.id)">❌</button>
+                <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)">✔️</button>
+              </div>
             </li>
           </ul>
+        </div>
+      </div>
+
+      <!-- Add/Edit Modal -->
+      <div v-if="showAddEditModal" class="modal-overlay">
+        <div class="modal-content">
+          <h3 style="text-align: center; font-weight: bold;">{{ isEditing ? 'Edit To-Do' : 'Add To-Do' }}</h3>
+          <form @submit.prevent="saveTodo">
+            <ion-label>Description</ion-label>
+            <ion-input v-model="currentTodo.todosDescription" placeholder="Description" required />
+
+            <ion-label>Priority</ion-label>
+            <ion-input v-model.number="currentTodo.todosPriority" placeholder="Priority (e.g., 1, 2, 3)" required
+              type="number" />
+
+            <ion-label>Deadline</ion-label>
+            <ion-input v-model="currentTodo.todosDeadline" placeholder="Deadline (YYYY-MM-DD)" type="date" required />
+            <ion-input v-model="currentTodo.todosTime" placeholder="Time (HH:MM AM/PM)" type="time" required />
+
+            <div style="text-align: center; margin-top: 15px;">
+              <ion-button type="submit">Save</ion-button>
+              <ion-button @click="closeTodosModal">Cancel</ion-button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Confirmation Modal for Delete/Complete -->
+      <div v-if="showConfirmationModal" class="modal-overlay">
+        <div class="modal-content">
+          <p>Want to make this listing as {{ confirmationAction }}? </p>
+          <div style="text-align: center; margin-top: 15px;">
+            <ion-button @click="confirmAction">Yes</ion-button>
+            <ion-button @click="closeConfirmationModal">No</ion-button>
+          </div>
         </div>
       </div>
 
@@ -176,7 +217,6 @@ onMounted(async () => {
 const monthlyBudget = ref(2000); // Fix for the missing "monthlyBudget"
 const totalExpenses = ref(1500); // Fix for the missing "totalExpenses"
 const todayExpenses = ref(50); // Fix for the missing "todayExpenses"
-const todos = ref([{ id: 1, description: 'fyp project - Chap 3.4' }]); // Fix for the missing "todos"
 
 const newSketchbookTitle = ref('');
 const sketchbooks = ref([]);
@@ -644,6 +684,101 @@ const nextPage = () => {
     currentPage.value++;
   }
 };
+
+//TO-dos part 
+const todos = ref([]);
+const showAddEditModal = ref(false);
+const showConfirmationModal = ref(false);
+const confirmationAction = ref('');
+const isEditing = ref(false);
+const currentTodo = ref({});
+const todoToDelete = ref(null);
+
+const fetchTodos = async () => {
+  const { data, error } = await supabase
+    .from('ToDoLists')
+    .select('*')
+    .order('todosPriority', { ascending: true });
+  if (!error) {
+    todos.value = data;
+    console.log('Fetched todos:', todos.value);
+  } else {
+    console.error('Error fetching todos:', error.message);
+  }
+};
+
+onMounted(fetchTodos);
+
+//Open modal to add a new to-do item
+const openAddTodoModal = () => {
+  currentTodo.value = { todosDescription: '', todosPriority: '', todosDeadline: '', todosTime: '', todosStatus: 'incomplete' };
+  isEditing.value = false;
+  showAddEditModal.value = true;
+};
+
+//Open modal to edit an existing to-do item
+const editItem = (todo) => {
+  currentTodo.value = { ...todo };
+  isEditing.value = true;
+  showAddEditModal.value = true; // Use showAddEditModal to toggle the modal for both add and edit
+};
+
+//Save to-do item (either new or update existing)
+const saveTodo = async () => {
+  if (isEditing.value) {
+    //Update todo
+    const { error } = await supabase
+      .from('ToDoLists')
+      .update(currentTodo.value)
+      .eq('id', currentTodo.value.id);
+      if (error) console.error('Error updating todo:', error.message);
+  } else {
+    //Add new todo
+    const { error } = await supabase
+      .from('ToDoLists')
+      .insert([currentTodo.value]);
+      if (error) console.error('Error adding new todo:', error.message);
+  }
+  closeTodosModal();
+  fetchTodos();
+};
+
+const closeTodosModal = () => showAddEditModal.value = false;
+
+const confirmDelete = (id) => {
+  confirmationAction.value = 'delete';
+  todoToDelete.value = id;
+  showConfirmationModal.value = true;
+};
+
+const confirmComplete = (todo) => {
+  confirmationAction.value = 'complete';
+  todoToDelete.value = todo.id;
+  currentTodo.value = { ...todo, todosStatus: 'completed' };
+  showConfirmationModal.value = true;
+};
+
+const confirmAction = async () => {
+  if (confirmationAction.value === 'delete') {
+    await supabase
+      .from('ToDoLists')
+      .delete()
+      .eq('id', todoToDelete.value);
+  } else if (confirmationAction.value === 'complete') {
+    await supabase
+      .from('ToDoLists')
+      .update({ todosStatus: 'completed' })
+      .eq('id', todoToDelete.value);
+      todos.value = todos.value.filter(todo => todo.id !== todoToDelete.value);
+  }
+  closeConfirmationModal();
+  fetchTodos();
+};
+
+const closeConfirmationModal = () => {
+  showConfirmationModal.value = false;
+  todoToDelete.value = null;
+};
 </script>
 
 
@@ -739,7 +874,8 @@ ion-button {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -749,6 +885,13 @@ ion-button {
   background-color: white;
   padding: 20px;
   border-radius: 8px;
+  max-width: 90%;
+  width: 500px;
+  margin: 0 auto;
+  z-index: 1001;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  position: relative;
+  text-align: center;
 }
 
 .canvas-controls,
