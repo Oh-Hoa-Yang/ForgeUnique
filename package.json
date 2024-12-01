@@ -29,6 +29,6 @@
   },
   "devDependencies": {
     "@capacitor/cli": "6.1.0",
-    "supabase": "^1.204.3"
+    "supabase": "^1.223.10"
   }
 }

@@ -20,7 +20,8 @@
             <button @click="openAddTodoModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395;">+</button>
           </div>
           <ul>
-            <li v-for="todo in todos.filter(todo => todo.todosStatus === 'incomplete')" :key="todo.id" style="display: flex; justify-content: space-between; align-items: center;">
+            <li v-for="todo in todos.filter(todo => todo.todosStatus === 'incomplete')" :key="todo.id"
+              style="display: flex; justify-content: space-between; align-items: center;">
               <span :class="{ priority: todo.todosPriority }">{{ todo.todosPriority }}</span>
               <h4>{{ todo.todosDescription }}</h4>
               <div>
@@ -46,8 +47,7 @@
               type="number" />
 
             <ion-label>Deadline</ion-label>
-            <ion-input v-model="currentTodo.todosDeadline" placeholder="Deadline (YYYY-MM-DD)" type="date" required />
-            <ion-input v-model="currentTodo.todosTime" placeholder="Time (HH:MM AM/PM)" type="time" required />
+            <ion-input v-model="currentTodo.todosDeadline" type="datetime-local" required />
 
             <div style="text-align: center; margin-top: 15px;">
               <ion-button type="submit">Save</ion-button>
@@ -711,7 +711,7 @@ onMounted(fetchTodos);
 
 //Open modal to add a new to-do item
 const openAddTodoModal = () => {
-  currentTodo.value = { todosDescription: '', todosPriority: '', todosDeadline: '', todosTime: '', todosStatus: 'incomplete' };
+  currentTodo.value = { todosDescription: '', todosPriority: '', todosDeadline: '', todosStatus: 'incomplete' };
   isEditing.value = false;
   showAddEditModal.value = true;
 };
@@ -725,22 +725,38 @@ const editItem = (todo) => {
 
 //Save to-do item (either new or update existing)
 const saveTodo = async () => {
-  if (isEditing.value) {
-    //Update todo
-    const { error } = await supabase
-      .from('ToDoLists')
-      .update(currentTodo.value)
-      .eq('id', currentTodo.value.id);
+  try {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error('Error fetching session:', sessionError.message);
+      return;
+    }
+
+    const userEmail = session?.user?.email;
+    if (!userEmail) {
+      console.error('User is not authenticated');
+      return;
+    }
+
+    if (isEditing.value) {
+      //Update todo
+      const { error } = await supabase
+        .from('ToDoLists')
+        .update({ ...currentTodo.value, userEmail: userEmail })
+        .eq('id', currentTodo.value.id);
       if (error) console.error('Error updating todo:', error.message);
-  } else {
-    //Add new todo
-    const { error } = await supabase
-      .from('ToDoLists')
-      .insert([currentTodo.value]);
+    } else {
+      //Add new todo
+      const { error } = await supabase
+        .from('ToDoLists')
+        .insert([{ ...currentTodo.value, userEmail: userEmail }]);
       if (error) console.error('Error adding new todo:', error.message);
+    }
+    closeTodosModal();
+    fetchTodos();
+  } catch (error) {
+    console.error('Error saving todo: ', error);
   }
-  closeTodosModal();
-  fetchTodos();
 };
 
 const closeTodosModal = () => showAddEditModal.value = false;
@@ -769,7 +785,7 @@ const confirmAction = async () => {
       .from('ToDoLists')
       .update({ todosStatus: 'completed' })
       .eq('id', todoToDelete.value);
-      todos.value = todos.value.filter(todo => todo.id !== todoToDelete.value);
+    todos.value = todos.value.filter(todo => todo.id !== todoToDelete.value);
   }
   closeConfirmationModal();
   fetchTodos();
