@@ -8,7 +8,7 @@
       </div>
     </ion-card>
 
-    <!-- Monthly Plan Card  -->
+    <!-- Monthly Plan Card  PART  --> 
     <ion-card style="padding: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h5 style="font-weight: bold; text-align: center;">MONTHLY PLAN</h5>
@@ -30,7 +30,13 @@
         <ol>
           <!-- Loop through monthlyPlanData and display each record with a numbered list -->
           <li v-for="(plan, index) in paginatedPlans" :key="plan.id" style="margin-bottom: 10px;">
-            <p><strong>{{ index + 1 }}. {{ plan.monthlyDescription }}</strong></p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>{{ index + 1 }}. {{ plan.monthlyDescription }}</strong>
+              <div style="display: flex; justify-content: end; align-items: center;">
+                <button @click="openEditModal(plan)" style="font-size: 14px; color: #FD8395; ">✏️</button>
+                <button @click="deleteMonthlyPlan(plan.id)" style="font-size: 14px; color: #FD8395;">❌</button>
+              </div>
+            </div>
           </li>
         </ol>
         <!-- Pagination -->
@@ -59,10 +65,18 @@
         </div>
       </div>
 
-
+      <!-- Modal for editing existing monthly plan -->
+      <div v-if="showEditModal" class="modal-overlay">
+        <div class="modal-content">
+          <ion-label>Edit Monthly Plan for {{ selectedYear }} - {{ selectedMonth + 1 }}</ion-label>
+          <ion-input type="text" v-model="editMonthlyPlanDescription" placeholder="Edit monthly plan description" />
+          <div style="text-align: center;">
+            <ion-button @click="updateMonthlyPlan">Update</ion-button>
+            <ion-button @click="closeEditModal">Cancel</ion-button>
+          </div>
+        </div>
+      </div>
     </ion-card>
-
-
   </ion-content>
 </template>
 
@@ -83,8 +97,6 @@ const attrs = ref([
 // general
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
-
-
 
 //pagination declare
 const currentPage = ref(1);
@@ -201,9 +213,74 @@ const createMonthlyPlan = async () => {
   }
 };
 
+//EDIT Monthly Plan ---- PART ----
+const showEditModal = ref(false);
+const editMonthlyPlanDescription = ref('');
+const currentEditPlanId = ref(null);
 
+//Open modal for Edit
+const openEditModal = (plan) => {
+  editMonthlyPlanDescription.value = plan.monthlyDescription;
+  currentEditPlanId.value = plan.id;
+  showEditModal.value = true;
+};
 
+//Close modal of Edit
+const closeEditModal = () => {
+  showEditModal.value = false;
+  editMonthlyPlanDescription.value = ''; //Reset the description field
+  currentEditPlanId.value = null; //Reset the plan ID
+};
 
+//Update the monthly plan ----EDIT
+const updateMonthlyPlan = async () => {
+  if (!editMonthlyPlanDescription.value) {
+    toastError({title:'Error', description:'Please enter a description'});
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase 
+    .from('MonthlyPlans')
+    .update({ monthlyDescription: editMonthlyPlanDescription.value })
+    .eq('id', currentEditPlanId.value)
+    .eq('user_id', user.value.id)
+
+    if (error) {
+      console.error('Error updating monthly plan:', error);
+      toastError({title:'Error', description:'Failed to update the plan'});
+    } else {
+      toastSuccess({title:'Success',description:'Monthly plan updated'});
+      fetchMonthlyPlans();
+      closeEditModal();
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    toastError({title:'Error', description:'An unexpected error occurred'});
+  }
+};
+
+//DELETE existing monthly plan ---- DELETE -----
+const deleteMonthlyPlan = async (planId) => {
+  try {
+    const { data, error } = await supabase
+      .from('MonthlyPlans')
+      .delete()
+      .eq('id', planId)
+      .eq('user_id', user.value.id);
+
+    if (error) {
+      console.error('Error deleting monthly plan:', error);
+      toastError({ title: 'Error', description: 'Failed to delete the plan' });
+    } else {
+      toastSuccess({ title: 'Success', description: 'Monthly plan deleted' });
+      fetchMonthlyPlans(); // Fetch updated plans after deletion
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    toastError({ title: 'Error', description: 'An unexpected error occurred' });
+  }
+};
 </script>
 
 <style scoped>
