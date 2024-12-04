@@ -26,13 +26,20 @@
       </div>
 
       <!-- Displaying the Monthly Plan Records -->
-      <div v-if="monthlyPlanData.length > 0" style="margin-top: 20px; padding: 20px;">
+      <div v-if="monthlyPlanData.length > 0" style="padding: 20px;">
         <ol>
           <!-- Loop through monthlyPlanData and display each record with a numbered list -->
-          <li v-for="(plan, index) in monthlyPlanData" :key="plan.id" style="margin-bottom: 10px;">
+          <li v-for="(plan, index) in paginatedPlans" :key="plan.id" style="margin-bottom: 10px;">
             <p><strong>{{ index + 1 }}. {{ plan.monthlyDescription }}</strong></p>
           </li>
         </ol>
+        <!-- Pagination -->
+        <div style="display: flex; justify-content: space-between;">
+          <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
+            <<< </button>
+              <span>Page {{ currentPage }} of {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages" style="color: #FD8395;"> >>> </button>
+        </div>
       </div>
       <!-- If no records are found -->
       <div v-else style="margin-top: 20px;">
@@ -74,7 +81,15 @@ const attrs = ref([
 ]);
 
 // general
-const supabase = useSupabaseClient()
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+
+
+
+//pagination declare
+const currentPage = ref(1);
+const itemsPerPage = 5;
+const totalPages = ref(1);
 
 //Monhtly Plans Section
 const selectedYear = ref(new Date().getFullYear()); // Default to current year
@@ -97,20 +112,39 @@ onMounted(() => {
 const fetchMonthlyPlans = async () => {
   console.log(`Fetching data for ${selectedYear.value}-${selectedMonth.value + 1}`);
   try {
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from('MonthlyPlans')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('year', selectedYear.value)
       .eq('month', selectedMonth.value + 1)// Fix the 0-based index of months
-    // .eq('user_id', user.value.id)
+      .eq('user_id', user.value.id)
 
     if (error) {
       console.error('Error fetching monthly plans:', error);
     } else {
       monthlyPlanData.value = data;
+      totalPages.value = Math.ceil(count / itemsPerPage); //Calc totalPages for paginate
     }
   } catch (err) {
     console.error('Error fetching monthly plans:', err);
+  }
+};
+
+//Pagination
+const paginatedPlans = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return monthlyPlanData.value.slice(start, end);
+});
+
+const previousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+};
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
   }
 };
 
@@ -134,6 +168,12 @@ const createMonthlyPlan = async () => {
     return;
   }
 
+  if (!user.value || !user.value.id) {
+    toastError({ title: 'Error', description: 'User not authenticated' });
+    return;
+  }
+
+
   try {
     console.log(`Creating monthly plan: ${newMonthlyPlanDescription.value}`);
     console.log("Plan Description:", newMonthlyPlanDescription.value);
@@ -144,7 +184,8 @@ const createMonthlyPlan = async () => {
         monthlyDescription: newMonthlyPlanDescription.value,
         year: selectedYear.value,
         month: selectedMonth.value + 1,
-      }]);
+        user_id: user.value.id
+      }])
 
     if (error) {
       console.error("Error creating monthly plan:", error);
@@ -223,8 +264,10 @@ select {
   padding: 10px;
   font-size: 16px;
   border-radius: 5px;
-  border: 1px solid #ddd;
+  border: 2px solid #ddd;
   margin: 0 10px;
+  background-color: white;
+  color: #ff4e68;
 }
 
 /* Modal Overlay */

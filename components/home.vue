@@ -167,7 +167,7 @@ import { nextTick } from 'vue';
 
 const { toastError, toastSuccess } = useAppToast();
 const { fetchUser } = useAuthUser();
-const user = ref(null);
+const user = useSupabaseUser();
 
 //Signature Pad Options in Sketch Canvas of template
 const signatureOptions = ref({
@@ -696,9 +696,10 @@ const todoToDelete = ref(null);
 
 const fetchTodos = async () => {
   const { data, error } = await supabase
-    .from('ToDoLists')
-    .select('*')
-    .order('todosPriority', { ascending: true });
+  .from('ToDoLists')
+  .select('*')
+  .order('todosPriority', { ascending: true })
+  .eq('user_id', user.value.id)
   if (!error) {
     todos.value = data;
     console.log('Fetched todos:', todos.value);
@@ -744,12 +745,13 @@ const saveTodo = async () => {
         .from('ToDoLists')
         .update({ ...currentTodo.value, userEmail: userEmail })
         .eq('id', currentTodo.value.id);
+        
       if (error) console.error('Error updating todo:', error.message);
     } else {
       //Add new todo
       const { error } = await supabase
         .from('ToDoLists')
-        .insert([{ ...currentTodo.value, userEmail: userEmail }]);
+        .insert([{ ...currentTodo.value, userEmail: userEmail, user_id: user.value.id }])
       if (error) console.error('Error adding new todo:', error.message);
     }
     closeTodosModal();
@@ -795,6 +797,7 @@ const closeConfirmationModal = () => {
   showConfirmationModal.value = false;
   todoToDelete.value = null;
 };
+
 </script>
 
 
