@@ -1,6 +1,6 @@
 <template>
   <!-- Bottom Navigation -->
-  <div class="bottom-nav">
+  <div class="bottom-nav" :inert="isMenuVisible ? true : false">
     <button @click="navigateToPage('/calendarpage')" :class="{ active: isActive('/calendarpage') }" class="tab-button">
       <ion-icon :icon="calendarIcon"></ion-icon>
     </button>
@@ -16,8 +16,13 @@
 <script setup>
 import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon } from 'ionicons/icons';
 
-const router = useRouter();
+const props = defineProps({
+  currentRoute: String //Receive the current active route from the parent
+});
+
 const route = useRoute();
+const router = useRouter();
+const isMenuVisible = ref(false); //Track visibility of any menu or hidden area
 
 // Navigate using Nuxt's router.push
 const navigateToPage = (path) => {
@@ -26,7 +31,7 @@ const navigateToPage = (path) => {
 
 // Check if the current route is active
 const isActive = (path) => {
-  return route.path === path;
+  return props.currentRoute === path;
 };
 </script>
 

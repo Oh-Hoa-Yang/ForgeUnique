@@ -10,7 +10,7 @@
     </ion-content>
 
     <!-- Footer Component -->
-    <Footer />
+    <Footer :current-route="route.path" />
   </ion-page>
 </template>
 
@@ -18,4 +18,7 @@
 import Header from '~/components/header.vue';
 import Footer from '~/components/footer.vue';
 import Progress from '~/components/progress.vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 </script>

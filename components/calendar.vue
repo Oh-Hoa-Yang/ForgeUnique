@@ -52,7 +52,6 @@
         <p>No records found for this month.</p>
       </div>
 
-
       <!-- Modal for creating new monthly plan -->
       <div v-if="showModal" class="modal-overlay">
         <div class="modal-content">
@@ -77,6 +76,48 @@
         </div>
       </div>
     </ion-card>
+
+
+
+
+    <!-- Biggest Gain of Previous Month Card --PART--  -->
+     <ion-card style="padding: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h5 style="font-weight: bold; text-align: center;">BIGGEST GAIN of PREVIOUS MONTH</h5>
+      </div>
+
+       <!-- Year and Month Dropdowns -->
+       <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <select v-model="selectedBYear" @change="fetchBiggestGain" class="year-selector">
+          <option v-for="year in ByearsList" :key="year" :value="year">{{ year }}</option>
+        </select>
+        <select v-model="selectedBMonth" @change="fetchBiggestGain" class="month-selector">
+          <option v-for="(month, index) in BmonthsList" :key="index" :value="index">{{ month }}</option>
+        </select>
+      </div>
+      
+      <!-- Displaying the Biggest Gain Records -->
+      <div v-if="biggestGainData.length > 0" style="padding: 20px;">
+        <ol>
+          <li v-for="(todo, index) in paginatedGains" :key="todo.id" style="margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>{{ index + 1 }}. {{ todo.todosDescription }}</strong>
+            </div>
+          </li>
+        </ol>
+        <!-- Pagination -->
+        <div style="display: flex; justify-content: space-between;">
+          <button @click="previousBPage" :disabled="currentBPage === 1" style="color: #FD8395;">
+            <<< </button>
+              <span>Page {{ currentBPage }} of {{ totalBPages }}</span>
+              <button @click="nextBPage" :disabled="currentBPage === totalBPages" style="color: #FD8395;"> >>> </button>
+        </div>
+      </div>
+      <!-- If no records are found -->
+      <div v-else style="margin-top: 20px;">
+        <p>You have no records found. Escape yourself from comfort zone! Good Luck!</p>
+      </div>
+     </ion-card>
   </ion-content>
 </template>
 
@@ -281,11 +322,105 @@ const deleteMonthlyPlan = async (planId) => {
     toastError({ title: 'Error', description: 'An unexpected error occurred' });
   }
 };
+
+
+//BIGGEST GAIN 
+//PAGINATION
+const currentBPage = ref(1);
+const itemsBPerPage = 5;
+const totalBPages = ref(1);
+
+//DECLARE
+const selectedBYear = ref(new Date().getFullYear()); 
+const selectedBMonth = ref(new Date().getMonth() - 1);
+const ByearsList = ref([]);
+const BmonthsList = ref([
+   'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+]);
+
+const biggestGainData = ref([]);
+
+// Fetch available years for selection (from 2020 to the current year)
+onMounted(() => {
+  const currentYear = new Date().getFullYear();
+  ByearsList.value = Array.from({ length: currentYear - 2019 }, (_, index) => 2020 + index);
+
+  // Set default selected year and previous month
+  selectedBYear.value = currentYear;
+  selectedBMonth.value = new Date().getMonth() - 1;
+  fetchBiggestGain();
+});
+
+// Function to calculate previous month and fetch data
+const fetchBiggestGain = async () => {
+  //Check if the year and month are set (customize)
+  const year = selectedBYear.value;
+  const month = selectedBMonth.value;
+
+  console.log(`Fetching data for ${year} - ${month + 1}`);
+
+  // const lastMonth = new Date();
+  // lastMonth.setMonth(lastMonth.getMonth() - 1); // Get the last month
+  // selectedBYear.value = lastMonth.getFullYear();
+  // selectedBMonth.value = lastMonth.getMonth(); // Set selected month to previous month
+
+  try {
+    const { data, error } = await supabase
+      .from('ToDoLists')
+      .select('*')
+      .eq('todosStatus', 'completed')
+      .eq('user_id', user.value.id);
+
+    if (error) {
+      console.error('Error fetching biggest gain todos:', error);
+      toastError({ title: 'Error', description: 'Failed to fetch data' });
+    } else {
+      // Adjust the completed_at date by adding 8 hours to match the local timezone
+      const localTodos = data.map(todo => {
+        const completedAtLocal = new Date(todo.completed_at).setHours(new Date(todo.completed_at).getHours() + 8);
+        todo.completed_at_local = new Date(completedAtLocal); // Store adjusted date
+        return todo;
+      });
+
+      biggestGainData.value = localTodos.filter(todo => {
+        const completedDate = new Date(todo.completed_at_local);
+        const isSameYear = completedDate.getFullYear() === selectedBYear.value;
+        const isSameMonth = completedDate.getMonth() === selectedBMonth.value;
+        return isSameYear && isSameMonth;
+      })
+
+      totalBPages.value = Math.ceil(biggestGainData.value.length / itemsBPerPage); // Pagination
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    toastError({ title: 'Error', description: 'An unexpected error occurred' });
+  }
+};
+
+// Pagination
+const paginatedGains = computed(() => {
+  const start = (currentBPage.value - 1) * itemsBPerPage;
+  const end = start + itemsBPerPage;
+  return biggestGainData.value.slice(start, end);
+});
+
+const previousBPage = () => {
+  if (currentBPage.value > 1) {
+    currenBtPage.value--;
+  }
+};
+const nextBPage = () => {
+  if (currentBPage.value < totalBPages.value) {
+    currentBPage.value++;
+  }
+};
 </script>
 
 <style scoped>
 .custom-background {
   --background: #FFEDF5;
+  height: 10000000px;
 }
 
 ion-button {

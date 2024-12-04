@@ -10,11 +10,12 @@
     </ion-content>
 
     <!-- Footer Component -->
-    <Footer />
+    <Footer :current-route="route.path" />
   </ion-page>
 </template>
 
 <script setup>
+import { useRoute } from 'vue-router';
 import Home from '~/components/home.vue';
 import Header from '~/components/header.vue';
 import Footer from '~/components/footer.vue';
@@ -28,4 +29,6 @@ const user = useSupabaseUser();
 
 // Logging user information for debugging
 console.log('Session of the user:', user.value);
+
+const route = useRoute();
 </script>
