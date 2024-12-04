@@ -1,6 +1,6 @@
 <template>
   <!-- Bottom Navigation -->
-  <div class="bottom-nav" :inert="isMenuVisible ? true : false">
+  <div class="bottom-nav">
     <button @click="navigateToPage('/calendarpage')" :class="{ active: isActive('/calendarpage') }" class="tab-button">
       <ion-icon :icon="calendarIcon"></ion-icon>
     </button>
@@ -21,8 +21,7 @@ const props = defineProps({
 });
 
 const route = useRoute();
-const router = useRouter();
-const isMenuVisible = ref(false); //Track visibility of any menu or hidden area
+const router = useRouter()
 
 // Navigate using Nuxt's router.push
 const navigateToPage = (path) => {

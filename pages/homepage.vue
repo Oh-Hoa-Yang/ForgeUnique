@@ -1,6 +1,6 @@
 <template>
   <!-- Main Page with Content -->
-  <ion-page id="main-content">
+  <ion-page id="main-content" :inert="isMenuVisible">
     <!-- Header Component -->
     <Header />
 
@@ -31,4 +31,5 @@ const user = useSupabaseUser();
 console.log('Session of the user:', user.value);
 
 const route = useRoute();
+const isMenuVisible = ref(false);
 </script>
