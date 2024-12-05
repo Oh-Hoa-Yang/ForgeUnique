@@ -4,7 +4,7 @@
       <VCalendar color="pink" :attributes="attrs" is-dark="{}" expanded />
       <!-- <VDatePicker class="calendar" v-model="date" /> -->
       <div class="yearly-plan-button">
-        <ion-button router-link="/yearlyplan">YEARLY PLAN</ion-button>
+        <ion-button router-link="/yearlyplanpage">YEARLY PLAN</ion-button>
       </div>
     </ion-card>
 
