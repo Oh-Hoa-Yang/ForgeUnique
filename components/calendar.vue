@@ -76,9 +76,77 @@
         </div>
       </div>
     </ion-card>
+    
+    
+    <!-- IMPROVEMENTS Plan / THING TO BE FOCUS  Card  PART  --> 
+   <ion-card style="padding: 20px;">
+     <div style="display: flex; justify-content: space-between; align-items: center;">
+       <h5 style="font-weight: bold; text-align: center;">IMPROVEMENTS PLAN | THINGS TO BE FOCUSED</h5>
+       <button @click="openIModal" style="font-size:24px; padding: 5px 10px; color: #FD8395;">+</button>
+     </div>
 
+     <!-- Year and Month Dropdowns -->
+     <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+       <select v-model="selectedIYear" @change="fetchImprovementPlans" class="year-selector">
+         <option v-for="year in IyearsList" :key="year" :value="year">{{ year }}</option>
+       </select>
+       <select v-model="selectedIMonth" @change="fetchImprovementPlans" class="month-selector">
+         <option v-for="(month, index) in ImonthsList" :key="index" :value="index">{{ month }}</option>
+       </select>
+     </div>
 
+     <!-- Displaying the Monthly Plan Records -->
+     <div v-if="improvementPlanData.length > 0" style="padding: 20px;">
+       <ol>
+         <!-- Loop through monthlyPlanData and display each record with a numbered list -->
+         <li v-for="(plan, index) in paginatedImprovements" :key="plan.id" style="margin-bottom: 10px;">
+           <div style="display: flex; justify-content: space-between; align-items: center;">
+             <strong>{{ index + 1 }}. {{ plan.improvementDescription }}</strong>
+             <div style="display: flex; justify-content: end; align-items: center;">
+               <button @click="openIEditModal(plan)" style="font-size: 14px; color: #FD8395; ">✏️</button>
+               <button @click="deleteImprovementPlan(plan.id)" style="font-size: 14px; color: #FD8395;">❌</button>
+             </div>
+           </div>
+         </li>
+       </ol>
+       <!-- Pagination -->
+       <div style="display: flex; justify-content: space-between;">
+         <button @click="previousIPage" :disabled="currentIPage === 1" style="color: #FD8395;">
+           <<< </button>
+             <span>Page {{ currentIPage }} of {{ totalIPages }}</span>
+             <button @click="nextIPage" :disabled="currentIPage === totalIPages" style="color: #FD8395;"> >>> </button>
+       </div>
+     </div>
+     <!-- If no records are found -->
+     <div v-else style="margin-top: 20px;">
+       <p>No records found for this month. Step 1 to improvement - NOTE DOWN!</p>
+     </div>
 
+     <!-- Modal for creating new monthly plan -->
+     <div v-if="showIModal" class="modal-overlay">
+       <div class="modal-content">
+         <ion-label>Create New Improvement Plan for {{ selectedIYear }} - {{ selectedIMonth + 1 }}</ion-label>
+         <ion-input type="text" v-model="newImprovementPlanDescription" placeholder="Enter monthly plan description" />
+         <div style="text-align: center;">
+           <ion-button @click="createImprovementPlan">Create</ion-button>
+           <ion-button @click="closeIModal">Cancel</ion-button>
+         </div>
+       </div>
+     </div>
+
+     <!-- Modal for editing existing monthly plan -->
+     <div v-if="showIEditModal" class="modal-overlay">
+       <div class="modal-content">
+         <ion-label>Edit Improvement Plan for {{ selectedIYear }} - {{ selectedIMonth + 1 }}</ion-label>
+         <ion-input type="text" v-model="editImprovementPlanDescription" placeholder="Edit monthly plan description" />
+         <div style="text-align: center;">
+           <ion-button @click="updateImprovementPlan">Update</ion-button>
+           <ion-button @click="closeIEditModal">Cancel</ion-button>
+         </div>
+       </div>
+     </div>
+   </ion-card>
+    
 
     <!-- Biggest Gain of Previous Month Card --PART--  -->
      <ion-card style="padding: 20px;">
@@ -118,6 +186,7 @@
         <p>You have no records found. Escape yourself from comfort zone! Good Luck!</p>
       </div>
      </ion-card>
+     
   </ion-content>
 </template>
 
@@ -407,7 +476,7 @@ const paginatedGains = computed(() => {
 
 const previousBPage = () => {
   if (currentBPage.value > 1) {
-    currenBtPage.value--;
+    currentBPage.value--;
   }
 };
 const nextBPage = () => {
@@ -415,12 +484,199 @@ const nextBPage = () => {
     currentBPage.value++;
   }
 };
+
+//IMPROVEMENT PLANSSS | THING TO BE FOCUSED   -- PART --
+//pagination declare
+const currentIPage = ref(1);
+const itemsIPerPage = 5;
+const totalIPages = ref(1);
+
+//Monhtly Plans Section
+const selectedIYear = ref(new Date().getFullYear()); // Default to current year
+const selectedIMonth = ref(new Date().getMonth()); // Default to current month
+const IyearsList = ref([]);
+const ImonthsList = ref([
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+]);
+const improvementPlanData = ref([]);
+
+// Fetch available years for selection (from 2020 to the current year)
+onMounted(() => {
+  const currentYear = new Date().getFullYear();
+  IyearsList.value = Array.from({ length: currentYear - 2019 }, (_, index) => 2020 + index);
+  fetchImprovementPlans();
+});
+
+// Fetch monthly plans based on selected year and month
+const fetchImprovementPlans = async () => {
+  console.log(`Fetching data for ${selectedIYear.value}-${selectedIMonth.value + 1}`);
+  try {
+    const { data, error, count } = await supabase
+      .from('ImprovementPlans')
+      .select('*', { count: 'exact' })
+      .eq('year', selectedIYear.value)
+      .eq('month', selectedIMonth.value + 1)// Fix the 0-based index of months
+      .eq('user_id', user.value.id)
+
+    if (error) {
+      console.error('Error fetching monthly plans:', error);
+    } else {
+      improvementPlanData.value = data;
+      totalIPages.value = Math.ceil(count / itemsIPerPage); //Calc totalPages for paginate
+    }
+  } catch (err) {
+    console.error('Error fetching monthly plans:', err);
+  }
+};
+
+//Pagination
+const paginatedImprovements = computed(() => {
+  const start = (currentIPage.value - 1) * itemsIPerPage;
+  const end = start + itemsIPerPage;
+  return improvementPlanData.value.slice(start, end);
+});
+
+const previousIPage = () => {
+  if (currentIPage.value > 1) {
+    currentIPage.value--;
+  }
+};
+const nextIPage = () => {
+  if (currentIPage.value < totalIPages.value) {
+    currentIPage.value++;
+  }
+};
+
+const showIModal = ref(false);
+const newImprovementPlanDescription = ref(''); //Holds the new monthky plan desc
+// Open modal to add a new record
+const openIModal = () => {
+  console.log(`Open modal to add new record for: ${selectedYear.value} ${selectedMonth.value + 1}`);
+  showIModal.value = true;
+};
+//Close the modal 
+const closeIModal = () => {
+  showIModal.value = false;
+  newImprovementPlanDescription.value = '';
+};
+
+//CREATE new monthly plan
+const createImprovementPlan = async () => {
+  if (!newImprovementPlanDescription.value) {
+    toastError({ title: 'Error', description: 'Please enter a description' });
+    return;
+  }
+
+  if (!user.value || !user.value.id) {
+    toastError({ title: 'Error', description: 'User not authenticated' });
+    return;
+  }
+
+
+  try {
+    console.log(`Creating monthly plan: ${newImprovementPlanDescription.value}`);
+    console.log("Plan Description:", newImprovementPlanDescription.value);
+
+    const { data, error } = await supabase
+      .from('ImprovementPlans')
+      .insert([{
+        improvementDescription: newImprovementPlanDescription.value,
+        year: selectedYear.value,
+        month: selectedMonth.value + 1,
+        user_id: user.value.id
+      }])
+
+    if (error) {
+      console.error("Error creating monthly plan:", error);
+      toastError({ title: 'Error', description: 'Failed to create monthly plan' });
+    } else {
+      toastSuccess({ title: 'Success', description: 'Created the new monthly plan' });
+      fetchImprovementPlans(); // Fetch the updated data immediately
+      closeIModal(); // Close the modal after successful creation
+    }
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    toastError({ title: 'Error', description: 'An unexpected error occurred' });
+  }
+};
+
+//EDIT Monthly Plan ---- PART ----
+const showIEditModal = ref(false);
+const editImprovementPlanDescription = ref('');
+const currentIEditPlanId = ref(null);
+
+//Open modal for Edit
+const openIEditModal = (plan) => {
+  editImprovementPlanDescription.value = plan.improvementDescription;
+  currentIEditPlanId.value = plan.id;
+  showIEditModal.value = true;
+};
+
+//Close modal of Edit
+const closeIEditModal = () => {
+  showIEditModal.value = false;
+  editImprovementPlanDescription.value = ''; //Reset the description field
+  currentIEditPlanId.value = null; //Reset the plan ID
+};
+
+//Update the monthly plan ----EDIT
+const updateImprovementPlan = async () => {
+  if (!editImprovementPlanDescription.value) {
+    toastError({title:'Error', description:'Please enter a description'});
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase 
+    .from('ImprovementPlans')
+    .update({ improvementDescription: editImprovementPlanDescription.value })
+    .eq('id', currentIEditPlanId.value)
+    .eq('user_id', user.value.id)
+
+    if (error) {
+      console.error('Error updating monthly plan:', error);
+      toastError({title:'Error', description:'Failed to update the plan'});
+    } else {
+      toastSuccess({title:'Success',description:'Monthly plan updated'});
+      fetchImprovementPlans();
+      closeIEditModal();
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    toastError({title:'Error', description:'An unexpected error occurred'});
+  }
+};
+
+//DELETE existing monthly plan ---- DELETE -----
+const deleteImprovementPlan = async (planId) => {
+  try {
+    const { data, error } = await supabase
+      .from('ImprovementPlans')
+      .delete()
+      .eq('id', planId)
+      .eq('user_id', user.value.id);
+
+    if (error) {
+      console.error('Error deleting monthly plan:', error);
+      toastError({ title: 'Error', description: 'Failed to delete the plan' });
+    } else {
+      toastSuccess({ title: 'Success', description: 'Monthly plan deleted' });
+      fetchImprovementPlans(); // Fetch updated plans after deletion
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    toastError({ title: 'Error', description: 'An unexpected error occurred' });
+  }
+};
+
+
 </script>
 
 <style scoped>
 .custom-background {
   --background: #FFEDF5;
-  height: 10000000px;
+  /* height: 10000000px; */
 }
 
 ion-button {
