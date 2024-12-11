@@ -7,14 +7,14 @@
     <button @click="navigateToPage('/homepage')" :class="{ active: isActive('/homepage') }" class="tab-button">
       <ion-icon :icon="homeIcon"></ion-icon>
     </button>
-    <button @click="navigateToPage('/progresspage')" :class="{ active: isActive('/progresspage') }" class="tab-button">
-      <ion-icon :icon="progressIcon"></ion-icon>
+    <button @click="navigateToPage('/recordpage')" :class="{ active: isActive('/recordpage') }" class="tab-button">
+      <ion-icon :icon="recordingIcon"></ion-icon>
     </button>
   </div>
 </template>
 
 <script setup>
-import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon } from 'ionicons/icons';
+import { homeOutline as homeIcon, calendarOutline as calendarIcon, recordingOutline as recordingIcon } from 'ionicons/icons';
 
 const props = defineProps({
   currentRoute: String //Receive the current active route from the parent

@@ -6,7 +6,7 @@
 
     <!-- Main Content (imported component) -->
     <ion-content>
-      <Progress />
+      <Record />
     </ion-content>
 
     <!-- Footer Component -->
@@ -17,7 +17,7 @@
 <script setup>
 import Header from '~/components/header.vue';
 import Footer from '~/components/footer.vue';
-import Progress from '~/components/progress.vue';
+import Record from '~/components/record.vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();

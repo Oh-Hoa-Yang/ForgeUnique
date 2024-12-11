@@ -37,9 +37,9 @@
           <ion-icon :icon="calendarIcon" class="menu-icon" /> 
           Calendar
         </button>
-        <button @click="navigateToPage('/progresspage')">
-          <ion-icon :icon="progressIcon" class="menu-icon" /> 
-          Progress
+        <button @click="navigateToPage('/recordpage')">
+          <ion-icon :icon="recordingIcon" class="menu-icon" /> 
+          Quick Record
         </button>
         <button @click="logout">
           <ion-icon :icon="logoutIcon" class="menu-icon" /> 
@@ -53,7 +53,7 @@
 <script setup>
 import { IonIcon } from '@ionic/vue';
 import { menuOutline as menuIcon } from 'ionicons/icons';
-import { homeOutline as homeIcon, calendarOutline as calendarIcon, barChartOutline as progressIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
+import { homeOutline as homeIcon, calendarOutline as calendarIcon, recordingOutline as recordingIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
 import { useAppToast } from '~/composables/useAppToast';
 
 const router = useRouter();
