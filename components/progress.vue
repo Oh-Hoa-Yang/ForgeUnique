@@ -1,14 +1,16 @@
 <template>
   <ion-content>
     <div>
-      <button @click="startRecording" :disabled="isRecording">START</button>
-      <button @click="stopRecording" :disable="!isRecording">STOP</button>
+      <div style="display: flex; justify-items: center; justify-content: center; margin-top: 20px;">
+        <button @click="startRecording" :disabled="isRecording" class="start-button"><span class="fluent--mic-record-28-regular"></span></button>
+        <button @click="stopRecording" :disable="!isRecording" class="stop-button"><span class="fluent--record-stop-20-regular"></span></button>
+      </div>
 
       <!-- List of recordings -->
-      <div v-for="(clip, index) in recordings" :key="clip.audio_number">
-        <audio :src="clip.src" controls></audio>
-        <button @click="deleteAudio(clip)">Delete</button>
-      </div>
+      <div v-for="(clip, index) in recordings" :key="clip.audio_number" style="display: flex; justify-content: space-between; align-items: center; margin-left: 20px; margin-right: 20px; border-color:grey; border-width: 1px; border-left-color: white; border-right-color: white; padding: 5px;">
+        <audio :src="clip.src" controls class="custom-audio-player"></audio>
+        <button @click="deleteAudio(clip)" style="display: flex;"><span class="material-symbols--delete-outline"></span></button>
+      </div>  
     </div>
   </ion-content>
 </template>
@@ -272,5 +274,42 @@ onMounted(async () => {
 <style scoped>
 button {
   margin: 10px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.custom-audio-player {
+  width: 100%; /* Adjust width to fit the container */
+  height: 50px; /* Increase height */
+}
+
+.fluent--mic-record-28-regular {
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cpath fill='%23ff65bc' d='M8.5 6.5a4.5 4.5 0 1 1 9 0v7.124a7.5 7.5 0 0 0-1.5.875V6.5a3 3 0 1 0-6 0v8a3 3 0 0 0 3.656 2.928a7.5 7.5 0 0 0-.506 1.57L13 19a4.5 4.5 0 0 1-4.5-4.5zM13.016 21H13a6.5 6.5 0 0 1-6.5-6.5v-.75a.75.75 0 1 0-1.5 0v.75a8 8 0 0 0 7.25 7.965v2.785a.75.75 0 0 0 1.5 0v-1.477A7.5 7.5 0 0 1 13.016 21m7.484 4.5a5 5 0 1 1 0-10a5 5 0 0 1 0 10m0 1.5a6.5 6.5 0 1 0 0-13a6.5 6.5 0 0 0 0 13m0-3a3.5 3.5 0 1 0 0-7a3.5 3.5 0 0 0 0 7'/%3E%3C/svg%3E");
+}
+
+.fluent--record-stop-20-regular {
+  display: inline-block;
+  width: 100px;
+  height: 100px;    
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23ff65bc' d='M10 3a7 7 0 1 0 0 14a7 7 0 0 0 0-14m-8 7a8 8 0 1 1 16 0a8 8 0 0 1-16 0m5-2a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z'/%3E%3C/svg%3E");
+}
+
+.material-symbols--delete-outline {
+  /* display: inline-block; */
+  width: 50px;
+  height: 50px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z'/%3E%3C/svg%3E");
 }
 </style>
