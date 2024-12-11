@@ -280,70 +280,72 @@ const isSaved = ref(true); //New flag to track if the sketch has been saved
 
 //Function to handle canvas save
 const saveCanvas = async () => {
-  //Chcek the signatureURL whether is availble and has the methof toDataURL
   if (!signaturePad.value || typeof signaturePad.value.saveSignature !== 'function') {
     console.error('Signature pad not initialized or missing saveSignature method');
     toastError({ title: 'Error', description: 'Sketchpad is not ready. Try again.' });
     return;
   }
 
-  //Get the current sketch data as a base64 image
-  const sketchData = signaturePad.value.saveSignature('image/png'); // Get signature as a base64 data URl
+  // Get the current sketch data as a base64 image
+  const sketchData = signaturePad.value.saveSignature('image/png'); // Get signature as a base64 data URL
   if (!sketchData) {
     console.error('Failed to generate data URL');
     return;
   }
 
-  //Saving Canvas as image (base64 string)
-  //Simplify Blob Creation
-  const base64Data = sketchData.split(',')[1]
-  const blob = await (await fetch(`data:image/png;base64,${base64Data}`)).blob()
-  console.log("Blob object created:", blob);
+  // Simplify Blob Creation
+  const base64Data = sketchData.split(',')[1];
+  const blob = await (await fetch(`data:image/png;base64,${base64Data}`)).blob();
+  console.log('Blob object created:', blob);
 
-  const fileName = `${selectedSketch.value.id}_${currentPageNumber.value}_${Date.now()}.png`; // Create a unique file name
+  // Unique file name for the current page (ensures only one file per page)
+  const fileName = `${selectedSketch.value.id}_${currentPageNumber.value}.png`; // Fixed file name for the page
 
   try {
-    //Remove the existing image from Supabase storage (if it exists)
+    // Step 1: Remove the existing image (if any)
     const { error: deleteError } = await supabase
       .storage
-      .from('sketches')
-      .remove([fileName])
+      .from('sketches') // Ensure this matches your bucket name
+      .remove([fileName]);
 
-    if (deleteError && deleteError.statusCode !== '404') {
-      //Log if the delete failed (ignore 404 errors since it means the file didn't exist)
-      console.error('Error deleting previous image: ', deleteError);
+    if (deleteError && deleteError.statusCode !== 404) {
+      // Ignore 404 errors (file does not exist)
+      console.error('Error deleting previous image:', deleteError);
       throw deleteError;
     }
 
-    //Upload the Blob to Supabase Storage 
+    console.log('Existing file deleted successfully or did not exist.');
+
+    // Step 2: Upload the new Blob to Supabase Storage
     const { error: uploadError } = await supabase
       .storage
-      .from('sketches') //bucket name
+      .from('sketches') // Ensure this matches your bucket name
       .upload(fileName, blob, { contentType: 'image/png' });
 
     if (uploadError) {
-      console.error('Error uploading image:', uploadError); //Log full error
+      console.error('Error uploading new image:', uploadError);
       throw uploadError;
     }
 
-    //Get the public URL of the uploaded image
+    console.log('New image uploaded successfully.');
+
+    // Step 3: Get the public URL of the uploaded image
     const { data, error: urlError } = await supabase
       .storage
       .from('sketches')
-      .getPublicUrl(fileName)
+      .getPublicUrl(fileName);
 
     if (urlError || !data.publicUrl) {
-      console.error('Error fetching public URL: ', urlError)
+      console.error('Error fetching public URL:', urlError);
       toastError({ title: 'Error', description: 'Failed to generate public URL for the image.' });
       return;
     }
 
     const publicUrl = data.publicUrl;
-    console.log("Public URL of uploaded image:", publicUrl)
+    console.log('Public URL of uploaded image:', publicUrl);
 
+    // Step 4: Save or update the URL in the database
     const currentPage = await getOrCreatePage();
-
-    //Check if there's already an existing record of that page - different actions
     const { data: existingPageAction, error: fetchError } = await supabase
       .from('PageActions')
       .select('*')
@@ -356,43 +358,43 @@ const saveCanvas = async () => {
     }
 
     if (existingPageAction) {
-      //Update the exisitng record with the new image URL
+      // Update the existing record with the new image URL
       const { error: updateError } = await supabase
         .from('PageActions')
-        .update({ actionData: publicUrl }) //Update with the new URL
-        .eq('id', existingPageAction.id) //Match by the exisitng record's ID
+        .update({ actionData: publicUrl }) // Update with the new URL
+        .eq('id', existingPageAction.id); // Match by the existing record's ID
 
       if (updateError) {
-        console.error('Error uploading public URL in PageActions: ', updateError)
+        console.error('Error updating PageActions:', updateError);
         throw updateError;
       }
 
-      console.log("Successfully updated public URL in PageActions table");
-
+      console.log('Successfully updated PageActions table.');
     } else {
-      //No existing record, insert new
+      // No existing record, insert a new one
       const { error: insertError } = await supabase
         .from('PageActions')
-        .insert([{ actionData: publicUrl, sketchpage_id: currentPage.id }])
+        .insert([{ actionData: publicUrl, sketchpage_id: currentPage.id }]);
 
       if (insertError) {
-        console.error("Error saving public URL to PageActions:", insertError);
+        console.error('Error saving to PageActions:', insertError);
         throw insertError;
       }
-      console.log("Successfully inserted public URL into PageActions table");
 
-      //Disable undo/redo after saving 
-      undoStack.value = [];
-      redoStack.value = [];
-
-      toastSuccess({ title: 'Success', description: 'Sketch saved successfully!' });
-      isSaved.value = true; //Set the flag to true after saving
+      console.log('Successfully inserted into PageActions table.');
     }
+
+    // Step 5: Clear undo/redo stacks after saving
+    undoStack.value = [];
+    redoStack.value = [];
+    toastSuccess({ title: 'Success', description: 'Sketch saved successfully!' });
+    isSaved.value = true; // Set the flag to true after saving
   } catch (error) {
-    console.error('Error uploading image:', error);
-    toastError({ title: 'Error', description: 'Failed to upload sketch image!' });
+    console.error('Error during saveCanvas:', error);
+    toastError({ title: 'Error', description: 'Failed to save sketch!' });
   }
-}
+};
+
 
 const getOrCreatePage = async () => {
   let currentPage = await fetchPage(currentPageNumber.value);
@@ -630,23 +632,64 @@ const editSketchbookTitle = async () => {
 // Delete a sketchbook
 const deleteSketchbook = async (sketchId) => {
   try {
-    const { error } = await supabase
+    // Step 1: Fetch all associated pages for the sketchbook
+    const { data: pages, error: fetchPagesError } = await supabase
+      .from('SketchPages')
+      .select('id, page_number')
+      .eq('sketch_id', sketchId);
+
+    if (fetchPagesError) {
+      throw new Error('Error fetching associated pages: ' + fetchPagesError.message);
+    }
+
+    // Step 2: Construct file names for deletion
+    const fileNames = pages.map((page) => `${sketchId}_${page.page_number}.png`);
+
+    if (fileNames.length === 0) {
+      console.log('No files to delete from storage.');
+    } else {
+      console.log('Files to be deleted:', fileNames);
+
+      // Step 3: Delete files from Supabase storage
+      const { error: deleteFilesError } = await supabase
+        .storage
+        .from('sketches') // Ensure this matches your storage bucket name
+        .remove(fileNames);
+
+      if (deleteFilesError) {
+        throw new Error('Error deleting files from storage: ' + deleteFilesError.message);
+      }
+
+      console.log('Files deleted successfully from storage.');
+    }
+
+    // Step 4: Delete the sketchbook from the database (this cascades pages and actions)
+    const { error: deleteSketchbookError } = await supabase
       .from('Sketches')
       .delete()
       .eq('id', sketchId);
 
-    if (error) throw error;
+    if (deleteSketchbookError) {
+      throw new Error('Error deleting sketchbook: ' + deleteSketchbookError.message);
+    }
 
-    toastSuccess({ title: 'Success', description: 'Sketchbook deleted successfully!' });
-    await fetchSketchbooks(); // Refresh list after deletion
+    // Success notification
+    toastSuccess({
+      title: 'Success',
+      description: 'Sketchbook and all associated data deleted successfully!',
+    });
+
+    // Refresh the sketchbooks list
+    await fetchSketchbooks();
   } catch (error) {
-    toastError({ title: 'Error', description: 'Failed to delete sketchbook!' });
+    console.error('Error during deletion:', error);
+    toastError({
+      title: 'Error',
+      description: 'Failed to delete sketchbook and associated files.',
+    });
   }
-  await supabase
-    .storage
-    .from('sketches')
-    .remove([`${selectedSketch.value.id}_${currentPageNumber.value}.png`])
 };
+
 
 // Modal control
 const openModal = () => showModal.value = true;
