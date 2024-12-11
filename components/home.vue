@@ -4,7 +4,7 @@
       <!-- Expense and To-Do List Sections (first row) -->
       <div class="row">
         <!-- Expense Section (Button Behavior) -->
-        <button class="expense-button" @click="router.push('/expensehome')">
+        <button class="expense-button" @click="router.push('/expensehomepage')">
           <div class="expense">
             <h3 style="text-align: center; font-weight: bold;">Expense</h3>
             <p><b>Monthly Budget:</b> <br>{{ monthlyBudget }} MYR</p><br>
@@ -168,6 +168,8 @@ import { nextTick } from 'vue';
 const { toastError, toastSuccess } = useAppToast();
 const { fetchUser } = useAuthUser();
 const user = useSupabaseUser();
+
+const router = useRouter();
 
 //Signature Pad Options in Sketch Canvas of template
 const signatureOptions = ref({

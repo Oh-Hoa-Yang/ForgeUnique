@@ -6,7 +6,7 @@
 
     <!-- Main Content (imported component) -->
     <ion-content>
-      <Calendar />
+      <Expensehome />
     </ion-content>
 
     <!-- Footer Component -->
@@ -17,7 +17,7 @@
 <script setup>
 import Header from '~/components/header.vue';
 import Footer from '~/components/footer.vue';
-import Calendar from '~/components/calendar.vue';
+import Expensehome from '~/components/expensehome.vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
