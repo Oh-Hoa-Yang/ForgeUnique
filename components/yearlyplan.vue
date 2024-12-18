@@ -70,6 +70,7 @@
         </div>
       </div>
     </ion-card>
+    <br><br>
   </ion-content>
 </template>
 

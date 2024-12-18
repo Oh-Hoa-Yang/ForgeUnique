@@ -80,10 +80,13 @@
         "npm:@nuxt/ui@^2.18.7",
         "npm:@nuxtjs/ionic@~0.15.1",
         "npm:@nuxtjs/supabase@^1.4.1",
+        "npm:@popperjs/core@^2.11.8",
         "npm:@selemondev/vue3-signature-pad@^1.1.0",
+        "npm:capacitor-voice-recorder@^6.0.3",
         "npm:crypto-js@^4.2.0",
         "npm:nuxt@^3.13.2",
         "npm:supabase@^1.223.10",
+        "npm:v-calendar@^3.1.2",
         "npm:vue@latest"
       ]
     }

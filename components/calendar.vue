@@ -186,6 +186,7 @@
         <p>You have no records found. Escape yourself from comfort zone! Good Luck!</p>
       </div>
      </ion-card>
+     <br><br>
      
   </ion-content>
 </template>
@@ -676,7 +677,7 @@ const deleteImprovementPlan = async (planId) => {
 <style scoped>
 .custom-background {
   --background: #FFEDF5;
-  /* height: 10000000px; */
+  /* height: 100000000000000000000px; */
 }
 
 ion-button {
@@ -714,6 +715,7 @@ ion-button {
   margin: 0 10px;
 }
 
+ion-card
 
 button {
   border: none;
