@@ -22,6 +22,10 @@ const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY')!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const currentDate = new Date();
+const currentMonth = currentDate.getMonth() + 1;
+const currentYear = currentDate.getFullYear();
+
 // Function to send email via Brevo API
 async function sendEmailViaBrevo(toEmail: string, subject: string, content: string) {
   const response = await fetch('https://api.sendinblue.com/v3/smtp/email', {
@@ -50,7 +54,7 @@ async function sendEmailViaBrevo(toEmail: string, subject: string, content: stri
 async function checkBudgetForNotification() {
   const { data: users, error } = await supabase
     .from('Users')
-    .select('id, email, budget');
+    .select('id, email, budget, lastNotificationDate');
 
   if (error) {
     console.error('Error fetching users:', error);
@@ -69,6 +73,17 @@ async function checkBudgetForNotification() {
         continue;
       }
 
+      // Skip if a notification has already been sent this month
+      if (user.lastNotificationDate) {
+        const lastNotification = new Date(user.lastNotificationDate);
+        if (
+          lastNotification.getFullYear() === currentYear && lastNotification.getMonth() + 1 === currentMonth
+        ) {
+          console.log(`Notification already sent for user ${user.id} this month.`);
+          continue;
+        }
+      }
+
       const { data: expenses, error: expenseError } = await supabase
         .from('Expenses')
         .select('expenseAmount, expenseDate')
@@ -79,9 +94,6 @@ async function checkBudgetForNotification() {
         continue;
       }
 
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth() + 1;
-      const currentYear = currentDate.getFullYear();
 
       type Expense = { expenseAmount: number; expenseDate: string }; // Define a type for expenses
 
@@ -105,6 +117,16 @@ async function checkBudgetForNotification() {
 
         console.log(`Sending email to: ${user.email}, Budget: ${user.budget}, Monthly Expense: ${monthlyExpense}`);
         await sendEmailViaBrevo(user.email, 'Budget Alert: 80% Spent', emailBody);
+
+         // Update lastNotificationDate after sending the email
+         const { error: updateError } = await supabase
+         .from('Users')
+         .update({ lastNotificationDate: currentDate.toISOString().split('T')[0] })
+         .eq('id', user.id);
+
+       if (updateError) {
+         console.error(`Failed to update lastNotificationDate for user ${user.id}:`, updateError);
+       }
       }
     } catch (error) {
       console.error(`Error processing user ${user.id}:`, error);
