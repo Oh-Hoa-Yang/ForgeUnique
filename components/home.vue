@@ -7,9 +7,9 @@
         <button class="expense-button" @click="router.push('/expensehomepage')">
           <div class="expense">
             <h3 style="text-align: center; font-weight: bold;">Expense</h3>
-            <p><b>Monthly Budget:</b> <br>{{ monthlyBudget }} MYR</p><br>
-            <p><b>Total Monthly Expenses:</b><br> {{ totalExpenses }} MYR</p><br>
-            <p><b>Today Expenses:</b> <br>{{ todayExpenses }} MYR</p>
+            <p><b>Monthly Budget:</b> <br>{{ appState.budget }} MYR</p><br>
+            <p><b>Total Monthly Expenses:</b><br> {{ monthlyExpense }} MYR</p><br>
+            <p><b>Today Expenses:</b> <br>{{ todayExpense }} MYR</p>
           </div>
         </button>
 
@@ -170,6 +170,17 @@ const { fetchUser } = useAuthUser();
 const user = useSupabaseUser();
 
 const router = useRouter();
+
+const appState = inject('appState');
+if (!appState) {
+  console.error('Failed to inject appState. Ensure App.vue provides it.');
+}
+
+// Access state
+const budget = computed(() => appState.budget);
+const monthlyExpense = computed(() => appState.monthlyExpense);
+const todayExpense = computed(() => appState.todayExpense);
+
 
 //Signature Pad Options in Sketch Canvas of template
 const signatureOptions = ref({

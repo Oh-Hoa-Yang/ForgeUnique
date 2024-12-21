@@ -89,7 +89,7 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 
-
+const appState = inject('appState')
 
 //General
 const totalExpense = ref(0);
@@ -159,6 +159,7 @@ const setBudget = async () => {
     if (error) throw error;
     
     budget.value = parseFloat(newBudget.value); //update local
+    appState.budget = budget.value;
     closeModal();
     toastSuccess({ title:'Success', description: 'Budget updated successfully!'})
   } catch (err) {

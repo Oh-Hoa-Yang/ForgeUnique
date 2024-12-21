@@ -31,5 +31,18 @@ const user = useSupabaseUser();
 console.log('Session of the user:', user.value);
 
 const route = useRoute();
+const router = useRouter();
 const isMenuVisible = ref(false);
+
+const appState = inject('appState');
+if (!appState) {
+  console.error('Failed to inject appState in Homepage.vue.');
+}
+
+onMounted( async () => {
+  if (router.currentRoute.value.query.refresh) {
+    await fetchData(); // Call `fetchData` to refresh appState
+  }
+});
+
 </script>
