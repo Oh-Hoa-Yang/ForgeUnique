@@ -153,7 +153,7 @@ const setBudget = async () => {
   try {
     const { error } = await supabase
     .from('Users')
-    .update({ budget: parseFloat(newBudget.value) }) //Ensure the budget is stored as float
+    .update({ budget: parseFloat(newBudget.value), email: user.value.email }) //Ensure the budget is stored as float
     .eq('user_id', user.value.id);
     
     if (error) throw error;
