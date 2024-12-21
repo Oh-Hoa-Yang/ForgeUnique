@@ -778,7 +778,7 @@ const saveTodo = async () => {
       return;
     }
 
-    const userEmail = session?.user?.email;
+    const userEmail = user.value.email;
     if (!userEmail) {
       console.error('User is not authenticated');
       return;
@@ -791,16 +791,23 @@ const saveTodo = async () => {
         .update({ ...currentTodo.value, userEmail: userEmail })
         .eq('id', currentTodo.value.id);
         
-      if (error) console.error('Error updating todo:', error.message);
+      if (error) {
+        console.error('Error updating todo:', error.message);
+        toastError({title:'Error', description:'Failed to update the todos.'});
+      } 
     } else {
       //Add new todo
       const { error } = await supabase
         .from('ToDoLists')
         .insert([{ ...currentTodo.value, userEmail: userEmail, user_id: user.value.id }])
-      if (error) console.error('Error adding new todo:', error.message);
+      if (error) {
+        console.error('Error adding new todo:', error.message);
+        toastError({title:'Error', description:'Failed to add the todos.'});
+      }
     }
     closeTodosModal();
     fetchTodos();
+    toastSuccess({ title: 'Success', description: 'To-Do item saved successfully!' });
   } catch (error) {
     console.error('Error saving todo: ', error);
   }
