@@ -7,7 +7,7 @@
         <button class="expense-button" @click="router.push('/expensehomepage')">
           <div class="expense">
             <h3 style="text-align: center; font-weight: bold;">Expense</h3>
-            <p><b>Monthly Budget:</b> <br>{{ appState.budget }} MYR</p><br>
+            <p><b>Monthly Budget:</b> <br>{{ budget }} MYR</p><br>
             <p><b>Total Monthly Expenses:</b><br> {{ monthlyExpense }} MYR</p><br>
             <p><b>Today Expenses:</b> <br>{{ todayExpense }} MYR</p>
           </div>
@@ -177,9 +177,109 @@ if (!appState) {
 }
 
 // Access state
-const budget = computed(() => appState.budget);
-const monthlyExpense = computed(() => appState.monthlyExpense);
-const todayExpense = computed(() => appState.todayExpense);
+// const budget = computed(() => appState.budget);
+// const monthlyExpense = computed(() => appState.monthlyExpense);
+// const todayExpense = computed(() => appState.todayExpense);
+
+const fetchBudget = async () => {
+  if (!user.value) return;
+
+  try {
+    const {data, error} = await supabase 
+    .from('Users')
+    .select('budget')
+    .eq('user_id', user.value.id)
+    .single()
+
+    if (error) throw error;
+
+    if (data && data.budget) {
+      appState.budget = data.budget //Update appState with fetched budget
+      return data.budget;
+    }
+    return 0; //Return 0 if no budget is found
+  } catch (err) {
+    console.error('Error fetching budget from supabase:', err.message);
+    return 0;
+  }
+}; 
+
+//Reactive state for budget 
+const budget = computed(() => {
+  if (appState.budget === 0) {
+    fetchBudget().then((fetchedBudget) => { 
+      appState.budget = fetchedBudget; // Update appState after manual fetch
+    });
+  }
+  return appState.budget;
+})
+
+const fetchExpenses = async () => {
+  if (!user.value) return;
+
+  try {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
+    const todayDate = currentDate.toISOString().split('T')[0];
+
+    const { data: expenses, error } = await supabase
+      .from('Expenses')
+      .select('expenseAmount, expenseDate')
+      .eq('user_id', user.value.id);
+
+    if (error) throw error;
+
+    let fetchedMonthlyExpense = 0;
+    let fetchedTodayExpense = 0;
+
+    if (expenses) {
+      fetchedMonthlyExpense = expenses
+        .filter((expense) => {
+          const expenseDate = new Date(expense.expenseDate);
+          return (
+            expenseDate.getFullYear() === currentYear &&
+            expenseDate.getMonth() + 1 === currentMonth
+          );
+        })
+        .reduce((sum, expense) => sum + expense.expenseAmount, 0);
+
+      fetchedTodayExpense = expenses
+        .filter((expense) => expense.expenseDate === todayDate)
+        .reduce((sum, expense) => sum + expense.expenseAmount, 0);
+    }
+
+    appState.monthlyExpense = fetchedMonthlyExpense;
+    appState.todayExpense = fetchedTodayExpense;
+
+    return { monthlyExpense: fetchedMonthlyExpense, todayExpense: fetchedTodayExpense };
+  } catch (err) {
+    console.error('Error fetching expenses from Supabase:', err.message);
+    return { monthlyExpense: 0, todayExpense: 0 };
+  }
+};
+
+// Reactive state for expenses
+const monthlyExpense = computed(() => {
+  if (appState.monthlyExpense === 0) {
+    fetchExpenses().then(({ monthlyExpense }) => {
+      appState.monthlyExpense = monthlyExpense; // Update appState after manual fetch
+    });
+  }
+  return appState.monthlyExpense;
+});
+
+const todayExpense = computed(() => {
+  if (appState.todayExpense === 0) {
+    fetchExpenses().then(({ todayExpense }) => {
+      appState.todayExpense = todayExpense; // Update appState after manual fetch
+    });
+  }
+  return appState.todayExpense;
+});
+
+
+
 
 
 //Signature Pad Options in Sketch Canvas of template
@@ -227,9 +327,6 @@ onMounted(async () => {
   await fetchSketchbooks(); // Fetch all sketchbooks on load
 });
 
-const monthlyBudget = ref(2000); // Fix for the missing "monthlyBudget"
-const totalExpenses = ref(1500); // Fix for the missing "totalExpenses"
-const todayExpenses = ref(50); // Fix for the missing "todayExpenses"
 
 const newSketchbookTitle = ref('');
 const sketchbooks = ref([]);
