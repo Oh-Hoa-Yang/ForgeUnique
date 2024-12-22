@@ -176,11 +176,6 @@ if (!appState) {
   console.error('Failed to inject appState. Ensure App.vue provides it.');
 }
 
-// Access state
-// const budget = computed(() => appState.budget);
-// const monthlyExpense = computed(() => appState.monthlyExpense);
-// const todayExpense = computed(() => appState.todayExpense);
-
 const fetchBudget = async () => {
   if (!user.value) return;
 
