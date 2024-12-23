@@ -4,66 +4,72 @@
     <!-- Header Component -->
     <Header />
 
-    <!-- Main Content (imported component) -->
-    <ion-content class="custom-background">
-      <ion-card class="page-card">
-        <div class="top-row-container">
-          <button @click="router.push('/expensehomepage')">
-            <span class="lets-icons--back"></span>
-          </button>
-          <h1 style="font-size: 25px;">
-            <b>EXPENSE RECORDS</b>
-          </h1>
-          <div></div>
-        </div>
-
-        <!-- Total Expense Button  -->
-        <div style="display: flex; justify-content: center;">
-          <ion-button class="balance-button" disabled="true">
-            Balance (RM{{ monthlyExpense }})
-          </ion-button>
-        </div>
-
-        <!-- Search -->
-        <div style="display: flex; justify-content: center; padding: 10px;">
-          <ion-item style="--background: #FFD6E5;">
-            <ion-label><span class="ic--sharp-search"></span></ion-label>
-            <ion-input class="input-field" type="text" v-model="searchQuery" placeholder="Search by description"
-              @input="filterRecords">
-            </ion-input>
-          </ion-item>
-        </div>
-
-
-
-        <!-- Expense Categories and Records -->
-        <div v-for="category in categoriesWithRecords" :key="category.name">
-          <div v-if="category.records.length > 0" class="category-section">
-            <!-- Category Header -->
-            <div class="category-header" @click="toggleDropdown(category.name)">
-              <ion-icon :class="category.iconClass"></ion-icon>
-              <span class="category-name">{{ category.name }}</span>
-              <span class="category-total">RM{{ formatAmount(category.totalAmount) }}</span>
-              <ion-icon :class="isDropdownOpen(category.name) ? 'mingcute--up-line' : 'mingcute--down-line'"></ion-icon>
-            </div>
-
-            <!-- Expense Records -->
-            <ul v-show="isDropdownOpen(category.name)" class="dropdown-content">
-              <li v-for="record in category.records" :key="record.id" class="record-item with-bullet"
-                @click="goToEditExpense(record)">
-                <span class="expense-amount">RM{{ record.expenseAmount }}</span>
-                <span class="expense-description">{{ record.expenseDescription }}</span>
-                <span class="expense-date">{{ formatDate(record.expenseDate) }}</span>
-              </li>
-            </ul>
+    <!-- Pull to refresh component wrapped around ion-content -->
+    <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
+      loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
+      success-duration="500" animation-duration="300" head-height="50">
+      <!-- Main Content (imported component) -->
+      <ion-content class="custom-background">
+        <ion-card class="page-card">
+          <div class="top-row-container">
+            <button @click="router.push('/expensehomepage')">
+              <span class="lets-icons--back"></span>
+            </button>
+            <h1 style="font-size: 25px;">
+              <b>EXPENSE RECORDS</b>
+            </h1>
+            <div></div>
           </div>
-        </div>
+
+          <!-- Total Expense Button  -->
+          <div style="display: flex; justify-content: center;">
+            <ion-button class="balance-button" disabled="true">
+              Balance (RM{{ monthlyExpense }})
+            </ion-button>
+          </div>
+
+          <!-- Search -->
+          <div style="display: flex; justify-content: center; padding: 10px;">
+            <ion-item style="--background: #FFD6E5;">
+              <ion-label><span class="ic--sharp-search"></span></ion-label>
+              <ion-input class="input-field" type="text" v-model="searchQuery" placeholder="Search by description"
+                @input="filterRecords">
+              </ion-input>
+            </ion-item>
+          </div>
+
+
+
+          <!-- Expense Categories and Records -->
+          <div v-for="category in categoriesWithRecords" :key="category.name">
+            <div v-if="category.records.length > 0" class="category-section">
+              <!-- Category Header -->
+              <div class="category-header" @click="toggleDropdown(category.name)">
+                <ion-icon :class="category.iconClass"></ion-icon>
+                <span class="category-name">{{ category.name }}</span>
+                <span class="category-total">RM{{ formatAmount(category.totalAmount) }}</span>
+                <ion-icon
+                  :class="isDropdownOpen(category.name) ? 'mingcute--up-line' : 'mingcute--down-line'"></ion-icon>
+              </div>
+
+              <!-- Expense Records -->
+              <ul v-show="isDropdownOpen(category.name)" class="dropdown-content">
+                <li v-for="record in category.records" :key="record.id" class="record-item with-bullet"
+                  @click="goToEditExpense(record)">
+                  <span class="expense-amount">RM{{ record.expenseAmount }}</span>
+                  <span class="expense-description">{{ record.expenseDescription }}</span>
+                  <span class="expense-date">{{ formatDate(record.expenseDate) }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
 
 
 
 
-      </ion-card>
-    </ion-content>
+        </ion-card>
+      </ion-content>
+    </PullRefresh>
 
     <!-- Footer Component -->
     <Footer :current-route="route.path" />
@@ -74,6 +80,8 @@
 import Header from '~/components/header.vue';
 import Footer from '~/components/footer.vue';
 import { useRoute } from 'vue-router';
+import PullRefresh from 'pull-refresh-vue3';
+
 
 definePageMeta({
   middleware: 'auth'
@@ -115,6 +123,7 @@ const records = ref([]);
 const searchQuery = ref('');
 const dropdownState = ref({});
 const monthlyExpense = computed(() => appState.monthlyExpense || 0);
+const loading = ref(false);
 
 // Fetch records from Supabase
 const fetchRecords = async () => {
@@ -127,18 +136,34 @@ const fetchRecords = async () => {
   currentMonthEnd.setDate(0); //Last day of the current month
   currentMonthEnd.setHours(23, 59, 59, 999); //End of the month
 
-  const { data, error } = await supabase
-    .from('Expenses')
-    .select('*')
-    .eq('user_id', user.value.id)
-    .gte('expenseDate', currentMonthStart.toISOString())
-    .lte('expenseDate', currentMonthEnd.toISOString()); // Filter by date range
-  if (error) {
-    console.error('Error fetching records:', error.message);
-  } else {
+  loading.value = true;
+
+  try {
+    const { data, error } = await supabase
+      .from('Expenses')
+      .select('*')
+      .eq('user_id', user.value.id)
+      .gte('expenseDate', currentMonthStart.toISOString())
+      .lte('expenseDate', currentMonthEnd.toISOString()); // Filter by date range
+    if (error) {
+      console.error('Error fetching records:', error.message);
+    }
     records.value = data;
+  } catch (error) {
+    console.error('Error fetching records:', error);
+  } finally {
+    loading.value = false;
   }
 };
+
+
+
+const handleRefresh = async () => {
+  await fetchRecords();  // Fetch new records
+};
+
+
+
 
 // Filtered categories based on records and search query
 const categoriesWithRecords = computed(() => {
