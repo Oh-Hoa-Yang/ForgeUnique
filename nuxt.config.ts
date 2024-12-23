@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxtjs/supabase", "@nuxtjs/ionic", "@nuxt/ui", "@nuxt/icon"],
   ssr: false,
-  plugins: ['plugins/signature.js', 'plugins/datepicker.js','plugins/refresh.js',],
+  plugins: ['plugins/signature.js', 'plugins/datepicker.js',],
 
   supabase: {
     url: "https://otqcodzxgjtfswxviqtx.supabase.co",
