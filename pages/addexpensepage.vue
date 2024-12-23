@@ -64,7 +64,9 @@
         </div>
 
         <div class="add-container">
-          <button class="add-button" @click="addExpense"><h1><b>ADD</b></h1></button>
+          <button class="add-button" @click="addExpense">
+            <h1><b>ADD</b></h1>
+          </button>
         </div>
 
 
@@ -150,7 +152,7 @@ watch(
 // Date Management
 const date = ref(new Date()); // Holds the selected date
 console.log('Current date:', date);
-const showModal = ref(false); 
+const showModal = ref(false);
 const formattedDate = ref(formatDate(new Date())); // Readable date display
 
 // Format date function: e.g., "Wednesday, 18 December"
@@ -171,7 +173,7 @@ const confirmDate = () => {
 };
 
 // Close modal without changes
-const closeModal = () => {showModal.value = false};
+const closeModal = () => { showModal.value = false };
 
 //Recurring Schedule
 const showRecurringModal = ref(false);
@@ -182,11 +184,17 @@ const confirmRecurringSchedule = () => {
   showRecurringModal.value = false;
 };
 
-const closeRecurringModal = () => {showRecurringModal.value = false};
+const closeRecurringModal = () => { showRecurringModal.value = false };
 
 // Navigation Methods
-const navBackExpenseHome = () => router.push('/expensehomepage');
-
+const navBackExpenseHome = () => {
+  date.value = new Date();
+  formattedDate.value = formatDate(date.value);
+  expenseAmount.value = '';
+  expenseDescription.value = '';
+  recurringSchedule.value = 'Once';
+  router.push('/expensehomepage');
+}
 
 
 //INPUT PART - AMOUNT
@@ -197,13 +205,13 @@ const expenseDescription = ref('');
 //Keypad functions
 const inputDigit = (digit) => {
   if (digit === '.' && expenseAmount.value.includes('.')) return; //To prevent multi '.'
-  
+
   //Make restriction to '.',limit 2 digit after it
   if (expenseAmount.value.includes('.')) {
     const [integerPart, decimalPart] = expenseAmount.value.split('.');
     if (decimalPart.length >= 2) return; // Prevent more than 2 digits after '.'
   };
-  
+
   expenseAmount.value += digit;
 };
 
@@ -215,34 +223,34 @@ const deleteLastDigit = () => {
 const addExpense = async () => {
   //Validation
   if (!expenseAmount.value || isNaN(parseFloat(expenseAmount.value))) {
-    toastError({ title: 'Error', description: 'Please enter a valid amount.'})
+    toastError({ title: 'Error', description: 'Please enter a valid amount.' })
     return;
   }
 
   if (!expenseDescription.value) {
-    toastError({title:'Error', description:'Please add a note.'})
+    toastError({ title: 'Error', description: 'Please add a note.' })
     return;
   }
 
   try {
-    const { error } = await supabase 
-    .from('Expenses')
-    .insert([
-      {
-        expenseDate: date.value.toISOString().split('T')[0],
-        category: selectedCategory.value,
-        expenseAmount: parseFloat(expenseAmount.value),
-        expenseDescription: expenseDescription.value,
-        recurringSchedule: recurringSchedule.value,
-        user_id: user.value.id,
-        lastRecurringDate: date.value.toISOString().split('T')[0],
-      }
-    ]);
+    const { error } = await supabase
+      .from('Expenses')
+      .insert([
+        {
+          expenseDate: date.value.toISOString().split('T')[0],
+          category: selectedCategory.value,
+          expenseAmount: parseFloat(expenseAmount.value),
+          expenseDescription: expenseDescription.value,
+          recurringSchedule: recurringSchedule.value,
+          user_id: user.value.id,
+          lastRecurringDate: date.value.toISOString().split('T')[0],
+        }
+      ]);
 
     if (error) throw error;
 
     //Success feedback 
-    toastSuccess({title:'Success', description:'Expense added successfully!'});
+    toastSuccess({ title: 'Success', description: 'Expense added successfully!' });
 
     // Update local `appState`
     const addedAmount = parseFloat(expenseAmount.value);
@@ -260,8 +268,11 @@ const addExpense = async () => {
     }
 
     // Reset fields and navigate back
+    date.value = new Date();
+    formattedDate.value = formatDate(date.value);
     expenseAmount.value = '';
     expenseDescription.value = '';
+    recurringSchedule.value = 'Once';
     router.push({ path: '/expensehomepage', query: { refresh: true } });
   } catch (err) {
     console.error('Error adding expense:', err.message);
@@ -382,29 +393,39 @@ const addExpense = async () => {
 
 /* Label Styling */
 .input-label {
-  background-color: #ffe6f0; /* Light pink */
+  background-color: #ffe6f0;
+  /* Light pink */
   color: #333;
   font-weight: bold;
   text-align: center;
-  padding: 12px 15px; /* Consistent padding */
+  padding: 12px 15px;
+  /* Consistent padding */
   font-size: 24px;
-  width: 120px; /* Fixed width */
-  height: 50px; /* Ensure the label and input field have the same height */
+  width: 120px;
+  /* Fixed width */
+  height: 50px;
+  /* Ensure the label and input field have the same height */
   display: flex;
-  align-items: center; /* Vertically center text */
+  align-items: center;
+  /* Vertically center text */
   justify-content: center;
-  border-radius: 8px 0 0 8px; /* Rounded left corners */
+  border-radius: 8px 0 0 8px;
+  /* Rounded left corners */
   box-sizing: border-box;
 }
 
 /* Input Field Styling */
 .input-field {
-  flex: 1; /* Expand input to fill remaining space */
-  height: 50px; /* Match label height */
+  flex: 1;
+  /* Expand input to fill remaining space */
+  height: 50px;
+  /* Match label height */
   padding: 12px;
   border: 1px solid #ccc;
-  border-left: none; /* Remove the left border for seamless design */
-  border-radius: 0 8px 8px 0; /* Rounded right corners */
+  border-left: none;
+  /* Remove the left border for seamless design */
+  border-radius: 0 8px 8px 0;
+  /* Rounded right corners */
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.3s ease;
@@ -413,7 +434,8 @@ const addExpense = async () => {
 }
 
 .input-field[readonly] {
-  background-color: #f9f9f9; /* Light gray to indicate it's readonly */
+  background-color: #f9f9f9;
+  /* Light gray to indicate it's readonly */
   cursor: not-allowed;
 }
 
