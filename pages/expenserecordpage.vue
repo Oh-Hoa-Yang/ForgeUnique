@@ -94,7 +94,7 @@ const user = useSupabaseUser();
 
 const appState = inject('appState');
 if (!appState) {
-  console.err('Failed to inject appState. Ensure App.vue provides it.');
+  console.error('Failed to inject appState. Ensure App.vue provides it.');
 }
 
 // Categories and their icons
@@ -198,7 +198,7 @@ const isDropdownOpen = (categoryName) => {
 
 // Navigate to edit page
 const goToEditExpense = (record) => {
-  route.push({ name: 'EditExpense', query: { id: record.id } });
+  router.push({ path: '/editexpensepage', query: { id: record.id } });
 };
 
 // Format date

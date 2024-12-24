@@ -28,7 +28,7 @@
        <!-- Total Expense Button  -->
        <div style="display: flex; justify-content: center;">
          <ion-button class="balance-button" disabled="true">
-           Balance ({{ totalExpense }})
+           Balance ({{ appState.monthlyExpense }})
           </ion-button>
         </div>
         
@@ -89,7 +89,50 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 
-const appState = inject('appState')
+const appState = inject('appState');
+if (!appState) {
+  console.error('Failed to inject appState. Ensure App.vue provides it.');
+}
+
+const fetchExpenses = async () => {
+  if (!user.value) return;
+
+  try {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
+
+    const { data: expenses, error } = await supabase
+      .from('Expenses')
+      .select('expenseAmount, expenseDate')
+      .eq('user_id', user.value.id);
+
+    if (error) throw error;
+
+    let fetchedMonthlyExpense = 0;
+
+    if (expenses) {
+      fetchedMonthlyExpense = expenses
+        .filter((expense) => {
+          const expenseDate = new Date(expense.expenseDate);
+          return (
+            expenseDate.getFullYear() === currentYear &&
+            expenseDate.getMonth() + 1 === currentMonth
+          );
+        })
+        .reduce((sum, expense) => sum + expense.expenseAmount, 0);
+
+    }
+
+    appState.monthlyExpense = fetchedMonthlyExpense;
+
+    return { monthlyExpense: fetchedMonthlyExpense};
+  } catch (err) {
+    console.error('Error fetching expenses from Supabase:', err.message);
+    return { monthlyExpense: 0 };
+  }
+};
+
 
 //General
 const totalExpense = ref(0);
