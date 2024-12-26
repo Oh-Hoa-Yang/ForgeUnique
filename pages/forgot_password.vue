@@ -44,6 +44,16 @@ const sendResetLink = async () => {
     toastSuccess({ title: 'Success', description: 'Reset link sent to your email!' });
   }
 };
+
+// Fallback Behavior: Redirect to /reset-password if deep linking doesn't work
+onMounted(() => {
+  setTimeout(() => {
+    if (router.currentRoute.value.path === '/forgot-password') {
+      console.log('Fallback triggered: Redirecting to /reset-password');
+      router.push('/reset-password'); // Redirect to reset password page
+    }
+  }, 5000); // 5 seconds delay
+});
 </script>
 
 <style scoped>
