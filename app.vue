@@ -11,33 +11,43 @@ import { App } from '@capacitor/app';
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
-App.addListener('appUrlOpen', (event) => {
-  const url = new URL(event.url);
-
-  if (url.protocol === 'forgeunique:') {
-    if (url.host === 'login') {
-      const accessToken = url.searchParams.get('access_token');
-      const refreshToken = url.searchParams.get('refresh_token');
-
-      if (accessToken && refreshToken) {
-        console.log('Received tokens:', accessToken, refreshToken);
-        // Optionally handle auto-login here
-      }
-
-      router.push('/login');
-    } else if (url.host === 'reset-password') {
-      const accessToken = url.searchParams.get('access_token');
-      const refreshToken = url.searchParams.get('refresh_token');
-
-      if (accessToken && refreshToken) {
-        console.log('Received tokens:', accessToken, refreshToken);
-        // Handle password reset page navigation
-      }
-
-      router.push('/reset-password'); // Navigate to the reset password page
-    }
+onMounted(async () => {
+  // Handle cold start: Get the launch URL when the app starts
+  const { url } = await App.getLaunchUrl();
+  if (url) {
+    handleDeepLink(url);
   }
+
+  // Handle app resumes: Listen for URL events
+  App.addListener('appUrlOpen', (event) => {
+    handleDeepLink(event.url);
+  });
 });
+
+function handleDeepLink(url) {
+  try {
+    const parsedUrl = new URL(url);
+
+    if (parsedUrl.protocol === 'forgeunique:') {
+      switch (parsedUrl.host) {
+        case 'reset-password':
+          console.log('Navigating to reset-password page...');
+          router.push('/reset-password');
+          break;
+        case 'login':
+          console.log('Navigating to login page...');
+          router.push('/login');
+          break;
+        default:
+          console.warn('Unknown host in deep link:', parsedUrl.host);
+          router.push('/'); // Default to home page or a fallback
+      }
+    }
+  } catch (err) {
+    console.error('Error handling deep link:', err);
+  }
+}
+
 
 // App.addListener('appUrlOpen', (event) => {
 //   const url = new URL(event.url);

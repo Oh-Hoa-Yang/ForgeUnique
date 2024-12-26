@@ -61,13 +61,15 @@ const resetPassword = async () => {
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
   const accessToken = urlParams.get('access_token');
-  const refreshToken = urlParams.get('refresh_token');
 
   if (accessToken) {
     console.log('Access token for reset password:', accessToken);
-    // Use this token to validate the user or allow the password reset
+    // You can optionally use this token for validation or API calls
+  } else {
+    console.error('No access token found in URL');
   }
 });
+
 </script>
 
 <style scoped>
