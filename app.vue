@@ -16,18 +16,18 @@ App.addListener('appUrlOpen', (event) => {
   const url = new URL(event.url);
   console.log('Deep link received:', url.href);
 
-  // Check if the URL protocol matches the custom scheme
   if (url.protocol === 'forgeunique:') {
-    // Check for 'reset-password'
     if (url.host === 'reset-password') {
-      console.log('Navigating to reset-password page...');
-      router.push('/reset-password'); // Navigate to the reset-password page
+      console.log('Navigating to /reset-password');
+      router.push('/reset-password');
     } else if (url.host === 'login') {
-      console.log('Navigating to login page...');
-      router.push('/login'); // Navigate to the login page
+      console.log('Navigating to /login');
+      router.push('/login');
     } else {
       console.warn('Unhandled deep link:', url);
     }
+  } else {
+    console.warn('Unknown protocol:', url.protocol);
   }
 });
 
