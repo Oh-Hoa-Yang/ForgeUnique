@@ -11,42 +11,25 @@ import { App } from '@capacitor/app';
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
-onMounted(async () => {
-  // Handle cold start: Get the launch URL when the app starts
-  const { url } = await App.getLaunchUrl();
-  if (url) {
-    handleDeepLink(url);
-  }
+App.addListener('appUrlOpen', (event) => {
+  const url = new URL(event.url);
+  console.log('Deep link received:', url.href);
 
-  // Handle app resumes: Listen for URL events
-  App.addListener('appUrlOpen', (event) => {
-    handleDeepLink(event.url);
-  });
+  // Check if the URL protocol matches the custom scheme
+  if (url.protocol === 'forgeunique:') {
+    // Check for 'reset-password'
+    if (url.host === 'reset-password') {
+      console.log('Navigating to reset-password page...');
+      router.push('/reset-password'); // Navigate to the reset-password page
+    } else if (url.host === 'login') {
+      console.log('Navigating to login page...');
+      router.push('/login'); // Navigate to the login page
+    } else {
+      console.warn('Unhandled deep link:', url);
+    }
+  }
 });
 
-function handleDeepLink(url) {
-  try {
-    const parsedUrl = new URL(url);
-
-    if (parsedUrl.protocol === 'forgeunique:') {
-      switch (parsedUrl.host) {
-        case 'reset-password':
-          console.log('Navigating to reset-password page...');
-          router.push('/reset-password');
-          break;
-        case 'login':
-          console.log('Navigating to login page...');
-          router.push('/login');
-          break;
-        default:
-          console.warn('Unknown host in deep link:', parsedUrl.host);
-          router.push('/'); // Default to home page or a fallback
-      }
-    }
-  } catch (err) {
-    console.error('Error handling deep link:', err);
-  }
-}
 
 
 // App.addListener('appUrlOpen', (event) => {
