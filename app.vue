@@ -10,6 +10,7 @@
 import { App } from '@capacitor/app';
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
+const router = useRouter();
 
 App.addListener('appUrlOpen', (event) => {
   const url = new URL(event.url);
