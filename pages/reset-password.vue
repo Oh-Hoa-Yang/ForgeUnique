@@ -2,7 +2,7 @@
   <ion-page>
     <ion-content class="ion-padding custom-background">
       <img class="center-img" src="/public/img/ForgeUniquePhoto.png" alt="ForgeUnique Logo" />
-      <p style="padding: 20px; text-align: start; font-size: 20px;" ><b>Please enter your new password:</b></p>
+      <p style="padding: 20px; text-align: start; font-size: 20px;"><b>Please enter your new password:</b></p>
       <form @submit.prevent="resetPassword" style="width: 100%; justify-content: center;">
         <ion-item>
           <ion-label position="stacked">New Password</ion-label>
@@ -56,6 +56,18 @@ const resetPassword = async () => {
     router.push('/login');
   }
 };
+
+
+onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const accessToken = urlParams.get('access_token');
+  const refreshToken = urlParams.get('refresh_token');
+
+  if (accessToken) {
+    console.log('Access token for reset password:', accessToken);
+    // Use this token to validate the user or allow the password reset
+  }
+});
 </script>
 
 <style scoped>
