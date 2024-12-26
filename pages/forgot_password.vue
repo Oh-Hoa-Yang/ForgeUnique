@@ -34,7 +34,8 @@ const sendResetLink = async () => {
 
   // Supabase's built-in API for sending password reset emails
   const { error } = await supabase.auth.resetPasswordForEmail(email.value, {
-    redirectTo: 'http://localhost:3000/reset-password'  // Your reset password page /
+    // redirectTo: 'http://localhost:3000/reset-password'  // Your reset password page /
+    redirectTo: 'forgeunique://reset-password'  // Your reset password page /
   });
 
   if (error) {

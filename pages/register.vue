@@ -141,7 +141,8 @@ const handleRegister = async () => {
       email: email.value,
       password: password.value,
       options: {
-        emailRedirectTo: 'http://localhost:3000/login',
+        // emailRedirectTo: 'http://localhost:3000/login',
+        emailRedirectTo: 'forgeunique://login',
       },
     });
 
@@ -154,7 +155,7 @@ const handleRegister = async () => {
       return;
     }
 
-    if (!data.user) {
+    if (!data.user) { 
       toastError({ title: 'Unexpected Error', description: 'User data is not available after registration.' });
       return;
     }

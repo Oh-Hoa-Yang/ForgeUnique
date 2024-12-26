@@ -87,6 +87,18 @@ const resetPasscode = async () => {
     toastError({ title: 'Error', description: 'An unexpected error occurred.' });
   }
 };
+
+onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const accessToken = urlParams.get('access_token');
+  const refreshToken = urlParams.get('refresh_token');
+
+  if (accessToken) {
+    console.log('Access token for reset password:', accessToken);
+    // Use this token to validate the user or allow the password reset
+  }
+});
+
 </script>
 <style scoped>
 .center-img,
