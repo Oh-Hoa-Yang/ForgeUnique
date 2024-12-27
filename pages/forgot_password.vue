@@ -7,7 +7,7 @@
         <ion-item>
           <ion-label position="stacked">Email</ion-label>
           <ion-input v-model="email" type="email" name="email" placeholder="Please enter your email"
-            style="font-style: italic;" required />
+          style="font-style: italic;" required />
         </ion-item>
         <ion-button style="width: 100%;" type="submit" class="custom-button">Send Reset Link</ion-button>
       </form>
@@ -20,13 +20,22 @@
 
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
-
+const router = useRouter();
+// Fallback Behavior: Redirect to /reset-password if deep linking doesn't work
+onMounted(() => {
+  setTimeout(() => {
+    if (router.currentRoute.value.path === '/forgot-password') {
+      console.log('Fallback triggered: Redirecting to /reset-password');
+      router.push('/reset-password'); // Redirect to reset password page
+    }
+  }, 10000); // 5 seconds delay
+});
 const email = ref('');
 const { toastError, toastSuccess } = useAppToast();
 
 const sendResetLink = async () => {
   const supabase = useSupabaseClient();
-
+  
   if (!email.value) {
     toastError({ title: 'Error', description: 'Email is required.' });
     return;
@@ -45,15 +54,6 @@ const sendResetLink = async () => {
   }
 };
 
-// Fallback Behavior: Redirect to /reset-password if deep linking doesn't work
-onMounted(() => {
-  setTimeout(() => {
-    if (router.currentRoute.value.path === '/forgot-password') {
-      console.log('Fallback triggered: Redirecting to /reset-password');
-      router.push('/reset-password'); // Redirect to reset password page
-    }
-  }, 10000); // 5 seconds delay
-});
 </script>
 
 <style scoped>
