@@ -16,11 +16,13 @@ App.addListener('appUrlOpen', (event) => {
   const url = new URL(event.url);
   console.log('Deep link received:', url.href);
 
+  // Check if the protocol is correct
   if (url.protocol === 'forgeunique:') {
+    // Ensure it is for reset-password
     if (url.host === 'reset-password') {
       const params = new URLSearchParams(url.search);
-      const token = params.get('token');
-      const type = params.get('type');
+      const token = params.get('token'); // Extract token
+      const type = params.get('type'); // Extract type
 
       console.log('Reset Password Token:', token);
       console.log('Reset Password Type:', type);
@@ -30,14 +32,22 @@ App.addListener('appUrlOpen', (event) => {
         return;
       }
 
-      sessionStorage.setItem('reset_token', token); // Store token
+      // Store the token in session storage
+      sessionStorage.setItem('reset_token', token);
+
+      // Navigate to /reset-password with the token
       router.push({
         path: '/reset-password',
         query: { token },
       });
+    } else {
+      console.warn('Unhandled deep link:', url);
     }
+  } else {
+    console.warn('Unknown protocol:', url.protocol);
   }
 });
+
 
 
 
