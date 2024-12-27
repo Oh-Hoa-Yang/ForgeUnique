@@ -36,15 +36,14 @@ const { toastError, toastSuccess } = useAppToast();
 
 
 const resetPassword = async () => {
-  // const token = route.query.token;  // Get token from the URL query params
-  const token = sessionStorage.getItem('reset_token');
+  const token = route.query.token;  // Get token from the URL query params
+
   if (!token) {
     toastError({ title: 'Error', description: 'Missing token. Please try again.' });
     router.push('/login');
     return;
   }
-
-
+  
   if (password.value !== confirmPassword.value) {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
     return;
@@ -80,20 +79,16 @@ const resetPassword = async () => {
     // });
     
     onMounted(() => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      const type = urlParams.get('type');
-    
-      if (!token || type !== 'recovery') {
-        alert('Invalid or missing token. Redirecting to login.');
-        router.push('/login');
-        return;
-      }
-    
-      console.log('Reset password token:', token);
-      sessionStorage.setItem('reset_token', token); // Store token for reset password action
-    });
-    
+  const token = route.query.token;
+  const type = route.query.type;
+
+  console.log('URL Parameters:', { token, type });
+
+  if (!token || type !== 'recovery') {
+    alert('Invalid or missing token. Redirecting to login.');
+    router.push('/login');
+  }
+});
     
     
   </script>
