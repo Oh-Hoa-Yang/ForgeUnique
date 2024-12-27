@@ -17,22 +17,22 @@ App.addListener('appUrlOpen', (event) => {
   console.log('Deep link received:', url.href);
 
   if (url.protocol === 'forgeunique:') {
-    const params = new URLSearchParams(url.search);
-    const token = params.get('token'); // Extract token
-    const type = params.get('type'); // Extract type
+    if (url.host === 'reset-password') {
+      const params = new URLSearchParams(url.search);
+      const token = params.get('token');
+      const type = params.get('type');
 
-    if (type === 'recovery' && token) {
-      console.log('Reset password token received:', token);
-      // Navigate to reset-password and pass the token as a query parameter
-      router.push({ path: '/reset-password', query: { token } });
-    } else if (url.host === 'login') {
-      console.log('Navigating to /login');
-      router.push('/login');
-    } else {
-      console.warn('Unhandled deep link:', url);
+      console.log('Reset Password Token:', token);
+      console.log('Reset Password Type:', type);
+
+      if (!token || type !== 'recovery') {
+        alert('Error resetting password: Missing or invalid token.');
+        return;
+      }
+
+      sessionStorage.setItem('reset_token', token); // Store token
+      router.push('/reset-password');
     }
-  } else {
-    console.warn('Unknown protocol:', url.protocol);
   }
 });
 
