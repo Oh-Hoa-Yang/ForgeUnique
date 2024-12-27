@@ -33,25 +33,17 @@ const router = useRouter();
 const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
 
-onMounted(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
-  const type = urlParams.get('type');
 
-  if (!token || type !== 'recovery') {
-    alert('Invalid or missing token. Redirecting to login.');
+
+const resetPassword = async () => {
+  // const token = route.query.token;  // Get token from the URL query params
+  const token = sessionStorage.getItem('reset_token');
+  if (!token) {
+    toastError({ title: 'Error', description: 'Missing token. Please try again.' });
     router.push('/login');
     return;
   }
 
-  console.log('Reset password token:', token);
-  sessionStorage.setItem('reset_token', token); // Store token for reset password action
-});
-
-
-
-const resetPassword = async () => {
-  const token = route.query.token;  // Get token from the URL query params
 
   if (password.value !== confirmPassword.value) {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
@@ -76,20 +68,35 @@ const resetPassword = async () => {
 
 
 // onMounted(() => {
-//   const params = new URLSearchParams(window.location.hash.slice(1)); // Slice removes the `#`
-//   const error = params.get('error_code');
-//   const errorDescription = params.get('error_description');
-
-//   if (error) {
-//     console.error(`Error: ${error} - ${errorDescription}`);
-//     // Show an alert or error message to the user
-//     alert(`Error resetting password: ${errorDescription}`);
-//   }
-// });
-
-
-
-</script>
+  //   const params = new URLSearchParams(window.location.hash.slice(1)); // Slice removes the `#`
+  //   const error = params.get('error_code');
+  //   const errorDescription = params.get('error_description');
+  
+  //   if (error) {
+    //     console.error(`Error: ${error} - ${errorDescription}`);
+    //     // Show an alert or error message to the user
+    //     alert(`Error resetting password: ${errorDescription}`);
+    //   }
+    // });
+    
+    onMounted(() => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const type = urlParams.get('type');
+    
+      if (!token || type !== 'recovery') {
+        alert('Invalid or missing token. Redirecting to login.');
+        router.push('/login');
+        return;
+      }
+    
+      console.log('Reset password token:', token);
+      sessionStorage.setItem('reset_token', token); // Store token for reset password action
+    });
+    
+    
+    
+  </script>
 
 <style scoped>
 .center-img,
