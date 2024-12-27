@@ -36,10 +36,7 @@ App.addListener('appUrlOpen', (event) => {
       sessionStorage.setItem('reset_token', token);
 
       // Navigate to /reset-password with the token
-      router.push({
-        path: '/reset-password',
-        query: { token },
-      });
+      router.push('/reset-password')
     } else {
       console.warn('Unhandled deep link:', url);
     }
