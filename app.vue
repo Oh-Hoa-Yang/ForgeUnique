@@ -18,8 +18,19 @@ App.addListener('appUrlOpen', (event) => {
 
   if (url.protocol === 'forgeunique:') {
     if (url.host === 'reset-password') {
-      console.log('Navigating to /reset-password');
-      router.push('/reset-password');
+      // Parse query fragments to check for errors
+      const params = new URLSearchParams(url.search);
+      const error = params.get('error_code');
+      const errorDescription = params.get('error_description');
+
+      if (error) {
+        console.error(`Error: ${error} - ${errorDescription}`);
+        // Show error message to user, navigate to fallback page, etc.
+        alert(`Error resetting password: ${errorDescription}`);
+      } else {
+        console.log('Navigating to /reset-password');
+        router.push('/reset-password');
+      }
     } else if (url.host === 'login') {
       console.log('Navigating to /login');
       router.push('/login');
@@ -30,6 +41,7 @@ App.addListener('appUrlOpen', (event) => {
     console.warn('Unknown protocol:', url.protocol);
   }
 });
+
 
 
 

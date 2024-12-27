@@ -59,17 +59,17 @@ const resetPassword = async () => {
 
 
 onMounted(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const accessToken = urlParams.get('access_token');
-  const refreshToken = urlParams.get('refresh_token');
+  const params = new URLSearchParams(window.location.hash.slice(1)); // Slice removes the `#`
+  const error = params.get('error_code');
+  const errorDescription = params.get('error_description');
 
-  if (accessToken) {
-    console.log('Access token received for reset password:', accessToken);
-    // You can use this token to authenticate the user or update their password
-  } else {
-    console.error('No access token found in URL');
+  if (error) {
+    console.error(`Error: ${error} - ${errorDescription}`);
+    // Show an alert or error message to the user
+    alert(`Error resetting password: ${errorDescription}`);
   }
 });
+
 
 
 </script>
