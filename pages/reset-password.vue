@@ -78,18 +78,33 @@ const resetPassword = async () => {
     //   }
     // });
     
-    onMounted(() => {
+//     onMounted(() => {
+//   const token = route.query.token;
+//   const type = route.query.type;
+
+//   console.log('URL Parameters:', { token, type });
+
+//   if (!token || type !== 'recovery') {
+//     alert('Invalid or missing token. Redirecting to login.');
+//     router.push('/login');
+//   }
+// });
+    
+onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search);
   const token = route.query.token;
   const type = route.query.type;
 
-  console.log('URL Parameters:', { token, type });
+  console.log('Token:', token);
+  console.log('Type:', type);
 
   if (!token || type !== 'recovery') {
-    alert('Invalid or missing token. Redirecting to login.');
+    alert('Invalid or missing token. --> Login.')
     router.push('/login');
+    return;
   }
-});
-    
+  alert('Valid token detected.Proceeding to reset password.');
+})
     
   </script>
 
