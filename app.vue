@@ -18,18 +18,27 @@ App.addListener('appUrlOpen', (event) => {
 
   if (url.protocol === 'forgeunique:') {
     if (url.host === 'reset-password') {
-      // Parse query fragments to check for errors
       const params = new URLSearchParams(url.search);
+
+      // Log all parameters received in the URL
+      console.log('URL Parameters:', Array.from(params.entries()));
+
       const error = params.get('error_code');
       const errorDescription = params.get('error_description');
 
       if (error) {
         console.error(`Error: ${error} - ${errorDescription}`);
-        // Show error message to user, navigate to fallback page, etc.
         alert(`Error resetting password: ${errorDescription}`);
       } else {
-        console.log('Navigating to /reset-password');
-        router.push('/reset-password');
+        const token = params.get('token'); // Get the token from the URL
+        if (!token) {
+          console.error('No token found in the URL');
+          alert('Error: Missing password reset token.');
+        } else {
+          console.log('Token received:', token);
+          // Navigate to reset-password and pass the token as a query parameter
+          router.push({ path: '/reset-password', query: { token } });
+        }
       }
     } else if (url.host === 'login') {
       console.log('Navigating to /login');

@@ -39,9 +39,11 @@ onMounted(() => {
 
   if (token) {
     console.log('Token received for password reset:', token);
+    alert('Token have!');
     // Store the token or use it to reset the password
   } else {
     console.error('No token found in URL');
+    alert('No token found!'); 
     // Optionally, redirect to an error page or show a message
   }
 });
