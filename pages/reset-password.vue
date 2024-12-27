@@ -33,6 +33,20 @@ const router = useRouter();
 const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
 
+onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+
+  if (token) {
+    console.log('Token received for password reset:', token);
+    // Store the token or use it to reset the password
+  } else {
+    console.error('No token found in URL');
+    // Optionally, redirect to an error page or show a message
+  }
+});
+
+
 const resetPassword = async () => {
   const token = route.query.token;  // Get token from the URL query params
 
@@ -58,17 +72,17 @@ const resetPassword = async () => {
 };
 
 
-onMounted(() => {
-  const params = new URLSearchParams(window.location.hash.slice(1)); // Slice removes the `#`
-  const error = params.get('error_code');
-  const errorDescription = params.get('error_description');
+// onMounted(() => {
+//   const params = new URLSearchParams(window.location.hash.slice(1)); // Slice removes the `#`
+//   const error = params.get('error_code');
+//   const errorDescription = params.get('error_description');
 
-  if (error) {
-    console.error(`Error: ${error} - ${errorDescription}`);
-    // Show an alert or error message to the user
-    alert(`Error resetting password: ${errorDescription}`);
-  }
-});
+//   if (error) {
+//     console.error(`Error: ${error} - ${errorDescription}`);
+//     // Show an alert or error message to the user
+//     alert(`Error resetting password: ${errorDescription}`);
+//   }
+// });
 
 
 

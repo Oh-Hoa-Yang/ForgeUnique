@@ -52,7 +52,7 @@ onMounted(() => {
       console.log('Fallback triggered: Redirecting to /reset-password');
       router.push('/reset-password'); // Redirect to reset password page
     }
-  }, 5000); // 5 seconds delay
+  }, 10000); // 5 seconds delay
 });
 </script>
 
