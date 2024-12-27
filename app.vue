@@ -31,7 +31,10 @@ App.addListener('appUrlOpen', (event) => {
       }
 
       sessionStorage.setItem('reset_token', token); // Store token
-      router.push('/reset-password');
+      router.push({
+        path: '/reset-password',
+        query: { token },
+      });
     }
   }
 });
@@ -94,7 +97,7 @@ const fetchData = async () => {
             expenseDate.getFullYear() === currentYear &&
             expenseDate.getMonth() + 1 === currentMonth
           );
-        }) 
+        })
         .reduce((sum, expense) => sum + expense.expenseAmount, 0);
 
       appState.todayExpense = expenses
@@ -214,5 +217,3 @@ onMounted(fetchData);
 // Provide the reactive state
 provide('appState', appState);
 provide('refreshData', fetchData); -->
-
-
