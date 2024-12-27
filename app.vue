@@ -17,29 +17,14 @@ App.addListener('appUrlOpen', (event) => {
   console.log('Deep link received:', url.href);
 
   if (url.protocol === 'forgeunique:') {
-    if (url.host === 'reset-password') {
-      const params = new URLSearchParams(url.search);
+    const params = new URLSearchParams(url.search);
+    const token = params.get('token'); // Extract token
+    const type = params.get('type'); // Extract type
 
-      // Log all parameters received in the URL
-      console.log('URL Parameters:', Array.from(params.entries()));
-
-      const error = params.get('error_code');
-      const errorDescription = params.get('error_description');
-
-      if (error) {
-        console.error(`Error: ${error} - ${errorDescription}`);
-        alert(`Error resetting password: ${errorDescription}`);
-      } else {
-        const token = params.get('token'); // Get the token from the URL
-        if (!token) {
-          console.error('No token found in the URL');
-          alert('Error: Missing password reset token.');
-        } else {
-          console.log('Token received:', token);
-          // Navigate to reset-password and pass the token as a query parameter
-          router.push({ path: '/reset-password', query: { token } });
-        }
-      }
+    if (type === 'recovery' && token) {
+      console.log('Reset password token received:', token);
+      // Navigate to reset-password and pass the token as a query parameter
+      router.push({ path: '/reset-password', query: { token } });
     } else if (url.host === 'login') {
       console.log('Navigating to /login');
       router.push('/login');
@@ -50,6 +35,7 @@ App.addListener('appUrlOpen', (event) => {
     console.warn('Unknown protocol:', url.protocol);
   }
 });
+
 
 
 

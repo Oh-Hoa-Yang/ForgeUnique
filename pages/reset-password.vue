@@ -34,17 +34,15 @@ const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
 
 onMounted(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
+  const route = useRoute();
+  const token = route.query.token;
 
-  if (token) {
-    console.log('Token received for password reset:', token);
-    alert('Token have!');
-    // Store the token or use it to reset the password
+  if (!token) {
+    alert('Error: Missing password reset token.');
+    router.push('/login'); // Fallback to login if no token is provided
   } else {
-    console.error('No token found in URL');
-    alert('No token found!'); 
-    // Optionally, redirect to an error page or show a message
+    console.log('Password reset token received:', token);
+    // You can store the token or directly use it in the reset password logic
   }
 });
 
