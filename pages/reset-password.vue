@@ -26,53 +26,23 @@
 
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
-
 const password = ref('');
 const confirmPassword = ref('');
 const router = useRouter();
 const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
-
-onMounted(() => {
-  const token = route.query.token || sessionStorage.getItem('reset_token');
-  const type = route.query.type;
-
-  console.log('Token:', token);
-  console.log('Type:', type);
-
-  if (!token || type !== 'recovery') {
-    alert('Invalid or missing token. Redirecting to login.');
-    router.push('/login');
-    return;
-  }
-
-  console.log('Valid token detected. Proceeding to reset password.');
-});
-
-
 const resetPassword = async () => {
-  // const token = route.query.token;  // Get token from the URL query params
-  const token = route.query.token || sessionStorage.getItem('reset_token');  // Get token from the URL query params
-  
-  if (!token) {
-    toastError({ title: 'Error', description: 'Missing token. Please try again.' });
-    router.push('/login');
-    return;
-  }
-  
+  const token = route.query.token;  // Get token from the URL query params
   if (password.value !== confirmPassword.value) {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
     return;
   }
-
   const supabase = useSupabaseClient();
-
   // Reset password using the token from the email link
   const { error } = await supabase.auth.updateUser({
     password: password.value,
     access_token: token  // Use the token to authenticate the user
   });
-
   if (error) {
     toastError({ title: 'Error', description: 'Failed to reset password.' });
   } else {
@@ -80,35 +50,16 @@ const resetPassword = async () => {
     router.push('/login');
   }
 };
-
-
-// onMounted(() => {
-  //   const params = new URLSearchParams(window.location.hash.slice(1)); // Slice removes the `#`
-  //   const error = params.get('error_code');
-  //   const errorDescription = params.get('error_description');
-  
-  //   if (error) {
-    //     console.error(`Error: ${error} - ${errorDescription}`);
-    //     // Show an alert or error message to the user
-    //     alert(`Error resetting password: ${errorDescription}`);
-    //   }
-    // });
-    
-//     onMounted(() => {
-//   const token = route.query.token;
-//   const type = route.query.type;
-
-//   console.log('URL Parameters:', { token, type });
-
-//   if (!token || type !== 'recovery') {
-//     alert('Invalid or missing token. Redirecting to login.');
-//     router.push('/login');
-//   }
-// });
-    
-
-    
-  </script>
+onMounted(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const accessToken = urlParams.get('access_token');
+  const refreshToken = urlParams.get('refresh_token');
+  if (accessToken) {
+    console.log('Access token for reset password:', accessToken);
+    // Use this token to validate the user or allow the password reset
+  }
+});
+</script>
 
 <style scoped>
 .center-img,
@@ -120,11 +71,9 @@ ion-button {
   width: 100%;
   padding: 20px;
 }
-
 .custom-background {
   --background: #FFEDF5;
 }
-
 .custom-button {
   --background: #FFC2D1;
   --background-activated: #ffadb9;

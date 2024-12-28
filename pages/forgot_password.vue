@@ -7,7 +7,7 @@
         <ion-item>
           <ion-label position="stacked">Email</ion-label>
           <ion-input v-model="email" type="email" name="email" placeholder="Please enter your email"
-          style="font-style: italic;" required />
+            style="font-style: italic;" required />
         </ion-item>
         <ion-button style="width: 100%;" type="submit" class="custom-button">Send Reset Link</ion-button>
       </form>
@@ -20,40 +20,25 @@
 
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
-const router = useRouter();
-// Fallback Behavior: Redirect to /reset-password if deep linking doesn't work
-onMounted(() => {
-  setTimeout(() => {
-    if (router.currentRoute.value.path === '/forgot-password') {
-      console.log('Fallback triggered: Redirecting to /reset-password');
-      router.push('/reset-password'); // Redirect to reset password page
-    }
-  }, 10000); // 5 seconds delay
-});
 const email = ref('');
 const { toastError, toastSuccess } = useAppToast();
-
 const sendResetLink = async () => {
   const supabase = useSupabaseClient();
-  
   if (!email.value) {
     toastError({ title: 'Error', description: 'Email is required.' });
     return;
   }
-
   // Supabase's built-in API for sending password reset emails
   const { error } = await supabase.auth.resetPasswordForEmail(email.value, {
     // redirectTo: 'http://localhost:3000/reset-password'  // Your reset password page /
     redirectTo: 'forgeunique://reset-password'  // Your reset password page /
   });
-
   if (error) {
     toastError({ title: 'Error', description: 'Failed to send reset link. ' + error.message });
   } else {
     toastSuccess({ title: 'Success', description: 'Reset link sent to your email!' });
   }
 };
-
 </script>
 
 <style scoped>
@@ -67,11 +52,9 @@ ion-button
   width: 100%;
   padding: 20px;
 }
-
 .custom-background {
   --background: #FFEDF5;
 }
-
 .custom-button {
   --background: #FFC2D1;
   --background-activated: #ffadb9;
