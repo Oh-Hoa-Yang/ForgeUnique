@@ -13,55 +13,28 @@ const user = useSupabaseUser();
 const router = useRouter();
 
 App.addListener('appUrlOpen', (event) => {
-  const url = new URL(event.url);
-  console.log('Deep link received:', url.href);
+  try {
+    const url = new URL(event.url);
+    console.log('Deep link received:', url.href);
 
-  // Check if the protocol is correct
-  if (url.protocol === 'forgeunique:') {
-    // Ensure it is for reset-password
-    if (url.host === 'reset-password') {
+    if (url.protocol === 'forgeunique:' && url.host === 'login') {
       const params = new URLSearchParams(url.search);
-      const token = params.get('token'); // Extract token
-      const type = params.get('type'); // Extract type
+      const type = params.get('type');
 
-      console.log('Reset Password Token:', token);
-      console.log('Reset Password Type:', type);
-
-      if (!token || type !== 'recovery') {
-        alert('Error resetting password: Missing or invalid token.');
-        return;
+      if (type === 'signup') {
+        console.log('Signup confirmation detected. Navigating to /login...');
+        router.push('/login');
+      } else {
+        console.warn('Unhandled deep link type:', type);
       }
-
-      // Store the token in session storage
-      sessionStorage.setItem('reset_token', token);
-
-      // Navigate to /reset-password with the token
-      router.push('/reset-password')
     } else {
       console.warn('Unhandled deep link:', url);
     }
-  } else {
-    console.warn('Unknown protocol:', url.protocol);
+  } catch (error) {
+    console.error('Error processing deep link:', error);
   }
 });
 
-
-
-
-
-
-// App.addListener('appUrlOpen', (event) => {
-//   const url = new URL(event.url);
-
-//   //Check if the URL scheme matches your custom URL schema 
-//   if (url.protocol === 'forgeunique:') {
-//     if (url.host === 'login') {
-//       //Hanle the login flow
-//       console.log('Navigating to login page...');
-//       router.push('login');
-//     }
-//   }
-// })
 
 // Reactive shared state
 const appState = reactive({

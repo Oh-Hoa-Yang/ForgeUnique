@@ -51,6 +51,19 @@ const handleLogin = async () => {
     router.push('/'); 
   }
 };
+
+onMounted(() => {
+  const route = useRoute();
+  const type = route.query.type;
+
+  if (type === 'signup') {
+    toastSuccess({
+      title: 'Email Verified!',
+      description: 'Your email has been successfully verified. Please log in.',
+    });
+  }
+});
+
 </script>
 
 <style scoped>

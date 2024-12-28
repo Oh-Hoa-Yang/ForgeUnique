@@ -78,6 +78,8 @@ const success = ref(false);
 const pending = ref(false);
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient();
+const router = useRouter();
+const route = useRoute();
 
 const email = ref('');
 const password = ref('');
@@ -142,7 +144,7 @@ const handleRegister = async () => {
       password: password.value,
       options: {
         // emailRedirectTo: 'http://localhost:3000/login',
-        emailRedirectTo: 'forgeunique://login',
+        emailRedirectTo: 'forgeunique://login?type=signup',
       },
     });
 
@@ -182,8 +184,8 @@ const handleRegister = async () => {
     });
 
     setTimeout(() => {
-      navigateTo('/login');
-    }, 5 * 60 * 1000);
+      router.push('/login');
+    }, 5000);
 
   } catch (err) {
     toastError({ title: 'Unexpected Error', description: err.message });
