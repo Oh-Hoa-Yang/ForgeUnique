@@ -28,7 +28,7 @@
        <!-- Total Expense Button  -->
        <div style="display: flex; justify-content: center;">
          <ion-button class="balance-button" disabled="true">
-           Balance ({{ appState.monthlyExpense }})
+           Expense ({{ appState.monthlyExpense }})
           </ion-button>
         </div>
         
@@ -141,7 +141,7 @@ const newBudget = ref(''); //Input for new budget
 const showModal = ref(false); //Controls the visibility of the modal 
 
 const categories = ref([
-  { name: "Dinning Out", iconClass: "mdi--food" },
+  { name: "Dining Out", iconClass: "mdi--food" },
   { name: "Bill", iconClass: "nimbus--money" },
   { name: "Car", iconClass: "gravity-ui--car" },
   { name: "Clothes", iconClass: "icon-park-outline--clothes-crew-neck" },

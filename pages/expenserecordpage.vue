@@ -4,12 +4,12 @@
     <!-- Header Component -->
     <Header />
 
-    <!-- Pull to refresh component wrapped around ion-content -->
-    <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
-      loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
-      success-duration="500" animation-duration="300" head-height="50">
-      <!-- Main Content (imported component) -->
-      <ion-content class="custom-background">
+    <!-- Main Content (imported component) -->
+    <ion-content class="custom-background">
+        <!-- Pull to refresh component wrapped around ion-content -->
+        <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
+          loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
+          success-duration="500" animation-duration="300" head-height="50">
         <ion-card class="page-card">
           <div class="top-row-container">
             <button @click="router.push('/expensehomepage')">
@@ -68,8 +68,8 @@
 
 
         </ion-card>
+      </PullRefresh>
       </ion-content>
-    </PullRefresh>
 
     <!-- Footer Component -->
     <Footer :current-route="route.path" />
@@ -99,7 +99,7 @@ if (!appState) {
 
 // Categories and their icons
 const categories = ref([
-  { name: "Dinning Out", iconClass: "mdi--food" },
+  { name: "Dining Out", iconClass: "mdi--food" },
   { name: "Bill", iconClass: "nimbus--money" },
   { name: "Car", iconClass: "gravity-ui--car" },
   { name: "Clothes", iconClass: "icon-park-outline--clothes-crew-neck" },
