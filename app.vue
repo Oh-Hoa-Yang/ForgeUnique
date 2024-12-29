@@ -17,45 +17,23 @@ App.addListener('appUrlOpen', (event) => {
     const url = new URL(event.url);
     console.log('Deep link received:', url.href);
 
-    if (url.protocol === 'forgeunique:') {
+    if (url.protocol === 'forgeunique:' && url.host === 'login') {
       const params = new URLSearchParams(url.search);
+      const type = params.get('type');
 
-      if (url.host === 'reset-password') {
-        const token = params.get('code'); // Extract the reset token
-        console.log('Reset Password Token:', token);
-
-        if (!token) {
-          throw new Error('Missing reset token in the URL.');
-        }
-
-        // Store the token in session storage
-        sessionStorage.setItem('reset_token', token);
-
-        // Navigate to the reset-password page
-        console.log('Navigating to /reset-password...');
-        router.push('/reset-password')
-          .then(() => console.log('Navigation to /reset-password successful.'))
-          .catch((error) => console.error('Navigation failed:', error));
-      } else if (url.host === 'login') {
-        const type = params.get('type');
-
-        if (type === 'signup') {
-          console.log('Signup confirmation detected. Navigating to /login...');
-          router.push('/login');
-        } else {
-          console.warn('Unhandled login deep link type:', type);
-        }
+      if (type === 'signup') {
+        console.log('Signup confirmation detected. Navigating to /login...');
+        router.push('/login');
       } else {
-        console.warn('Unhandled deep link host:', url.host);
+        console.warn('Unhandled deep link type:', type);
       }
     } else {
-      console.warn('Unhandled deep link protocol:', url.protocol);
+      console.warn('Unhandled deep link:', url);
     }
   } catch (error) {
     console.error('Error processing deep link:', error);
   }
 });
-
 
 
 // Reactive shared state
