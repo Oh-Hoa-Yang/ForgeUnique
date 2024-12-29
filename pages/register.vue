@@ -143,7 +143,7 @@ const handleRegister = async () => {
       email: email.value,
       password: password.value,
       options: {
-        emailRedirectTo: 'http://localhost:3000/finishregistered',
+        emailRedirectTo: 'https://forgeunique.vercel.app/login/finishregistered',
       },
     });
 
