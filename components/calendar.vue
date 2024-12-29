@@ -1,5 +1,9 @@
 <template>
   <ion-content class="custom-background">
+    <!-- Pull to refresh component wrapped around ion-content -->
+    <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
+          loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
+          success-duration="500" animation-duration="300" head-height="50">
     <ion-card class="calendar-card">
       <VCalendar color="pink" :attributes="attrs" is-dark="{}" expanded />
       <!-- <VDatePicker class="calendar" v-model="date" /> -->
@@ -187,13 +191,14 @@
       </div>
      </ion-card>
      <br><br>
-     
+    </PullRefresh>
   </ion-content>
 </template>
 
 <script setup>
 import 'v-calendar/style.css';
 import { useAppToast } from '~/composables/useAppToast';
+import PullRefresh from 'pull-refresh-vue3';
 
 const { toastError, toastSuccess } = useAppToast();
 
