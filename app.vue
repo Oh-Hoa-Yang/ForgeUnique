@@ -7,33 +7,33 @@
 </template>
 
 <script setup>
-import { App } from '@capacitor/app';
+// import { App } from '@capacitor/app';
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 
-App.addListener('appUrlOpen', (event) => {
-  try {
-    const url = new URL(event.url);
-    console.log('Deep link received:', url.href);
+// App.addListener('appUrlOpen', (event) => {
+//   try {
+//     const url = new URL(event.url);
+//     console.log('Deep link received:', url.href);
 
-    if (url.protocol === 'forgeunique:' && url.host === 'login') {
-      const params = new URLSearchParams(url.search);
-      const type = params.get('type');
+//     if (url.protocol === 'forgeunique:' && url.host === 'login') {
+//       const params = new URLSearchParams(url.search);
+//       const type = params.get('type');
 
-      if (type === 'signup') {
-        console.log('Signup confirmation detected. Navigating to /login...');
-        router.push('/login');
-      } else {
-        console.warn('Unhandled deep link type:', type);
-      }
-    } else {
-      console.warn('Unhandled deep link:', url);
-    }
-  } catch (error) {
-    console.error('Error processing deep link:', error);
-  }
-});
+//       if (type === 'signup') {
+//         console.log('Signup confirmation detected. Navigating to /login...');
+//         router.push('/login');
+//       } else {
+//         console.warn('Unhandled deep link type:', type);
+//       }
+//     } else {
+//       console.warn('Unhandled deep link:', url);
+//     }
+//   } catch (error) {
+//     console.error('Error processing deep link:', error);
+//   }
+// });
 
 
 // Reactive shared state

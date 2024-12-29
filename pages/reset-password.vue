@@ -1,74 +1,71 @@
 <template>
   <ion-page>
     <ion-content class="ion-padding custom-background">
-      <img class="center-img" src="/public/img/ForgeUniquePhoto.png" alt="ForgeUnique Logo" />
-      <p style="padding: 20px; text-align: start; font-size: 20px;"><b>Please enter your new password:</b></p>
-      <form @submit.prevent="resetPassword" style="width: 100%; justify-content: center;">
-        <ion-item>
-          <ion-label position="stacked">New Password</ion-label>
-          <ion-input v-model="newPassword" type="password" name="newPassword" placeholder="Enter new password"
-            style="font-style: italic;" required>
-            <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
-          </ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Confirm Password</ion-label>
-          <ion-input v-model="confirmPassword" type="password" name="confirmPassword"
-            placeholder="Please enter your new password again" style="font-style: italic;" required>
-            <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
-          </ion-input>
-        </ion-item>
-        <ion-button style="width: 100%;" type="submit" class="custom-button">Reset Password</ion-button>
-      </form>
+      <div v-if="!success">
+        <img class="center-img" src="/public/img/ForgeUniquePhoto.png" alt="ForgeUnique Logo" />
+        <p style="padding: 20px; text-align: start; font-size: 20px;"><b>Please enter your new password:</b></p>
+        <form @submit.prevent="resetPassword" style="width: 100%; justify-content: center;">
+          <ion-item>
+            <ion-label position="stacked">New Password</ion-label>
+            <ion-input v-model="password" type="password" name="password" placeholder="Enter new password"
+              style="font-style: italic;" required>
+              <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
+            </ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Confirm Password</ion-label>
+            <ion-input v-model="confirmPassword" type="password" name="confirmPassword"
+              placeholder="Please enter your new password again" style="font-style: italic;" required>
+              <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
+            </ion-input>
+          </ion-item>
+          <ion-button style="width: 100%;" type="submit" class="custom-button">Reset Password</ion-button>
+        </form>
+      </div>
+      <div v-else>
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Password Reset Successful!</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            Your password has been reset successfully. Please open the mobile app and log in with your new password.
+          </ion-card-content>
+        </ion-card>
+      </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
-const newPassword = ref('');
+const password = ref('');
 const confirmPassword = ref('');
+const success = ref(false); // Track whether password reset was successful
 const router = useRouter();
 const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
 
 const resetPassword = async () => {
-  const email = sessionStorage.getItem('verified_email');
-
-  if (!email) {
-    toastError({ title: 'Error', description: 'No verified email found. Please restart the process.' });
-    router.push('/forgot_password');
-    return;
-  }
-
-  if (newPassword.value !== confirmPassword.value) {
+  const token = route.query.token; // Get token from the URL query params
+  if (password.value !== confirmPassword.value) {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
     return;
   }
-
-  // Call backend API to reset password
-  try {
-    const { data, error } = await useFetch('/api/reset-password', {
-      method: 'POST',
-      body: JSON.stringify({
-        email,
-        newPassword: newPassword.value,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    if (error.value) {
-      throw new Error(error.value.message);
-    }
-
+  const supabase = useSupabaseClient();
+  // Reset password using the token from the email link
+  const { error } = await supabase.auth.updateUser({
+    password: password.value,
+    access_token: token, // Use the token to authenticate the user
+  });
+  if (error) {
+    toastError({ title: 'Error', description: 'Failed to reset password.' });
+  } else {
     toastSuccess({ title: 'Success', description: 'Password reset successfully!' });
-    sessionStorage.removeItem('verified_email'); // Clean up
-    router.push('/login');
-  } catch (error) {
-    toastError({ title: 'Error', description: error.message || 'Failed to reset password.' });
+    success.value = true; // Display success message
   }
 };
 </script>
+
 
 <style scoped>
 .center-img,

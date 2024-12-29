@@ -143,8 +143,7 @@ const handleRegister = async () => {
       email: email.value,
       password: password.value,
       options: {
-        // emailRedirectTo: 'http://localhost:3000/login',
-        emailRedirectTo: 'forgeunique://login?type=signup',
+        emailRedirectTo: 'http://localhost:3000/finishregistered',
       },
     });
 
@@ -185,7 +184,7 @@ const handleRegister = async () => {
 
     setTimeout(() => {
       router.push('/login');
-    }, 5000);
+    }, 10000);
 
   } catch (err) {
     toastError({ title: 'Unexpected Error', description: err.message });

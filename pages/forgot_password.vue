@@ -2,60 +2,44 @@
   <ion-page>
     <ion-content class="ion-padding custom-background">
       <img class="center-img" src="/public/img/ForgeUniquePhoto.png" alt="ForgeUnique Logo" />
-      <p style="padding: 20px; text-align: center;">Enter your email and passcode to reset your password:</p>
-      <form @submit.prevent="verifyIdentity" style="width: 100%; justify-content: center;">
+      <p style="padding: 20px; text-align: center;">Please enter your email to reset your password:</p>
+      <form @submit.prevent="sendResetLink" style="width: 100%; justify-content: center;">
         <ion-item>
           <ion-label position="stacked">Email</ion-label>
-          <ion-input v-model="email" type="email" name="email" placeholder="Enter your email" required />
+          <ion-input v-model="email" type="email" name="email" placeholder="Please enter your email"
+            style="font-style: italic;" required />
         </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Passcode</ion-label>
-          <ion-input v-model="passcode" type="text" name="passcode" placeholder="Enter your passcode" required />
-        </ion-item>
-        <ion-button style="width: 100%;" type="submit" class="custom-button">Verify</ion-button>
+        <ion-button style="width: 100%;" type="submit" class="custom-button">Send Reset Link</ion-button>
       </form>
+        <a style="text-align:center; color:#FD8395;" href="/login">
+          <p>Sign in or Sign up</p>
+        </a>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
-import CryptoJS from 'crypto-js';
-
 const email = ref('');
-const passcode = ref('');
-const router = useRouter();
 const { toastError, toastSuccess } = useAppToast();
-
-const verifyIdentity = async () => {
-  console.log('Email entered:', email.value);
-  console.log('Passcode entered:', passcode.value);
-
-  const hashedPasscode = CryptoJS.SHA256(passcode.value).toString();
-  console.log('Hashed passcode:', hashedPasscode);
-
-  try {
-    // Send the request to the Supabase Edge Function
-    console.log('Sending request to verify identity:', { email: email.value, hashedPasscode });
-    const response = await fetch('https://otqcodzxgjtfswxviqtx.supabase.co/functions/v1/verify-identity', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value, hashedPasscode }),
-    });
-
-    const result = await response.json();
-    console.log('Response from verify-identity API:', result);
-
-    if (response.ok && result.success) {
-      toastSuccess({ title: 'Success', description: 'Identity verified.' });
-      sessionStorage.setItem('verified_email', email.value); // Store the verified email
-      router.push('/reset-password'); // Navigate to reset-password page
-    } else {
-      toastError({ title: 'Error', description: result.error || 'Verification failed.' });
-    }
-  } catch (error) {
-    console.error('Error during verification:', error);
-    toastError({ title: 'Error', description: 'An unexpected error occurred.' });
+const router = useRouter();
+const sendResetLink = async () => {
+  const supabase = useSupabaseClient();
+  if (!email.value) {
+    toastError({ title: 'Error', description: 'Email is required.' });
+    return;
+  }
+  // Supabase's built-in API for sending password reset emails
+  const { error } = await supabase.auth.resetPasswordForEmail(email.value, {
+    redirectTo: 'http://localhost:3000/reset-password'  // Your reset password page /
+  });
+  if (error) {
+    toastError({ title: 'Error', description: 'Failed to send reset link. ' + error.message });
+  } else {
+    toastSuccess({ title: 'Success', description: 'Reset link sent to your email!' });
+    setTimeout(() => {
+      router.push('/login');
+    }, 5000);
   }
 };
 </script>
@@ -63,18 +47,17 @@ const verifyIdentity = async () => {
 <style scoped>
 .center-img,
 ion-item,
-ion-button {
+ion-button
+{
   display: block;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
   padding: 20px;
 }
-
 .custom-background {
   --background: #FFEDF5;
 }
-
 .custom-button {
   --background: #FFC2D1;
   --background-activated: #ffadb9;
