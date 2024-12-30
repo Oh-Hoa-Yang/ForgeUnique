@@ -27,8 +27,7 @@
               <div>
                 <button @click="editItem(todo)"><span class="line-md--edit-twotone"></span></button>
                 <button @click="confirmDelete(todo.id)"><span class="ic--twotone-delete"></span></button>
-                <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span
-                    class="hugeicons--task-done-01"></span></button>
+                <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span class="hugeicons--task-done-01"></span></button>
               </div>
             </li>
           </ul>
@@ -181,11 +180,11 @@ const fetchBudget = async () => {
   if (!user.value) return;
 
   try {
-    const { data, error } = await supabase
-      .from('Users')
-      .select('budget')
-      .eq('user_id', user.value.id)
-      .single()
+    const {data, error} = await supabase 
+    .from('Users')
+    .select('budget')
+    .eq('user_id', user.value.id)
+    .single()
 
     if (error) throw error;
 
@@ -198,12 +197,12 @@ const fetchBudget = async () => {
     console.error('Error fetching budget from supabase:', err.message);
     return 0;
   }
-};
+}; 
 
 //Reactive state for budget 
 const budget = computed(() => {
   if (appState.budget === 0) {
-    fetchBudget().then((fetchedBudget) => {
+    fetchBudget().then((fetchedBudget) => { 
       appState.budget = fetchedBudget; // Update appState after manual fetch
     });
   }
@@ -297,8 +296,6 @@ const selectTool = (tool) => {
     signatureOptions.value.penColor = 'red'; // Set to red
   } else if (tool === 'eraser') {
     signatureOptions.value.penColor = 'white'; // Set to eraser (white)
-    signatureOptions.value.minwidth = 4; // Larger width for eraser
-    signatureOptions.value.maxWidth = 4;
   }
 }
 
@@ -847,10 +844,10 @@ const todoToDelete = ref(null);
 
 const fetchTodos = async () => {
   const { data, error } = await supabase
-    .from('ToDoLists')
-    .select('*')
-    .order('todosPriority', { ascending: true })
-    .eq('user_id', user.value.id)
+  .from('ToDoLists')
+  .select('*')
+  .order('todosPriority', { ascending: true })
+  .eq('user_id', user.value.id)
   if (!error) {
     todos.value = data;
     console.log('Fetched todos:', todos.value);
@@ -896,11 +893,11 @@ const saveTodo = async () => {
         .from('ToDoLists')
         .update({ ...currentTodo.value, userEmail: userEmail })
         .eq('id', currentTodo.value.id);
-
+        
       if (error) {
         console.error('Error updating todo:', error.message);
-        toastError({ title: 'Error', description: 'Failed to update the todos.' });
-      }
+        toastError({title:'Error', description:'Failed to update the todos.'});
+      } 
     } else {
       //Add new todo
       const { error } = await supabase
@@ -908,7 +905,7 @@ const saveTodo = async () => {
         .insert([{ ...currentTodo.value, userEmail: userEmail, user_id: user.value.id }])
       if (error) {
         console.error('Error adding new todo:', error.message);
-        toastError({ title: 'Error', description: 'Failed to add the todos.' });
+        toastError({title:'Error', description:'Failed to add the todos.'});
       }
     }
     closeTodosModal();
@@ -964,6 +961,8 @@ const closeConfirmationModal = () => {
 <style scoped>
 .custom-background {
   --background: #FFEDF5;
+  height: 100%;
+  touch-action: auto;
 }
 
 ion-button {
@@ -1029,11 +1028,10 @@ ion-button {
   width: 100%;
   height: 1200px;
   position: relative;
-  touch-action: auto;
 }
 
 .signature-canvas {
-  touch-action: auto;
+  touch-action: none;
   /* Prevent touch scrolling on the canvas */
   /* -ms-touch-action: none; */
   /* For Internet Explorer */
