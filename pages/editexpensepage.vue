@@ -14,9 +14,14 @@
           <h1 style="font-size: 25px;">
             <b>Edit {{ selectedCategory }}</b>
           </h1>
-          <button @click="showRecurringModal = true">
-            <span class="mdi--recurring-payment"></span>
-          </button>
+          <div>
+            <button @click="showRecurringModal = true">
+              <span class="mdi--recurring-payment"></span>
+            </button>
+            <button @click="deleteExpense">
+              <span class="ic--twotone-delete"></span>
+            </button>
+          </div>
         </div>
 
         <!-- Date Picker Trigger Button -->
@@ -316,6 +321,27 @@ const updateExpense = async () => {
   }
 };
 
+
+const deleteExpense = async () => {
+  if (!expenseId.value) return;
+
+  try {
+    const { error } = await supabase
+      .from('Expenses')
+      .delete()
+      .eq('id', expenseId.value);
+
+    if (error) throw error;
+
+    toastSuccess({ title: 'Success', description: 'Expense deleted successfully!' });
+    router.push('/expenserecordpage');
+  } catch (err) {
+    console.error('Error deleting expense:', err.message);
+    toastError({ title: 'Error', description: 'Failed to delete expense. Please try again.' });
+  }
+};
+
+
 </script>
 
 <style scoped>
@@ -341,12 +367,22 @@ const updateExpense = async () => {
 
 .mdi--recurring-payment {
   display: inline-block;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M3 6v12h10.32a6.4 6.4 0 0 1-.32-2H7a2 2 0 0 0-2-2v-4c1.11 0 2-.89 2-2h10a2 2 0 0 0 2 2v.06c.67 0 1.34.12 2 .34V6zm9 3c-1.7.03-3 1.3-3 3s1.3 2.94 3 3c.38 0 .77-.08 1.14-.23c.27-1.1.72-2.14 1.83-3.16C14.85 10.28 13.59 8.97 12 9m7 2l2.25 2.25L19 15.5V14c-1.85 0-3.06 1.96-2.24 3.62l-1.09 1.09c-1.76-2.66.14-6.21 3.33-6.21zm0 11l-2.25-2.25L19 17.5V19c1.85 0 3.06-1.96 2.24-3.62l1.09-1.09c1.76 2.66-.14 6.21-3.33 6.21z'/%3E%3C/svg%3E");
 }
+
+.ic--twotone-delete {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M8 9h8v10H8z' opacity='0.3'/%3E%3Cpath fill='%23ff65bc' d='m15.5 4l-1-1h-5l-1 1H5v2h14V4zM6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM8 9h8v10H8z'/%3E%3C/svg%3E");
+}
+
 
 .date-picker-container {
   display: flex;
