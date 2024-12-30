@@ -1032,7 +1032,7 @@ ion-button {
 }
 
 .signature-canvas {
-  touch-action: none;
+  touch-action: pinch-zoom;
   /* Prevent touch scrolling on the canvas */
   /* -ms-touch-action: none; */
   /* For Internet Explorer */
