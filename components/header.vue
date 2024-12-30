@@ -70,9 +70,16 @@ const supabase = useSupabaseClient();
 const { toastError, toastSuccess } = useAppToast();
 const menuVisible = ref(false);
 
+
+
+import { App } from '@capacitor/app';
+
 const refreshPage = () => {
-  reloadNuxtApp();
-}
+  window.location.reload();
+  App.reload(); // Reloads the WebView without restarting the app
+};
+
+
 
 // Function to toggle menu visibility
 const toggleMenu = () => {
