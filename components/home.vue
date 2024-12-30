@@ -1029,6 +1029,7 @@ ion-button {
   width: 100%;
   height: 1200px;
   position: relative;
+  touch-action: auto;
 }
 
 .signature-canvas {
