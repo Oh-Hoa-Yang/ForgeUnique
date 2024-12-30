@@ -13,7 +13,7 @@ export default defineNuxtConfig({
       login: '/login',
       callback: '/confirm',
       include: undefined,
-      exclude: ["/register", "/forgot_password","/reset-password"], 
+      exclude: ["/register", "/forgot_password","/reset-password","/finishregistered"], 
       cookieRedirect: false
     },
     clientOptions: {

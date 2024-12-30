@@ -20,4 +20,8 @@
 
 
 <style scoped>
+.custom-background {
+  --background: #FFEDF5;
+  /* height: 100000000000000000000px; */
+}
 </style>

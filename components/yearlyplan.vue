@@ -27,8 +27,8 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <strong>{{ index + 1 }}. {{ plan.yearlyDescription }}</strong>
               <div style="display: flex; justify-content: end; align-items: center;">
-                <button @click="openEditModal(plan)" style="font-size: 14px; color: #FD8395; ">✏️</button>
-                <button @click="deleteYearlyPlan(plan.id)" style="font-size: 14px; color: #FD8395;">❌</button>
+                <button @click="openEditModal(plan)" style="font-size: 14px; color: #FD8395; "><span class="line-md--edit-twotone"></span></button>
+                <button @click="deleteYearlyPlan(plan.id)" style="font-size: 14px; color: #FD8395;"><span class="ic--twotone-delete"></span></button>
               </div>
             </div>
           </li>
@@ -275,6 +275,7 @@ const deleteYearlyPlan = async (planId) => {
 <style scoped>
 .custom-background {
   --background: #FFEDF5;
+  height: 100%;
   /* height: 10000000px; */
 }
 
@@ -352,5 +353,23 @@ select {
   width: 90%;
   max-width: 400px;
   text-align: center;
+}
+
+.line-md--edit-twotone {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23ff65bc' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath stroke-dasharray='20' stroke-dashoffset='20' d='M3 21h18'%3E%3Canimate fill='freeze' attributeName='stroke-dashoffset' dur='0.2s' values='20;0'/%3E%3C/path%3E%3Cpath stroke-dasharray='48' stroke-dashoffset='48' d='M7 17v-4l10 -10l4 4l-10 10h-4'%3E%3Canimate fill='freeze' attributeName='stroke-dashoffset' begin='0.2s' dur='0.6s' values='48;0'/%3E%3C/path%3E%3Cpath stroke-dasharray='8' stroke-dashoffset='8' d='M14 6l4 4'%3E%3Canimate fill='freeze' attributeName='stroke-dashoffset' begin='0.8s' dur='0.2s' values='8;0'/%3E%3C/path%3E%3C/g%3E%3Cpath fill='%23ff65bc' fill-opacity='0' d='M14 6l4 4L21 7L17 3Z'%3E%3Canimate fill='freeze' attributeName='fill-opacity' begin='1.1s' dur='0.15s' values='0;0.3'/%3E%3C/path%3E%3C/svg%3E");
+}
+
+.ic--twotone-delete {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M8 9h8v10H8z' opacity='0.3'/%3E%3Cpath fill='%23ff65bc' d='m15.5 4l-1-1h-5l-1 1H5v2h14V4zM6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM8 9h8v10H8z'/%3E%3C/svg%3E");
 }
 </style>

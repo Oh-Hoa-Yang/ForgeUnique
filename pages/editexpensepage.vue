@@ -12,7 +12,7 @@
             <span class="lets-icons--back"></span>
           </button>
           <h1 style="font-size: 25px;">
-            <b>New {{ selectedCategory }}</b>
+            <b>Edit {{ selectedCategory }}</b>
           </h1>
           <button @click="showRecurringModal = true">
             <span class="mdi--recurring-payment"></span>

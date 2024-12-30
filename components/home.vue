@@ -27,7 +27,8 @@
               <div>
                 <button @click="editItem(todo)"><span class="line-md--edit-twotone"></span></button>
                 <button @click="confirmDelete(todo.id)"><span class="ic--twotone-delete"></span></button>
-                <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span class="hugeicons--task-done-01"></span></button>
+                <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span
+                    class="hugeicons--task-done-01"></span></button>
               </div>
             </li>
           </ul>
@@ -98,8 +99,8 @@
                   {{ sketch.title }}
                 </span>
                 <div style="display: flex; justify-content: end; align-items: center;">
-                  <button @click.stop="openEditModal(sketch)">✏️</button>
-                  <button @click.stop="deleteSketchbook(sketch.id)">❌</button>
+                  <button @click.stop="openEditModal(sketch)"><span class="line-md--edit-twotone"></span></button>
+                  <button @click.stop="deleteSketchbook(sketch.id)"><span class="ic--twotone-delete"></span></button>
                 </div>
               </li>
             </ul>
@@ -123,10 +124,10 @@
 
           <!-- Tool Selection -->
           <div class="tool-selection">
-            <button @click="selectTool('pencil')">✏️ Pencil</button>
+            <button @click="selectTool('black')">⚫️ Black</button>
             <button @click="selectTool('blue')">🔵 Blue</button>
             <button @click="selectTool('red')">🔴 Red</button>
-            <button @click="selectTool('eraser')">🧽 Eraser</button>
+            <button @click="selectTool('eraser')"><span class="solar--eraser-bold-duotone"></span> Eraser</button>
           </div>
 
           <div class="canvas-controls">
@@ -180,11 +181,11 @@ const fetchBudget = async () => {
   if (!user.value) return;
 
   try {
-    const {data, error} = await supabase 
-    .from('Users')
-    .select('budget')
-    .eq('user_id', user.value.id)
-    .single()
+    const { data, error } = await supabase
+      .from('Users')
+      .select('budget')
+      .eq('user_id', user.value.id)
+      .single()
 
     if (error) throw error;
 
@@ -197,12 +198,12 @@ const fetchBudget = async () => {
     console.error('Error fetching budget from supabase:', err.message);
     return 0;
   }
-}; 
+};
 
 //Reactive state for budget 
 const budget = computed(() => {
   if (appState.budget === 0) {
-    fetchBudget().then((fetchedBudget) => { 
+    fetchBudget().then((fetchedBudget) => {
       appState.budget = fetchedBudget; // Update appState after manual fetch
     });
   }
@@ -288,7 +289,7 @@ const signatureOptions = ref({
 })
 
 const selectTool = (tool) => {
-  if (tool === 'pencil') {
+  if (tool === 'black') {
     signatureOptions.value.penColor = 'black'; // Set to black
   } else if (tool === 'blue') {
     signatureOptions.value.penColor = 'blue'; // Set to blue
@@ -296,6 +297,8 @@ const selectTool = (tool) => {
     signatureOptions.value.penColor = 'red'; // Set to red
   } else if (tool === 'eraser') {
     signatureOptions.value.penColor = 'white'; // Set to eraser (white)
+    signatureOptions.value.minwidth = 4; // Larger width for eraser
+    signatureOptions.value.maxWidth = 4;
   }
 }
 
@@ -844,10 +847,10 @@ const todoToDelete = ref(null);
 
 const fetchTodos = async () => {
   const { data, error } = await supabase
-  .from('ToDoLists')
-  .select('*')
-  .order('todosPriority', { ascending: true })
-  .eq('user_id', user.value.id)
+    .from('ToDoLists')
+    .select('*')
+    .order('todosPriority', { ascending: true })
+    .eq('user_id', user.value.id)
   if (!error) {
     todos.value = data;
     console.log('Fetched todos:', todos.value);
@@ -893,11 +896,11 @@ const saveTodo = async () => {
         .from('ToDoLists')
         .update({ ...currentTodo.value, userEmail: userEmail })
         .eq('id', currentTodo.value.id);
-        
+
       if (error) {
         console.error('Error updating todo:', error.message);
-        toastError({title:'Error', description:'Failed to update the todos.'});
-      } 
+        toastError({ title: 'Error', description: 'Failed to update the todos.' });
+      }
     } else {
       //Add new todo
       const { error } = await supabase
@@ -905,7 +908,7 @@ const saveTodo = async () => {
         .insert([{ ...currentTodo.value, userEmail: userEmail, user_id: user.value.id }])
       if (error) {
         console.error('Error adding new todo:', error.message);
-        toastError({title:'Error', description:'Failed to add the todos.'});
+        toastError({ title: 'Error', description: 'Failed to add the todos.' });
       }
     }
     closeTodosModal();
@@ -990,7 +993,7 @@ ion-button {
 }
 
 .expense-button {
-  background-color: transparent;
+  background-color: white;
   border: none;
   padding: 0;
   cursor: pointer;
@@ -1071,6 +1074,7 @@ ion-button {
 .canvas-controls,
 .tool-selection {
   display: flex;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
 }
@@ -1100,5 +1104,14 @@ ion-button {
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23ff65bc' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' color='%23ff65bc'%3E%3Cpath d='M13.5 20s1 0 2 2c0 0 3.177-5 6-6M7 16h4m-4-5h8M6.5 3.5c-1.556.047-2.483.22-3.125.862c-.879.88-.879 2.295-.879 5.126v6.506c0 2.832 0 4.247.879 5.127C4.253 22 5.668 22 8.496 22h2.5m4.496-18.5c1.556.047 2.484.22 3.125.862c.88.88.88 2.295.88 5.126V13.5'/%3E%3Cpath d='M6.496 3.75c0-.966.784-1.75 1.75-1.75h5.5a1.75 1.75 0 1 1 0 3.5h-5.5a1.75 1.75 0 0 1-1.75-1.75'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.solar--eraser-bold-duotone {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fa65bc' d='M14.952 3c-1.037 0-1.872.835-3.542 2.505l-4.91 4.91l7.085 7.085l4.91-4.91C20.165 10.92 21 10.085 21 9.048c0-1.038-.835-1.873-2.505-3.543S15.99 3 14.952 3' opacity='0.5'/%3E%3Cpath fill='%23fa65bc' d='M13.585 17.5L6.5 10.415l-.995.995C3.835 13.08 3 13.915 3 14.952c0 1.038.835 1.873 2.505 3.543S8.01 21 9.048 21c1.037 0 1.872-.835 3.542-2.505z'/%3E%3Cpath fill='%23fa65bc' d='M9.033 21H9zm.03 0c.796-.006 1.476-.506 2.51-1.5H21a.75.75 0 0 1 0 1.5z' opacity='0.5'/%3E%3C/svg%3E");
 }
 </style>
