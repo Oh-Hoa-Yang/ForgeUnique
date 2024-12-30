@@ -281,8 +281,8 @@ const todayExpense = computed(() => {
 const signatureOptions = ref({
   penColor: 'black',
   backgroundColor: 'white',
-  maxWidth: 2,
-  minwidth: 2,
+  maxWidth: 0.5,
+  minwidth: 0.5,
   canvasWidth: 728,
   canvasHeight: 800,
 })
@@ -962,7 +962,6 @@ const closeConfirmationModal = () => {
 .custom-background {
   --background: #FFEDF5;
   height: 100%;
-  touch-action: auto;
 }
 
 ion-button {
