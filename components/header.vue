@@ -11,10 +11,6 @@
       <ion-title class="slogan">"Forge Your Unique Path"</ion-title>
 
       <ion-buttons slot="end">
-        <!-- Refresh Button -->
-        <button class="refresh-button" @click="refreshPage">
-          <ion-icon :icon="syncIcon" class="refresh-icon"></ion-icon>
-        </button>
 
         <!-- Menu Button using IonIcon -->
         <button class="icon-button" @click="toggleMenu">
@@ -46,10 +42,6 @@
           <ion-icon :icon="recordingIcon" class="menu-icon" /> 
           Quick Record
         </button>
-        <button @click="refreshPage">
-          <ion-icon :icon="syncIcon" class="menu-icon" /> 
-          Refresh 
-        </button>
         <button @click="logout">
           <ion-icon :icon="logoutIcon" class="menu-icon" /> 
           Logout
@@ -62,7 +54,7 @@
 <script setup>
 import { IonIcon } from '@ionic/vue';
 import { menuOutline as menuIcon } from 'ionicons/icons';
-import { syncOutline as syncIcon, homeOutline as homeIcon, calendarOutline as calendarIcon, recordingOutline as recordingIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
+import { homeOutline as homeIcon, calendarOutline as calendarIcon, recordingOutline as recordingIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
 import { useAppToast } from '~/composables/useAppToast';
 
 const router = useRouter();
@@ -71,13 +63,6 @@ const { toastError, toastSuccess } = useAppToast();
 const menuVisible = ref(false);
 
 
-
-import { App } from '@capacitor/app';
-
-const refreshPage = () => {
-  window.location.reload();
-  App.reload(); // Reloads the WebView without restarting the app
-};
 
 
 
@@ -138,16 +123,6 @@ ion-toolbar {
   font-size: 1rem;
   font-style: italic;
   text-align: center;
-}
-
-.refresh-button {
-  margin-right: 10px;
-}
-
-.refresh-icon {
-  color: #fa5e75;
-  height: 20px;
-  width: 20px;
 }
 
 /* Styling for the menu icon button */
