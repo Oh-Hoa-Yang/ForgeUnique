@@ -1,69 +1,54 @@
 <template>
   <ion-page>
     <ion-content class="ion-padding custom-background">
-      <div style="text-align: center; margin-top: 50px;">
-        <h1>Verifying...</h1>
-        <ion-spinner v-if="loading" name="crescent"></ion-spinner>
-        <p v-if="loading">Please wait while we verify your link.</p>
-        <p v-if="error" style="color: red; margin-top: 20px;">{{ error }}</p>
-        <ion-button v-if="error" @click="navigateToForgotPassword" expand="block" style="margin-top: 20px;">
-          Request a New Link
-        </ion-button>
-      </div>
+      <h1>Verify Your Link</h1>
+      <p>Please click the button below to verify your email.</p>
+      <ion-button @click="verifyToken">Verify Email</ion-button>
+      <p v-if="loading">Verifying, please wait...</p>
+      <p v-if="error" style="color: red;">{{ error }}</p>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const loading = ref(true);
+const loading = ref(false);
 const error = ref(null);
 
-onMounted(async () => {
-  const token = new URLSearchParams(window.location.search).get("token");
-  const type = new URLSearchParams(window.location.search).get("type");
+const verifyToken = async () => {
+  const token = new URLSearchParams(window.location.search).get('token');
+  const type = new URLSearchParams(window.location.search).get('type');
 
   if (!token || !type) {
-    error.value = "Invalid or missing token.";
-    loading.value = false;
+    error.value = 'Invalid or missing token.';
     return;
   }
 
   const supabase = useSupabaseClient();
+  loading.value = true;
 
   try {
-    // Verify the magic link token
+    // Verify the token
     const { error: verifyError } = await supabase.auth.verifyOtp({
       token,
-      type, // 'magiclink' in this case
+      type,
     });
 
     if (verifyError) {
       throw new Error(verifyError.message);
     }
 
-    // Restore session after verification
-    const { data, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !data.session) {
-      throw new Error("Session restoration failed.");
-    }
-
-    console.log("Session restored:", data.session);
-
-    // Redirect to the desired page (e.g., home or dashboard) after successful verification
-    router.push("/");
+    // Redirect to the home page or dashboard after successful verification
+    router.push('/');
   } catch (err) {
-    console.error("Verification failed:", err);
-    error.value = "Verification failed. Please try again or request a new link.";
+    console.error('Verification failed:', err);
+    error.value = 'Verification failed. Please try again or request a new link.';
+  } finally {
     loading.value = false;
   }
-});
-
-const navigateToForgotPassword = () => {
-  router.push("/forgot_password");
 };
 </script>
 
