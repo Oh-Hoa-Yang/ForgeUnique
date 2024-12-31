@@ -31,9 +31,14 @@ const sendResetLink = async () => {
     return;
   }
   // Supabase's built-in API for sending password reset emails
-  const { error } = await supabase.auth.resetPasswordForEmail(email.value, {
-    redirectTo: 'https://forgeunique.vercel.app/reset-password', // Ensure it points to the hosted page
-  });
+  const { error } = await supabase.auth.signInWithOtp({
+  email: email.value,
+  options: {
+    emailRedirectTo: 'https://forgeunique.vercel.app/verify', // Ensure this matches your `/verify` page
+    type: 'magiclink', // Specify the type here (if needed)
+  },
+});
+
 
   if (error) {
     toastError({ title: 'Error', description: 'Failed to send reset link. ' + error.message });
