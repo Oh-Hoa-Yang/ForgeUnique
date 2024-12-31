@@ -5,197 +5,201 @@
       style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
       loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
       success-duration="500" animation-duration="300" head-height="50">
-      <ion-card class="calendar-card">
-        <VCalendar color="pink" :attributes="attrs" is-dark="{}" expanded />
-        <!-- <VDatePicker class="calendar" v-model="date" /> -->
-        <div class="yearly-plan-button">
-          <ion-button router-link="/yearlyplanpage">YEARLY PLAN</ion-button>
-        </div>
-      </ion-card>
 
-      <!-- Monthly Plan Card  PART  -->
-      <ion-card style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h5 style="font-weight: bold; text-align: center;">MONTHLY PLAN</h5>
-          <button @click="openModal" style="font-size:24px; padding: 5px 10px; color: #FD8395;">+</button>
-        </div>
+      <div class="content-wrapper">
 
-        <!-- Year and Month Dropdowns -->
-        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-          <select v-model="selectedYear" @change="fetchMonthlyPlans" class="year-selector">
-            <option v-for="year in yearsList" :key="year" :value="year">{{ year }}</option>
-          </select>
-          <select v-model="selectedMonth" @change="fetchMonthlyPlans" class="month-selector">
-            <option v-for="(month, index) in monthsList" :key="index" :value="index">{{ month }}</option>
-          </select>
-        </div>
-
-        <!-- Displaying the Monthly Plan Records -->
-        <div v-if="monthlyPlanData.length > 0" style="padding: 20px;">
-          <ol>
-            <!-- Loop through monthlyPlanData and display each record with a numbered list -->
-            <li v-for="(plan, index) in paginatedPlans" :key="plan.id" style="margin-bottom: 10px;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong>{{ index + 1 }}. {{ plan.monthlyDescription }}</strong>
-                <div style="display: flex; justify-content: end; align-items: center;">
-                  <button @click="openEditModal(plan)" style="font-size: 14px; color: #FD8395; ">✏️</button>
-                  <button @click="deleteMonthlyPlan(plan.id)" style="font-size: 14px; color: #FD8395;">❌</button>
+        <ion-card class="calendar-card">
+          <VCalendar color="pink" :attributes="attrs" is-dark="{}" expanded />
+          <!-- <VDatePicker class="calendar" v-model="date" /> -->
+          <div class="yearly-plan-button">
+            <ion-button router-link="/yearlyplanpage">YEARLY PLAN</ion-button>
+          </div>
+        </ion-card>
+  
+        <!-- Monthly Plan Card  PART  -->
+        <ion-card style="padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h5 style="font-weight: bold; text-align: center;">MONTHLY PLAN</h5>
+            <button @click="openModal" style="font-size:24px; padding: 5px 10px; color: #FD8395;">+</button>
+          </div>
+  
+          <!-- Year and Month Dropdowns -->
+          <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <select v-model="selectedYear" @change="fetchMonthlyPlans" class="year-selector">
+              <option v-for="year in yearsList" :key="year" :value="year">{{ year }}</option>
+            </select>
+            <select v-model="selectedMonth" @change="fetchMonthlyPlans" class="month-selector">
+              <option v-for="(month, index) in monthsList" :key="index" :value="index">{{ month }}</option>
+            </select>
+          </div>
+  
+          <!-- Displaying the Monthly Plan Records -->
+          <div v-if="monthlyPlanData.length > 0" style="padding: 20px;">
+            <ol>
+              <!-- Loop through monthlyPlanData and display each record with a numbered list -->
+              <li v-for="(plan, index) in paginatedPlans" :key="plan.id" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong>{{ index + 1 }}. {{ plan.monthlyDescription }}</strong>
+                  <div style="display: flex; justify-content: end; align-items: center;">
+                    <button @click="openEditModal(plan)" style="font-size: 14px; color: #FD8395; ">✏️</button>
+                    <button @click="deleteMonthlyPlan(plan.id)" style="font-size: 14px; color: #FD8395;">❌</button>
+                  </div>
                 </div>
+              </li>
+            </ol>
+            <!-- Pagination -->
+            <div style="display: flex; justify-content: space-between;">
+              <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
+                <<< </button>
+                  <span>Page {{ currentPage }} of {{ totalPages }}</span>
+                  <button @click="nextPage" :disabled="currentPage === totalPages" style="color: #FD8395;"> >>> </button>
+            </div>
+          </div>
+          <!-- If no records are found -->
+          <div v-else style="margin-top: 20px;">
+            <p>No records found for this month.</p>
+          </div>
+  
+          <!-- Modal for creating new monthly plan -->
+          <div v-if="showModal" class="modal-overlay">
+            <div class="modal-content">
+              <ion-label>Create New Monthly Plan for {{ selectedYear }} - {{ selectedMonth + 1 }}</ion-label>
+              <ion-input type="text" v-model="newMonthlyPlanDescription" placeholder="Enter monthly plan description" />
+              <div style="text-align: center;">
+                <ion-button @click="createMonthlyPlan">Create</ion-button>
+                <ion-button @click="closeModal">Cancel</ion-button>
               </div>
-            </li>
-          </ol>
-          <!-- Pagination -->
-          <div style="display: flex; justify-content: space-between;">
-            <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
-              <<< </button>
-                <span>Page {{ currentPage }} of {{ totalPages }}</span>
-                <button @click="nextPage" :disabled="currentPage === totalPages" style="color: #FD8395;"> >>> </button>
-          </div>
-        </div>
-        <!-- If no records are found -->
-        <div v-else style="margin-top: 20px;">
-          <p>No records found for this month.</p>
-        </div>
-
-        <!-- Modal for creating new monthly plan -->
-        <div v-if="showModal" class="modal-overlay">
-          <div class="modal-content">
-            <ion-label>Create New Monthly Plan for {{ selectedYear }} - {{ selectedMonth + 1 }}</ion-label>
-            <ion-input type="text" v-model="newMonthlyPlanDescription" placeholder="Enter monthly plan description" />
-            <div style="text-align: center;">
-              <ion-button @click="createMonthlyPlan">Create</ion-button>
-              <ion-button @click="closeModal">Cancel</ion-button>
             </div>
           </div>
-        </div>
-
-        <!-- Modal for editing existing monthly plan -->
-        <div v-if="showEditModal" class="modal-overlay">
-          <div class="modal-content">
-            <ion-label>Edit Monthly Plan for {{ selectedYear }} - {{ selectedMonth + 1 }}</ion-label>
-            <ion-input type="text" v-model="editMonthlyPlanDescription" placeholder="Edit monthly plan description" />
-            <div style="text-align: center;">
-              <ion-button @click="updateMonthlyPlan">Update</ion-button>
-              <ion-button @click="closeEditModal">Cancel</ion-button>
+  
+          <!-- Modal for editing existing monthly plan -->
+          <div v-if="showEditModal" class="modal-overlay">
+            <div class="modal-content">
+              <ion-label>Edit Monthly Plan for {{ selectedYear }} - {{ selectedMonth + 1 }}</ion-label>
+              <ion-input type="text" v-model="editMonthlyPlanDescription" placeholder="Edit monthly plan description" />
+              <div style="text-align: center;">
+                <ion-button @click="updateMonthlyPlan">Update</ion-button>
+                <ion-button @click="closeEditModal">Cancel</ion-button>
+              </div>
             </div>
           </div>
-        </div>
-      </ion-card>
-
-
-      <!-- IMPROVEMENTS Plan / THING TO BE FOCUS  Card  PART  -->
-      <ion-card style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h5 style="font-weight: bold; text-align: center;">IMPROVEMENTS PLAN | THINGS TO BE FOCUSED</h5>
-          <button @click="openIModal" style="font-size:24px; padding: 5px 10px; color: #FD8395;">+</button>
-        </div>
-
-        <!-- Year and Month Dropdowns -->
-        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-          <select v-model="selectedIYear" @change="fetchImprovementPlans" class="year-selector">
-            <option v-for="year in IyearsList" :key="year" :value="year">{{ year }}</option>
-          </select>
-          <select v-model="selectedIMonth" @change="fetchImprovementPlans" class="month-selector">
-            <option v-for="(month, index) in ImonthsList" :key="index" :value="index">{{ month }}</option>
-          </select>
-        </div>
-
-        <!-- Displaying the Improvement Plan Records -->
-        <div v-if="improvementPlanData.length > 0" style="padding: 20px;">
-          <ol>
-            <!-- Loop through monthlyPlanData and display each record with a numbered list -->
-            <li v-for="(plan, index) in paginatedImprovements" :key="plan.id" style="margin-bottom: 10px;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong>{{ index + 1 }}. {{ plan.improvementDescription }}</strong>
-                <div style="display: flex; justify-content: end; align-items: center;">
-                  <button @click="openIEditModal(plan)" style="font-size: 14px; color: #FD8395; ">✏️</button>
-                  <button @click="deleteImprovementPlan(plan.id)" style="font-size: 14px; color: #FD8395;">❌</button>
+        </ion-card>
+  
+  
+        <!-- IMPROVEMENTS Plan / THING TO BE FOCUS  Card  PART  -->
+        <ion-card style="padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h5 style="font-weight: bold; text-align: center;">IMPROVEMENTS PLAN | THINGS TO BE FOCUSED</h5>
+            <button @click="openIModal" style="font-size:24px; padding: 5px 10px; color: #FD8395;">+</button>
+          </div>
+  
+          <!-- Year and Month Dropdowns -->
+          <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <select v-model="selectedIYear" @change="fetchImprovementPlans" class="year-selector">
+              <option v-for="year in IyearsList" :key="year" :value="year">{{ year }}</option>
+            </select>
+            <select v-model="selectedIMonth" @change="fetchImprovementPlans" class="month-selector">
+              <option v-for="(month, index) in ImonthsList" :key="index" :value="index">{{ month }}</option>
+            </select>
+          </div>
+  
+          <!-- Displaying the Improvement Plan Records -->
+          <div v-if="improvementPlanData.length > 0" style="padding: 20px;">
+            <ol>
+              <!-- Loop through monthlyPlanData and display each record with a numbered list -->
+              <li v-for="(plan, index) in paginatedImprovements" :key="plan.id" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong>{{ index + 1 }}. {{ plan.improvementDescription }}</strong>
+                  <div style="display: flex; justify-content: end; align-items: center;">
+                    <button @click="openIEditModal(plan)" style="font-size: 14px; color: #FD8395; ">✏️</button>
+                    <button @click="deleteImprovementPlan(plan.id)" style="font-size: 14px; color: #FD8395;">❌</button>
+                  </div>
                 </div>
-              </div>
-            </li>
-          </ol>
-          <!-- Pagination -->
-          <div style="display: flex; justify-content: space-between;">
-            <button @click="previousIPage" :disabled="currentIPage === 1" style="color: #FD8395;">
-              <<< </button>
-                <span>Page {{ currentIPage }} of {{ totalIPages }}</span>
-                <button @click="nextIPage" :disabled="currentIPage === totalIPages" style="color: #FD8395;"> >>>
-                </button>
-          </div>
-        </div>
-        <!-- If no records are found -->
-        <div v-else style="margin-top: 20px;">
-          <p>No records found for this month. Step 1 to improvement - NOTE DOWN!</p>
-        </div>
-
-        <!-- Modal for creating new improvement plan -->
-        <div v-if="showIModal" class="modal-overlay">
-          <div class="modal-content">
-            <ion-label>Create New Improvement Plan for {{ selectedIYear }} - {{ selectedIMonth + 1 }}</ion-label>
-            <ion-input type="text" v-model="newImprovementPlanDescription"
-              placeholder="Enter improvement plan description" />
-            <div style="text-align: center;">
-              <ion-button @click="createImprovementPlan">Create</ion-button>
-              <ion-button @click="closeIModal">Cancel</ion-button>
+              </li>
+            </ol>
+            <!-- Pagination -->
+            <div style="display: flex; justify-content: space-between;">
+              <button @click="previousIPage" :disabled="currentIPage === 1" style="color: #FD8395;">
+                <<< </button>
+                  <span>Page {{ currentIPage }} of {{ totalIPages }}</span>
+                  <button @click="nextIPage" :disabled="currentIPage === totalIPages" style="color: #FD8395;"> >>>
+                  </button>
             </div>
           </div>
-        </div>
-
-        <!-- Modal for editing existing improvement plan -->
-        <div v-if="showIEditModal" class="modal-overlay">
-          <div class="modal-content">
-            <ion-label>Edit Improvement Plan for {{ selectedIYear }} - {{ selectedIMonth + 1 }}</ion-label>
-            <ion-input type="text" v-model="editImprovementPlanDescription"
-              placeholder="Edit improvement plan description" />
-            <div style="text-align: center;">
-              <ion-button @click="updateImprovementPlan">Update</ion-button>
-              <ion-button @click="closeIEditModal">Cancel</ion-button>
+          <!-- If no records are found -->
+          <div v-else style="margin-top: 20px;">
+            <p>No records found for this month. Step 1 to improvement - NOTE DOWN!</p>
+          </div>
+  
+          <!-- Modal for creating new improvement plan -->
+          <div v-if="showIModal" class="modal-overlay">
+            <div class="modal-content">
+              <ion-label>Create New Improvement Plan for {{ selectedIYear }} - {{ selectedIMonth + 1 }}</ion-label>
+              <ion-input type="text" v-model="newImprovementPlanDescription"
+                placeholder="Enter improvement plan description" />
+              <div style="text-align: center;">
+                <ion-button @click="createImprovementPlan">Create</ion-button>
+                <ion-button @click="closeIModal">Cancel</ion-button>
+              </div>
             </div>
           </div>
-        </div>
-      </ion-card>
-
-
-      <!-- Biggest Gain of Previous Month Card --PART--  -->
-      <ion-card style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h5 style="font-weight: bold; text-align: center;">BIGGEST GAIN of PREVIOUS MONTH</h5>
-        </div>
-
-        <!-- Year and Month Dropdowns -->
-        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-          <select v-model="selectedBYear" @change="fetchBiggestGain" class="year-selector">
-            <option v-for="year in ByearsList" :key="year" :value="year">{{ year }}</option>
-          </select>
-          <select v-model="selectedBMonth" @change="fetchBiggestGain" class="month-selector">
-            <option v-for="(month, index) in BmonthsList" :key="index" :value="index">{{ month }}</option>
-          </select>
-        </div>
-
-        <!-- Displaying the Biggest Gain Records -->
-        <div v-if="biggestGainData.length > 0" style="padding: 20px;">
-          <ol>
-            <li v-for="(todo, index) in paginatedGains" :key="todo.id" style="margin-bottom: 10px;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong>{{ index + 1 }}. {{ todo.todosDescription }}</strong>
+  
+          <!-- Modal for editing existing improvement plan -->
+          <div v-if="showIEditModal" class="modal-overlay">
+            <div class="modal-content">
+              <ion-label>Edit Improvement Plan for {{ selectedIYear }} - {{ selectedIMonth + 1 }}</ion-label>
+              <ion-input type="text" v-model="editImprovementPlanDescription"
+                placeholder="Edit improvement plan description" />
+              <div style="text-align: center;">
+                <ion-button @click="updateImprovementPlan">Update</ion-button>
+                <ion-button @click="closeIEditModal">Cancel</ion-button>
               </div>
-            </li>
-          </ol>
-          <!-- Pagination -->
-          <div style="display: flex; justify-content: space-between;">
-            <button @click="previousBPage" :disabled="currentBPage === 1" style="color: #FD8395;">
-              <<< </button>
-                <span>Page {{ currentBPage }} of {{ totalBPages }}</span>
-                <button @click="nextBPage" :disabled="currentBPage === totalBPages" style="color: #FD8395;"> >>>
-                </button>
+            </div>
           </div>
-        </div>
-        <!-- If no records are found -->
-        <div v-else style="margin-top: 20px;">
-          <p>You have no records found. Escape yourself from comfort zone! Good Luck!</p>
-        </div>
-      </ion-card>
-      <br><br>
+        </ion-card>
+  
+  
+        <!-- Biggest Gain of Previous Month Card --PART--  -->
+        <ion-card style="padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h5 style="font-weight: bold; text-align: center;">BIGGEST GAIN of PREVIOUS MONTH</h5>
+          </div>
+  
+          <!-- Year and Month Dropdowns -->
+          <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <select v-model="selectedBYear" @change="fetchBiggestGain" class="year-selector">
+              <option v-for="year in ByearsList" :key="year" :value="year">{{ year }}</option>
+            </select>
+            <select v-model="selectedBMonth" @change="fetchBiggestGain" class="month-selector">
+              <option v-for="(month, index) in BmonthsList" :key="index" :value="index">{{ month }}</option>
+            </select>
+          </div>
+  
+          <!-- Displaying the Biggest Gain Records -->
+          <div v-if="biggestGainData.length > 0" style="padding: 20px;">
+            <ol>
+              <li v-for="(todo, index) in paginatedGains" :key="todo.id" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong>{{ index + 1 }}. {{ todo.todosDescription }}</strong>
+                </div>
+              </li>
+            </ol>
+            <!-- Pagination -->
+            <div style="display: flex; justify-content: space-between;">
+              <button @click="previousBPage" :disabled="currentBPage === 1" style="color: #FD8395;">
+                <<< </button>
+                  <span>Page {{ currentBPage }} of {{ totalBPages }}</span>
+                  <button @click="nextBPage" :disabled="currentBPage === totalBPages" style="color: #FD8395;"> >>>
+                  </button>
+            </div>
+          </div>
+          <!-- If no records are found -->
+          <div v-else style="margin-top: 20px;">
+            <p>You have no records found. Escape yourself from comfort zone! Good Luck!</p>
+          </div>
+        </ion-card>
+        <br><br>
+      </div>
     </PullRefresh>
   </ion-content>
 </template>
@@ -709,7 +713,13 @@ const deleteImprovementPlan = async (planId) => {
 <style scoped>
 .custom-background {
   --background: #FFEDF5;
-  /* height: 10000000000000px; */
+  /* height: 15000000px; */
+}
+
+.content-wrapper {
+  height: 100%;
+  overflow: auto;
+  touch-action: auto;
 }
 
 ion-button {
