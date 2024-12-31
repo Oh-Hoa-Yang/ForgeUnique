@@ -1,9 +1,15 @@
 <template>
   <ion-page>
     <ion-content class="ion-padding custom-background">
-      <h1>Verifying...</h1>
-      <p v-if="loading">Please wait while we verify your link.</p>
-      <p v-if="error" style="color: red;">{{ error }}</p>
+      <div style="text-align: center; margin-top: 50px;">
+        <h1>Verifying...</h1>
+        <ion-spinner v-if="loading" name="crescent"></ion-spinner>
+        <p v-if="loading">Please wait while we verify your link.</p>
+        <p v-if="error" style="color: red; margin-top: 20px;">{{ error }}</p>
+        <ion-button v-if="error" @click="navigateToForgotPassword" expand="block" style="margin-top: 20px;">
+          Request a New Link
+        </ion-button>
+      </div>
     </ion-content>
   </ion-page>
 </template>
@@ -29,7 +35,7 @@ onMounted(async () => {
   const supabase = useSupabaseClient();
 
   try {
-    // Verify the magic link token using Supabase's verifyOtp method
+    // Verify the magic link token
     const { error: verifyError } = await supabase.auth.verifyOtp({
       token,
       type, // 'magiclink' in this case
@@ -39,6 +45,14 @@ onMounted(async () => {
       throw new Error(verifyError.message);
     }
 
+    // Restore session after verification
+    const { data, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !data.session) {
+      throw new Error("Session restoration failed.");
+    }
+
+    console.log("Session restored:", data.session);
+
     // Redirect to the desired page (e.g., home or dashboard) after successful verification
     router.push("/");
   } catch (err) {
@@ -47,6 +61,10 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+const navigateToForgotPassword = () => {
+  router.push("/forgot_password");
+};
 </script>
 
 <style scoped>

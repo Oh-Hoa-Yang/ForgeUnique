@@ -46,6 +46,10 @@ const router = useRouter();
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient();
 
+definePageMeta({
+  middleware: 'authenticated',
+});
+
 const updatePassword = async () => {
   if (password.value !== confirmPassword.value) {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
