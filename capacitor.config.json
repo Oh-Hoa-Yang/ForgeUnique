@@ -1,5 +1,10 @@
 {
   "appId": "com.forgeunique.app",
   "appName": "ForgeUnique",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "iosScheme": "forgeunique",
+    "androidScheme": "forgeunique",
+    "hostname": "localhost" 
+  }
 }
