@@ -1,5 +1,13 @@
 {
   "appId": "com.forgeunique.app",
   "appName": "ForgeUnique",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 3000, 
+      "autoHide": true,
+      "backgroundColor": "#FFEDF5", 
+      "showSpinner": false 
+    }
+  }
 }
