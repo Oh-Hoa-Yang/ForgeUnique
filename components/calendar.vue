@@ -259,7 +259,7 @@ const monthlyPlanData = ref([]);
 // Fetch available years for selection (from 2020 to the current year)
 onMounted(() => {
   const currentYear = new Date().getFullYear();
-  yearsList.value = Array.from({ length: currentYear - 2019 }, (_, index) => 2020 + index);
+  yearsList.value = Array.from({ length: currentYear+3 - 2019 }, (_, index) => 2020 + index);
   fetchMonthlyPlans();
 });
 
@@ -541,7 +541,7 @@ const improvementPlanData = ref([]);
 // Fetch available years for selection (from 2020 to the current year)
 onMounted(() => {
   const currentYear = new Date().getFullYear();
-  IyearsList.value = Array.from({ length: currentYear - 2019 }, (_, index) => 2020 + index);
+  IyearsList.value = Array.from({ length: currentYear+3 - 2019 }, (_, index) => 2020 + index);
   fetchImprovementPlans();
 });
 
