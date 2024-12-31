@@ -12,23 +12,7 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 
-// Restore session when the app is initialized
-const restoreSession = async () => {
-  try {
-    const { data, error } = await supabase.auth.getSession();
-    if (error || !data.session) {
-      console.error('Session could not be restored:', error);
-    } else {
-      console.log('Session restored:', data.session);
-      // Optionally, handle navigation or other app logic here
-    }
-  } catch (err) {
-    console.error('Unexpected error restoring session:', err);
-  }
-};
 
-// Call the restore function when the app initializes
-restoreSession();
 
 // App.addListener('appUrlOpen', (event) => {
 //   try {

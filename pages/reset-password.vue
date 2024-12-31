@@ -4,7 +4,7 @@
       <div v-if="!success">
         <img class="center-img" src="/public/img/ForgeUniquePhoto.png" alt="ForgeUnique Logo" />
         <p style="padding: 20px; text-align: start; font-size: 20px;"><b>Please enter your new password:</b></p>
-        <form @submit.prevent="updatePassword" style="width: 100%; justify-content: center;">
+        <form @submit.prevent="resetPassword" style="width: 100%; justify-content: center;">
           <ion-item>
             <ion-label position="stacked">New Password</ion-label>
             <ion-input v-model="password" type="password" name="password" placeholder="Enter new password"
@@ -19,19 +19,18 @@
               <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
-          <ion-button style="width: 100%;" type="submit" class="custom-button">Update Password</ion-button>
+          <ion-button style="width: 100%;" type="submit" class="custom-button">Reset Password</ion-button>
         </form>
       </div>
       <div v-else>
         <ion-card>
           <ion-card-header>
-            <ion-card-title>Password Updated Successfully!</ion-card-title>
+            <ion-card-title>Password Reset Successful!</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            Your password has been updated successfully. Please log in using your new password.
+            Your password has been reset successfully. Please open the mobile app and log in with your new password.
           </ion-card-content>
         </ion-card>
-        <ion-button style="width: 100%;" @click="navigateToHome" class="custom-button">Go to Home</ion-button>
       </div>
     </ion-content>
   </ion-page>
@@ -41,34 +40,28 @@
 import { useAppToast } from '~/composables/useAppToast';
 const password = ref('');
 const confirmPassword = ref('');
-const success = ref(false);
+const success = ref(false); // Track whether password reset was successful
 const router = useRouter();
+const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
-const supabase = useSupabaseClient();
-
-definePageMeta({
-  middleware: 'authenticated',
-});
-
-const updatePassword = async () => {
+const resetPassword = async () => {
+  const token = route.query.token; // Get token from the URL query params
   if (password.value !== confirmPassword.value) {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
     return;
   }
-
-  try {
-    const { data, error } = await supabase.auth.updateUser({ password: password.value });
-    if (error) throw error;
-
-    toastSuccess({ title: 'Success', description: 'Password updated successfully!' });
-    success.value = true; // Show success message
-  } catch (error) {
-    toastError({ title: 'Error', description: 'Failed to update password. Please try again.' });
+  const supabase = useSupabaseClient();
+  // Reset password using the token from the email link
+  const { error } = await supabase.auth.updateUser({
+    password: password.value,
+    access_token: token, // Use the token to authenticate the user
+  });
+  if (error) {
+    toastError({ title: 'Error', description: 'Failed to reset password.' });
+  } else {
+    toastSuccess({ title: 'Success', description: 'Password reset successfully!' });
+    success.value = true; // Display success message
   }
-};
-
-const navigateToHome = () => {
-  router.push('/');
 };
 </script>
 

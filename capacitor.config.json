@@ -1,11 +1,5 @@
 {
   "appId": "com.forgeunique.app",
   "appName": "ForgeUnique",
-  "webDir": "dist",
-  "bundledWebRuntime": false,
-  "server": {
-    "hostname": "localhost",
-    "iosScheme": "capacitor",
-    "androidScheme": "capacitor"
-  }
+  "webDir": "dist"
 }

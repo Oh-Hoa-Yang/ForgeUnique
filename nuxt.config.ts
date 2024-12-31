@@ -11,7 +11,7 @@ export default defineNuxtConfig({
     serviceKey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90cWNvZHp4Z2p0ZnN3eHZpcXR4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyMDgzNjgzMSwiZXhwIjoyMDM2NDEyODMxfQ.ie8JNpPBpD1hcTYx69QwKKp9oBqsrMPEBJwstH-PCrg",
     redirectOptions: {
       login: '/login',
-      callback: '/verify',
+      callback: '/confirm',
       include: undefined,
       exclude: ["/register", "/forgot_password","/reset-password","/finishregistered"], 
       cookieRedirect: false
