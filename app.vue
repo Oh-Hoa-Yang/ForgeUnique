@@ -12,30 +12,6 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 
-App.addListener('appUrlOpen', async ({ url }) => {
-  try {
-    const parsedUrl = new URL(url);
-    const token = parsedUrl.searchParams.get('token');
-    const type = parsedUrl.searchParams.get('type');
-
-    if (token && type) {
-      const { error } = await supabase.auth.verifyOtp({
-        token,
-        type, // e.g., 'recovery'
-      });
-
-      if (error) {
-        console.error('Error verifying OTP:', error);
-        alert('Failed to verify the token. Please try again.');
-      } else {
-        console.log('Token verified successfully');
-        router.push('/reset-password'); // Navigate to reset password page
-      }
-    }
-  } catch (err) {
-    console.error('Error handling app URL:', err);
-  }
-});
 
 
 // App.addListener('appUrlOpen', (event) => {

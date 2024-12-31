@@ -23,15 +23,15 @@ import { useAppToast } from '~/composables/useAppToast';
 const email = ref('');
 const { toastError, toastSuccess } = useAppToast();
 const router = useRouter();
-const supabase = useSupabaseClient();
-const sendResetLink = async (email) => {
+const sendResetLink = async () => {
+  const supabase = useSupabaseClient();
   if (!email.value) {
     toastError({ title: 'Error', description: 'Email is required.' });
     return;
   }
   // Supabase's built-in API for sending password reset emails
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'forgeunique:/localhost/reset-password',  // Your reset password page /
+  const { error } = await supabase.auth.resetPasswordForEmail(email.value, {
+    redirectTo: 'https://forgeunique.vercel.app/reset-password'  // Your reset password page /
   });
   if (error) {
     toastError({ title: 'Error', description: 'Failed to send reset link. ' + error.message });
