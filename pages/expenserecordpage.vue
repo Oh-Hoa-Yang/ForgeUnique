@@ -119,15 +119,23 @@ const categories = ref([
 
 
 // States
+const defaultRecords = ref([]); // Current month's records
+
 const records = ref([]);
 const searchQuery = ref('');
 const dropdownState = ref({});
 const monthlyExpense = computed(() => appState.monthlyExpense || 0);
 const loading = ref(false);
 
+const adjustToUTC = (date) => {
+  const utcDate = new Date(date);
+  utcDate.setMinutes(utcDate.getMinutes() - utcDate.getTimezoneOffset());
+  return utcDate;
+};
+
 // Fetch records from Supabase
 const fetchRecords = async () => {
-  const currentMonthStart = new Date();
+  const currentMonthStart = adjustToUTC(new Date());
   currentMonthStart.setDate(1);
   currentMonthStart.setHours(0, 0, 0, 0); //Start of the month
 
@@ -135,6 +143,9 @@ const fetchRecords = async () => {
   currentMonthEnd.setMonth(currentMonthEnd.getMonth() + 1); //Move to next month
   currentMonthEnd.setDate(0); //Last day of the current month
   currentMonthEnd.setHours(23, 59, 59, 999); //End of the month
+
+  console.log('Start Date (UTC):', currentMonthStart.toISOString());
+  console.log('End Date (UTC):', currentMonthEnd.toISOString());
 
   loading.value = true;
 
@@ -148,6 +159,7 @@ const fetchRecords = async () => {
     if (error) {
       console.error('Error fetching records:', error.message);
     }
+    defaultRecords.value =  data;
     records.value = data;
   } catch (error) {
     console.error('Error fetching records:', error);
@@ -162,17 +174,39 @@ const handleRefresh = async () => {
   await fetchRecords();  // Fetch new records
 };
 
+const fetchAllRecords = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('Expenses')
+      .select('*')
+      .eq('user_id', user.value.id); // Fetch all records for the user
+
+    if (error) {
+      console.error('Error fetching records:', error.message);
+    } else {
+      records.value = data.filter((record) =>
+        record.expenseDescription.toLowerCase().includes(searchQuery.value.toLowerCase())
+      );
+    }
+  } catch (error) {
+    console.error('Error fetching records:', error);
+  }
+};
+
+watch(searchQuery, async (newQuery) => {
+  if (newQuery.trim()) {
+    await fetchAllRecords(); // Fetch all records and filter based on search query
+  } else {
+    records.value = defaultRecords.value; // Reset to current month's records
+  }
+});
 
 
 
 // Filtered categories based on records and search query
 const categoriesWithRecords = computed(() => {
   // Filter records based on the search query
-  const filteredRecords = searchQuery.value
-    ? records.value.filter((record) =>
-      record.expenseDescription.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-    : records.value;
+  const filteredRecords = records.value
 
   // Group records by category
   return categories.value.map((category) => {
@@ -202,7 +236,16 @@ const goToEditExpense = (record) => {
 };
 
 // Format date
-const formatDate = (date) => new Date(date).toLocaleDateString();
+// const formatDate = (date) => new Date(date).toLocaleDateString();
+const formatDate = (date) => {
+  try {
+    return new Date(date).toLocaleDateString();
+  } catch (error) {
+    console.error('Error formatting date:', date, error);
+    return date; // Return original value if parsing fails
+  }
+};
+
 const formatAmount = (amount) => amount.toFixed(2);
 
 onMounted(fetchRecords);
