@@ -16,6 +16,7 @@
     "@capacitor/haptics": "6.0.0",
     "@capacitor/ios": "6.1.0",
     "@capacitor/keyboard": "6.0.1",
+    "@capacitor/splash-screen": "^6.0.3",
     "@capacitor/status-bar": "6.0.0",
     "@iconify/vue": "^4.1.2",
     "@nuxt/icon": "^1.5.6",

@@ -7,12 +7,15 @@
 </template>
 
 <script setup>
+import { SplashScreen } from '@capacitor/splash-screen';
 // import { App } from '@capacitor/app';
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 
-
+setTimeout(() => {
+  SplashScreen.hide();
+}, 3000);
 
 // App.addListener('appUrlOpen', (event) => {
 //   try {

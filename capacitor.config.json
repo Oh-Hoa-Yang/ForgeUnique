@@ -1,13 +1,19 @@
 {
-  "appId": "com.forgeunique.app",
-  "appName": "ForgeUnique",
-  "webDir": "dist",
-  "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 8000, 
-      "autoHide": true,
-      "backgroundColor": "#FFEDF5", 
-      "showSpinner": false 
-    }
-  }
+	"appId": "com.forgeunique.app",
+	"appName": "ForgeUnique",
+	"webDir": "dist",
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 8000,
+			"autoHide": false,
+			"backgroundColor": "#FFEDF5"
+		}
+	},
+	"packageClassList": [
+		"AppPlugin",
+		"HapticsPlugin",
+		"KeyboardPlugin",
+		"StatusBarPlugin",
+		"VoiceRecorder"
+	]
 }
