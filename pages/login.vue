@@ -16,9 +16,9 @@
           </ion-input>
         </ion-item>
         <div style="margin-right: 2%;">
-          <a style="text-align:end; color: #FD8395;" href="/forgotpassword_notice">
+          <router-link style="text-align:end; color: #FD8395;" to="/forgotpassword_notice">
             <p style="font-style:italic; padding-right:20px;">FORGOT PASSWORD?</p>
-          </a>
+          </router-link>
         </div>
         <ion-button style="width: 100%;" type="submit" class="custom-button">Login</ion-button>
       </form>

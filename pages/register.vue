@@ -44,9 +44,9 @@
           </ion-item>
 
           <div style="margin-right: 2%;">
-            <a style="text-align:end; color: #FD8395;" href="/login">
+            <router-link style="text-align:end; color: #FD8395;" to="/login">
               <p style="font-style:italic">Registered? Click here to Login!</p>
-            </a>
+            </router-link>
           </div>
           <ion-button style="width: 100%;" type="submit" class="custom-button">Register</ion-button>
         </form>

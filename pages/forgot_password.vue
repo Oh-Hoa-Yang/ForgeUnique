@@ -11,9 +11,9 @@
         </ion-item>
         <ion-button style="width: 100%;" type="submit" class="custom-button">Send Reset Link</ion-button>
       </form>
-        <a style="text-align:center; color:#FD8395;" href="/login">
+        <router-link style="text-align:center; color:#FD8395;" to="/login">
           <p>Sign in or Sign up</p>
-        </a>
+        </router-link>
     </ion-content>
   </ion-page>
 </template>
