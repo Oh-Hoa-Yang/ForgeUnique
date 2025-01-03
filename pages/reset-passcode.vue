@@ -21,7 +21,7 @@
         </ion-item>
         <ion-button style="width: 100%;" type="submit" class="custom-button">Reset Passcode</ion-button>
       </form>
-      <a style="text-align:center; color:#FD8395;" href="/">
+      <a style="text-align:center; color:#FD8395;" router-link="/">
         <p>Return</p>
       </a>
     </ion-content>
@@ -34,6 +34,11 @@ const newPasscode = ref('');
 const confirmPasscode = ref('');
 const { toastError, toastSuccess } = useAppToast();
 const passcodeError = ref(null);
+
+definePageMeta({
+  middleware: 'auth'
+})
+
 const validatePasscode = (passcode) => {
   return /^\d{6}$/.test(passcode);  // Ensure exactly 6 digits
 };

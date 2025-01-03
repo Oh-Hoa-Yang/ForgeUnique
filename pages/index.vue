@@ -9,7 +9,7 @@
             v-model="passcode[index]" maxlength="1" type="password"></ion-input>
         </div>
         <div style="margin-right: 2%;">
-          <a style="text-align:end; color: #FD8395;" href="/forgot_passcode">
+          <a style="text-align:end; color: #FD8395;" router-link="/forgot_passcode">
             <p style="font-style:italic; padding-right:20px;">FORGOT PASSCODE?</p>
           </a>
         </div>
@@ -44,6 +44,10 @@
 import { ref, nextTick, onMounted } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';
+
+definePageMeta({
+  middleware: 'auth'
+})
 
 const router = useRouter(); 
 
