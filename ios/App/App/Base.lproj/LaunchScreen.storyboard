@@ -13,13 +13,13 @@
             <objects>
                 <viewController id="01J-lp-oVM" sceneMemberID="viewController">
                     <imageView key="view" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Splash" id="snD-IY-ifK">
-                        <!-- <rect key="frame" x="0.0" y="0.0" width="375" height="667"/> -->
-                        <constraints>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <!-- <constraints>
                             <constraint firstItem="snD-IY-ifK" firstAttribute="leading" secondItem="01J-lp-oVM" secondAttribute="leading" id="leadingConstraint"/>
                             <constraint firstItem="snD-IY-ifK" firstAttribute="trailing" secondItem="01J-lp-oVM" secondAttribute="trailing" id="trailingConstraint"/>
                             <constraint firstItem="snD-IY-ifK" firstAttribute="top" secondItem="01J-lp-oVM" secondAttribute="top" id="topConstraint"/>
                             <constraint firstItem="snD-IY-ifK" firstAttribute="bottom" secondItem="01J-lp-oVM" secondAttribute="bottom" id="bottomConstraint"/>
-                        </constraints>
+                        </constraints> -->
 
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
