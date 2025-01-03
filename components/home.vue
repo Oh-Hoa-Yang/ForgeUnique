@@ -93,7 +93,7 @@
             </div>
             <ul>
               <li v-for="sketch in paginatedSketchbooks" :key="sketch.id"
-                :class="{ active: selectedSketch === sketch.id }">
+                :class="{ active: selectedSketch === sketch.id }" style="border-bottom: 3px solid #f0f0f0;">
                 <span @click="selectSketchbook(sketch)">
                   {{ sketch.title }}
                 </span>
