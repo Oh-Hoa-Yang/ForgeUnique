@@ -13,9 +13,9 @@
         </ion-item>
         <ion-button style="width: 100%;" type="submit" class="custom-button">Verify</ion-button>
       </form>
-      <a style="text-align:center; color:#FD8395;" router-link="/">
+      <router-link style="text-align:center; color:#FD8395;" to="/">
         <p>Return</p>
-      </a>
+      </router-link>
     </ion-content>
   </ion-page>
 </template>

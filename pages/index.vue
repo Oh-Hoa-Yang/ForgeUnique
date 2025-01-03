@@ -9,9 +9,9 @@
             v-model="passcode[index]" maxlength="1" type="password"></ion-input>
         </div>
         <div style="margin-right: 2%;">
-          <a style="text-align:end; color: #FD8395;" router-link="/forgot_passcode">
+          <router-link style="text-align:end; color: #FD8395;" to="/forgot_passcode">
             <p style="font-style:italic; padding-right:20px;">FORGOT PASSCODE?</p>
-          </a>
+          </router-link>
         </div>
         <div class="keypad-wrapper">
           <div class="keypad-row">
