@@ -1,14 +1,18 @@
 {
-  "images" : [
-    {
-      "filename" : "ForgeUnique (1).png",
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x982"
-    }
+  "images": [
+    { "size": "20x20", "idiom": "iphone", "scale": "2x", "filename": "40.png" },
+    { "size": "20x20", "idiom": "iphone", "scale": "3x", "filename": "60.png" },
+    { "size": "29x29", "idiom": "iphone", "scale": "2x", "filename": "58.png" },
+    { "size": "29x29", "idiom": "iphone", "scale": "3x", "filename": "87.png" },
+    { "size": "40x40", "idiom": "iphone", "scale": "2x", "filename": "80.png" },
+    { "size": "40x40", "idiom": "iphone", "scale": "3x", "filename": "120.png" },
+    { "size": "60x60", "idiom": "iphone", "scale": "2x", "filename": "120.png" },
+    { "size": "60x60", "idiom": "iphone", "scale": "3x", "filename": "180.png" },
+    { "size": "83.5x83.5", "idiom": "ipad", "scale": "2x", "filename": "167.png" },
+    { "size": "1024x1024", "idiom": "ios-marketing", "scale": "1x", "filename": "1024.png" }
   ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
+  "info": {
+    "version": 1,
+    "author": "xcode"
   }
 }
