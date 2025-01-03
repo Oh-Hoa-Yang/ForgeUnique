@@ -42,6 +42,10 @@
           <ion-icon :icon="recordingIcon" class="menu-icon" /> 
           Quick Record
         </button>
+        <button @click="navigateToPage('/expensehomepage')">
+          <ion-icon :icon="walletIcon" class="menu-icon" /> 
+          Manage Expense
+        </button>
         <button @click="navigateToPage('/forgot_passcode')">
           <ion-icon :icon="keypadIcon" class="menu-icon" /> 
           Reset Passcode
@@ -58,7 +62,7 @@
 <script setup>
 import { IonIcon } from '@ionic/vue';
 import { menuOutline as menuIcon } from 'ionicons/icons';
-import { homeOutline as homeIcon, calendarOutline as calendarIcon, recordingOutline as recordingIcon, keypadOutline as keypadIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
+import { homeOutline as homeIcon, calendarOutline as calendarIcon, walletOutline as walletIcon, recordingOutline as recordingIcon, keypadOutline as keypadIcon, logOutOutline as logoutIcon } from 'ionicons/icons';
 import { useAppToast } from '~/composables/useAppToast';
 
 const router = useRouter();
