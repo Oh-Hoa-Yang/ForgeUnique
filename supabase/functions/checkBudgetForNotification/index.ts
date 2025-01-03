@@ -110,7 +110,7 @@ async function checkBudgetForNotification() {
       if (monthlyExpense >= user.budget * 0.8) {
         const emailBody = `
           <p>Dear User,</p>
-          <p>You have spent <strong>${monthlyExpense} MYR</strong> this month, which is 80% of your budget (<strong>${user.budget} MYR</strong>).</p>
+          <p>You have spent <strong>${monthlyExpense} MYR</strong> this month, which is 80% or more than of your budget (<strong>${user.budget} MYR</strong>).</p>
           <p>Please review your expenses to ensure you stay within your budget.</p>
           <p>Best regards,<br>Your Expense Tracker</p>
         `;
