@@ -252,7 +252,7 @@ const addExpense = async () => {
     //Success feedback 
     toastSuccess({ title: 'Success', description: 'Expense added successfully!' });
 
-    // Update local appState
+    // Update local `appState`
     const addedAmount = parseFloat(expenseAmount.value);
     const todayDate = new Date().toISOString().split('T')[0];
 
