@@ -122,6 +122,7 @@ import Footer from '~/components/footer.vue';
 import { useRoute } from 'vue-router';
 import { useAppToast } from '~/composables/useAppToast';
 import 'v-calendar/style.css';
+import { DateTime } from 'luxon';
 
 definePageMeta({
   middleware: 'auth'

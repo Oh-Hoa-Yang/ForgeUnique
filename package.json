@@ -27,6 +27,7 @@
     "@selemondev/vue3-signature-pad": "^1.1.0",
     "capacitor-voice-recorder": "^6.0.3",
     "crypto-js": "^4.2.0",
+    "luxon": "^3.5.0",
     "nuxt": "^3.13.2",
     "pull-refresh-vue3": "^0.3.1",
     "v-calendar": "^3.1.2",
