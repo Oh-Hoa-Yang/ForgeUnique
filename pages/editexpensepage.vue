@@ -149,26 +149,30 @@ const expenseDescription = ref('');
 const recurringSchedule = ref('Once');
 
 watch(() => route.query.id, (newId) => {
-    expenseId.value = newId;
-    fetchExpense(); // Refetch the expense whenever the ID changes
+  expenseId.value = newId;
+  fetchExpense(); // Refetch the expense whenever the ID changes
 }, { immediate: true });
 
 // Fetch existing expense
 async function fetchExpense() {
   if (!expenseId.value) return;
   const { data, error } = await supabase
-  .from('Expenses')
-  .select('*')
-  .eq('id', expenseId.value)
-  .single();
-  
+    .from('Expenses')
+    .select('*')
+    .eq('id', expenseId.value)
+    .single();
+
   if (error) {
     console.error('Error fetching expense:', error);
     return;
   }
 
   selectedCategory.value = data.category;
-  date.value = new Date(data.expenseDate);
+
+  // Adjust the fetched date to Malaysia timezone
+  const fetchedDate = new Date(data.expenseDate);
+  date.value = new Date(fetchedDate.getTime() - fetchedDate.getTimezoneOffset() * 60000);
+
   formattedDate.value = formatDate(date.value);
   expenseAmount.value = data.expenseAmount.toString();
   expenseDescription.value = data.expenseDescription;
@@ -177,9 +181,9 @@ async function fetchExpense() {
 
 // onMounted(fetchExpense);
 onMounted(() => {
-    if (expenseId.value) {
-        fetchExpense();
-    }
+  if (expenseId.value) {
+    fetchExpense();
+  }
 });
 
 
@@ -280,16 +284,26 @@ const updateExpense = async () => {
   }
 
   try {
+    // Convert selected date to the local timezone (Malaysia: Asia/Kuala_Lumpur)
+    const expenseDate = new Date(date.value.getTime() - date.value.getTimezoneOffset() * 60000)
+      .toISOString()
+      .split('T')[0]; // Get YYYY-MM-DD format without timezone adjustment
+
+
+    // Debugging: Log the selected and formatted date
+    console.log('Selected Date (raw):', date.value);
+    console.log('Expense Date (formatted):', expenseDate);
+
     const { error } = await supabase
       .from('Expenses')
       .update([
         {
-          expenseDate: date.value.toISOString().split('T')[0],
+          expenseDate: expenseDate,
           category: selectedCategory.value,
           expenseAmount: parseFloat(expenseAmount.value),
           expenseDescription: expenseDescription.value,
           recurringSchedule: recurringSchedule.value,
-          lastRecurringDate: date.value.toISOString().split('T')[0],
+          lastRecurringDate: expenseDate,
         }
       ])
       .eq('id', expenseId.value)
@@ -316,7 +330,7 @@ const updateExpense = async () => {
 
     router.push({ path: '/expensehomepage', query: { refresh: true } });
   } catch (err) {
-    console.error('Error update expense:', err.message); 
+    console.error('Error update expense:', err.message);
     toastError({ title: 'Error', description: 'Failed to update expense. Please try again.' });
   }
 };
