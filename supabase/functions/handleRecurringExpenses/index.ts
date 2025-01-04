@@ -22,58 +22,86 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function handleRecurringExpenses() {
-  const today = DateTime.now().toISODate(); // Get today's date in ISO format (YYYY-MM-DD)
+  const today = DateTime.now().startOf("day"); // Today's date (e.g., 2025-01-08)
 
-  // Step 1: Fetch all recurring expenses
+  // Step 1: Fetch all recurring expenses (not "Once")
   const { data: expenses, error } = await supabase
-    .from('Expenses')
-    .select('*')
-    .not('recurringSchedule', 'eq', 'Once') // Skip non-recurring expenses
-    .not('lastRecurringDate', 'is', null); // Ensure we have a valid lastRecurringDate
+    .from("Expenses")
+    .select("*")
+    .neq("recurringSchedule", "Once") // Only recurring records
+    .not("lastRecurringDate", "is", null); // Ensure a valid lastRecurringDate
 
   if (error) {
-    console.error('Error fetching expenses:', error);
+    console.error("Error fetching recurring expenses:", error);
     return;
   }
 
-  console.log('Fetched recurring expenses:', expenses);
+  console.log("Fetched recurring expenses:", expenses);
 
-  // Step 2: Process each recurring expense
+  if (!expenses || expenses.length === 0) {
+    console.log("No recurring expenses to process.");
+    return;
+  }
+
+  // Step 2: Process each fetched expense
   for (const expense of expenses) {
-    const { id, expenseDate, category, expenseAmount, expenseDescription, recurringSchedule, lastRecurringDate } = expense;
+    const {
+      id,
+      user_id,
+      expenseAmount,
+      expenseDescription,
+      category,
+      recurringSchedule,
+      lastRecurringDate,
+    } = expense;
 
     try {
-      const lastDate = DateTime.fromISO(lastRecurringDate);
-      const nextDate = calculateNextRecurringDate(lastDate, recurringSchedule);
+      const lastDate = DateTime.fromISO(lastRecurringDate, { zone: "Asia/Kuala_Lumpur" }); // Convert lastRecurringDate to DateTime
+      const nextDate = calculateNextRecurringDate(lastDate, recurringSchedule); // Calculate next recurring date
 
-      if (nextDate && nextDate.toISODate() === today) {
-        console.log(`Adding recurring expense for ID ${id} (Next date: ${nextDate.toISODate()})`);
+      if (!nextDate) {
+        console.error(`Unknown recurring schedule "${recurringSchedule}" for expense ID ${id}`);
+        continue;
+      }
 
-        // Step 3: Add the new expense
+      // Check if the next recurring date is today
+      if (nextDate.toISODate() === today.toISODate()) {
+        console.log(`Processing recurring expense for ID ${id}. Next date: ${nextDate.toISODate()}`);
+
+        // Step 3: Add a new record
         const { error: insertError } = await supabase
-          .from('Expenses')
+          .from("Expenses")
           .insert([
             {
-              expenseDate: today,
-              category,
+              user_id,
               expenseAmount,
               expenseDescription,
-              recurringSchedule,
-              lastRecurringDate: today, // Set new lastRecurringDate to today
+              category,
+              expenseDate: today.toISODate(), // Today's date
+              recurringSchedule: "Once", // Mark as one-time expense
+              lastRecurringDate: today.toISODate(), // Set lastRecurringDate to today
             },
           ]);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error(`Failed to insert new expense for user ${user_id}:`, insertError);
+          continue;
+        }
 
-        // Step 4: Update the lastRecurringDate
+        console.log(`Inserted new expense for user ${user_id} with ID ${id}`);
+
+        // Step 4: Update the original record's lastRecurringDate to today
         const { error: updateError } = await supabase
-          .from('Expenses')
-          .update({ lastRecurringDate: today })
-          .eq('id', id);
+          .from("Expenses")
+          .update({ lastRecurringDate: today.toISODate() }) // Update to today's date
+          .eq("id", id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error(`Failed to update lastRecurringDate for expense ID ${id}:`, updateError);
+          continue;
+        }
 
-        console.log(`Successfully added and updated recurring expense for ID ${id}`);
+        console.log(`Updated lastRecurringDate for expense ID ${id} to ${today.toISODate()}`);
       }
     } catch (err) {
       console.error(`Error processing expense ID ${id}:`, err);
@@ -84,23 +112,23 @@ async function handleRecurringExpenses() {
 // Helper function to calculate the next recurring date based on the schedule
 function calculateNextRecurringDate(lastDate: DateTime, schedule: string): DateTime | null {
   switch (schedule) {
-    case 'Weekly':
+    case "Weekly":
       return lastDate.plus({ weeks: 1 });
-    case 'Every 2 Weeks':
+    case "Every 2 Weeks":
       return lastDate.plus({ weeks: 2 });
-    case 'Every 4 Weeks':
+    case "Every 4 Weeks":
       return lastDate.plus({ weeks: 4 });
-    case 'Every Month':
+    case "Every Month":
       return lastDate.plus({ months: 1 });
-    case 'Last Day of Month':
-      return lastDate.endOf('month');
-    case 'Every 2 Months':
+    case "Last Day of Month":
+      return lastDate.plus({ months: 1 }).endOf("month");
+    case "Every 2 Months":
       return lastDate.plus({ months: 2 });
-    case 'Every 4 Months':
+    case "Every 4 Months":
       return lastDate.plus({ months: 4 });
-    case 'Every 6 Months':
+    case "Every 6 Months":
       return lastDate.plus({ months: 6 });
-    case 'Every Year':
+    case "Every Year":
       return lastDate.plus({ years: 1 });
     default:
       return null; // Unknown schedule

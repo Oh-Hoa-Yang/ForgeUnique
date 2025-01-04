@@ -233,17 +233,23 @@ const addExpense = async () => {
   }
 
   try {
+    // Get the current date in Malaysia's timezone
+    const expenseDate = DateTime.fromJSDate(date.value)
+      .setZone('Asia/Kuala_Lumpur') // Set Malaysia timezone
+      .toISODate(); // Format as YYYY-MM-DD
+
+
     const { error } = await supabase
       .from('Expenses')
       .insert([
         {
-          expenseDate: date.value.toISOString().split('T')[0],
+          expenseDate: expenseDate,
           category: selectedCategory.value,
           expenseAmount: parseFloat(expenseAmount.value),
           expenseDescription: expenseDescription.value,
           recurringSchedule: recurringSchedule.value,
           user_id: user.value.id,
-          lastRecurringDate: date.value.toISOString().split('T')[0],
+          lastRecurringDate: expenseDate,
         }
       ]);
 
@@ -254,14 +260,14 @@ const addExpense = async () => {
 
     // Update local `appState`
     const addedAmount = parseFloat(expenseAmount.value);
-    const todayDate = new Date().toISOString().split('T')[0];
+    const todayDate = DateTime.now().setZone('Asia/Kuala_Lumpur').toISODate();
 
-    if (date.value.toISOString().split('T')[0] === todayDate) {
+    if (expenseDate === todayDate) {
       appState.todayExpense += addedAmount; // Add to today's expenses
     }
 
-    const currentMonth = new Date().getMonth() + 1;
-    const expenseMonth = new Date(date.value).getMonth() + 1;
+    const currentMonth = DateTime.now().setZone('Asia/Kuala_Lumpur').month;
+    const expenseMonth = DateTime.fromISO(expenseDate).month;
 
     if (currentMonth === expenseMonth) {
       appState.monthlyExpense += addedAmount; // Add to monthly expenses
