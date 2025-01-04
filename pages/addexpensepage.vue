@@ -122,18 +122,23 @@ import Footer from '~/components/footer.vue';
 import { useRoute } from 'vue-router';
 import { useAppToast } from '~/composables/useAppToast';
 import 'v-calendar/style.css';
+
 definePageMeta({
   middleware: 'auth'
 })
+
 const appState = inject('appState')
+
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 const route = useRoute();
+
 //General
 // Extract the category name passed via query parameter
 const selectedCategory = ref(route.query.category || 'Expense');
+
 // Watch for changes in the route's query parameter
 watch(
   () => route.query.category,
@@ -143,35 +148,44 @@ watch(
     }
   }
 );
+
 // Date Management
 const date = ref(new Date()); // Holds the selected date
 console.log('Current date:', date);
 const showModal = ref(false);
 const formattedDate = ref(formatDate(new Date())); // Readable date display
+
 // Format date function: e.g., "Wednesday, 18 December"
 function formatDate(date) {
   const options = { weekday: 'long', day: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-US', options);
 }
+
 // Handle date selection inside VDatePicker
 const onDateChange = (newDate) => {
   date.value = newDate;
 };
+
 // Confirm button: set the formattedDate and close modal
 const confirmDate = () => {
   formattedDate.value = formatDate(new Date(date.value));
   showModal.value = false;
 };
+
 // Close modal without changes
 const closeModal = () => { showModal.value = false };
+
 //Recurring Schedule
 const showRecurringModal = ref(false);
 const recurringSchedule = ref('Once'); //By default = Once
+
 const confirmRecurringSchedule = () => {
   console.log('Selected recurring schedule:', recurringSchedule.value);
   showRecurringModal.value = false;
 };
+
 const closeRecurringModal = () => { showRecurringModal.value = false };
+
 // Navigation Methods
 const navBackExpenseHome = () => {
   date.value = new Date();
@@ -181,23 +195,30 @@ const navBackExpenseHome = () => {
   recurringSchedule.value = 'Once';
   router.push('/expensehomepage');
 }
+
+
 //INPUT PART - AMOUNT
 // Variable to store the input amount
 const expenseAmount = ref('');
 const expenseDescription = ref('');
+
 //Keypad functions
 const inputDigit = (digit) => {
   if (digit === '.' && expenseAmount.value.includes('.')) return; //To prevent multi '.'
+
   //Make restriction to '.',limit 2 digit after it
   if (expenseAmount.value.includes('.')) {
     const [integerPart, decimalPart] = expenseAmount.value.split('.');
     if (decimalPart.length >= 2) return; // Prevent more than 2 digits after '.'
   };
+
   expenseAmount.value += digit;
 };
+
 const deleteLastDigit = () => {
   expenseAmount.value = expenseAmount.value.slice(0, -1);
 }
+
 //Function to ADD expense
 const addExpense = async () => {
   //Validation
@@ -205,46 +226,47 @@ const addExpense = async () => {
     toastError({ title: 'Error', description: 'Please enter a valid amount.' })
     return;
   }
+
   if (!expenseDescription.value) {
     toastError({ title: 'Error', description: 'Please add a note.' })
     return;
   }
-  try {
-    // Convert the selected date to Malaysia's timezone and format it as YYYY-MM-DD
-    const expenseDate = DateTime.fromJSDate(date.value)
-      .setZone('Asia/Kuala_Lumpur') // Set the timezone to Malaysia
-      .toISODate(); // Format as YYYY-MM-DD
 
+  try {
     const { error } = await supabase
       .from('Expenses')
       .insert([
         {
-          expenseDate: expenseDate,
+          expenseDate: date.value.toISOString().split('T')[0],
           category: selectedCategory.value,
           expenseAmount: parseFloat(expenseAmount.value),
           expenseDescription: expenseDescription.value,
           recurringSchedule: recurringSchedule.value,
           user_id: user.value.id,
-          lastRecurringDate: expenseDate,
+          lastRecurringDate: date.value.toISOString().split('T')[0],
         }
       ]);
+
     if (error) throw error;
+
     //Success feedback 
     toastSuccess({ title: 'Success', description: 'Expense added successfully!' });
-    // Update local `appState`
-    const addedAmount = parseFloat(expenseAmount.value);
-    const todayDate = DateTime.now().setZone('Asia/Kuala_Lumpur').toISODate();
 
-    if (expenseDate === todayDate) {
+    // Update local appState
+    const addedAmount = parseFloat(expenseAmount.value);
+    const todayDate = new Date().toISOString().split('T')[0];
+
+    if (date.value.toISOString().split('T')[0] === todayDate) {
       appState.todayExpense += addedAmount; // Add to today's expenses
     }
 
-    const currentMonth = DateTime.now().setZone('Asia/Kuala_Lumpur').toISODate();
-    const expenseMonth = DateTime.fromISO(expenseDate).month;
-    
+    const currentMonth = new Date().getMonth() + 1;
+    const expenseMonth = new Date(date.value).getMonth() + 1;
+
     if (currentMonth === expenseMonth) {
       appState.monthlyExpense += addedAmount; // Add to monthly expenses
     }
+
     // Reset fields and navigate back
     date.value = new Date();
     formattedDate.value = formatDate(date.value);
@@ -257,6 +279,7 @@ const addExpense = async () => {
     toastError({ title: 'Error', description: 'Failed to add expense. Please try again.' });
   }
 };
+
 </script>
 
 <style scoped>
@@ -264,11 +287,13 @@ const addExpense = async () => {
   --background: #FFEDF5;
   /* height: 10000000px; */
 }
+
 .top-row-container {
   padding: 20px;
   display: flex;
   justify-content: space-between;
 }
+
 .lets-icons--back {
   display: inline-block;
   width: 30px;
@@ -277,6 +302,7 @@ const addExpense = async () => {
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='m4 10l-.707.707L2.586 10l.707-.707zm17 8a1 1 0 1 1-2 0zM8.293 15.707l-5-5l1.414-1.414l5 5zm-5-6.414l5-5l1.414 1.414l-5 5zM4 9h10v2H4zm17 7v2h-2v-2zm-7-7a7 7 0 0 1 7 7h-2a5 5 0 0 0-5-5z'/%3E%3C/svg%3E");
 }
+
 .mdi--recurring-payment {
   display: inline-block;
   width: 30px;
@@ -285,12 +311,14 @@ const addExpense = async () => {
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M3 6v12h10.32a6.4 6.4 0 0 1-.32-2H7a2 2 0 0 0-2-2v-4c1.11 0 2-.89 2-2h10a2 2 0 0 0 2 2v.06c.67 0 1.34.12 2 .34V6zm9 3c-1.7.03-3 1.3-3 3s1.3 2.94 3 3c.38 0 .77-.08 1.14-.23c.27-1.1.72-2.14 1.83-3.16C14.85 10.28 13.59 8.97 12 9m7 2l2.25 2.25L19 15.5V14c-1.85 0-3.06 1.96-2.24 3.62l-1.09 1.09c-1.76-2.66.14-6.21 3.33-6.21zm0 11l-2.25-2.25L19 17.5V19c1.85 0 3.06-1.96 2.24-3.62l1.09-1.09c1.76 2.66-.14 6.21-3.33 6.21z'/%3E%3C/svg%3E");
 }
+
 .date-picker-container {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 10px;
 }
+
 .date-button {
   display: flex;
   align-items: center;
@@ -302,6 +330,7 @@ const addExpense = async () => {
   border-radius: 8px;
   cursor: pointer;
 }
+
 .calendar-icon {
   display: inline-block;
   width: 20px;
@@ -310,10 +339,12 @@ const addExpense = async () => {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M7 11h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM7 15h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 16H5V10h14zm0-12H5V6h14z'/%3E%3C/svg%3E");
   background-size: cover;
 }
+
 .date-text {
   color: #333;
   font-weight: bold;
 }
+
 /* Modal Styling */
 .modal-overlay {
   position: fixed;
@@ -327,6 +358,7 @@ const addExpense = async () => {
   align-items: center;
   z-index: 999;
 }
+
 .modal-content {
   background-color: white;
   padding: 20px;
@@ -336,11 +368,13 @@ const addExpense = async () => {
   text-align: center;
   color: black;
 }
+
 .modal-buttons {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
 }
+
 /* Amount part */
 .input-row {
   display: flex;
@@ -349,12 +383,14 @@ const addExpense = async () => {
   margin-top: 20px;
   padding: 10px;
 }
+
 .input-desc {
   display: flex;
   align-items: center;
   width: 100%;
   padding: 20px;
 }
+
 /* Label Styling */
 .input-label {
   background-color: #ffe6f0;
@@ -377,6 +413,7 @@ const addExpense = async () => {
   /* Rounded left corners */
   box-sizing: border-box;
 }
+
 /* Input Field Styling */
 .input-field {
   flex: 1;
@@ -395,16 +432,19 @@ const addExpense = async () => {
   background-color: white;
   font-size: 24px;
 }
+
 .input-field[readonly] {
   background-color: #f9f9f9;
   /* Light gray to indicate it's readonly */
   cursor: not-allowed;
 }
+
 /* Focus State for Input */
 .input-field:focus {
   border-color: #ff65bc;
   outline: none;
 }
+
 /* Keypad */
 .keypad-wrapper {
   display: flex;
@@ -412,11 +452,13 @@ const addExpense = async () => {
   align-items: center;
   margin-top: 20px;
 }
+
 .keypad-row {
   display: flex;
   justify-content: center;
   margin: 5px;
 }
+
 .keypad-button {
   width: 70px;
   height: 70px;
@@ -427,9 +469,11 @@ const addExpense = async () => {
   border-radius: 10px;
   cursor: pointer;
 }
+
 button:active {
   background-color: #ccc;
 }
+
 /* PENC ICON */
 .meteor-icons--pencil {
   display: inline-block;
@@ -439,6 +483,7 @@ button:active {
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23ff65bc' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M16 4a1 1 0 0 1 3 3L7 19l-4 1l1-4zm-4 16h9'/%3E%3C/svg%3E");
 }
+
 .add-button {
   width: 300px;
   height: 70px;
@@ -448,11 +493,14 @@ button:active {
   border-radius: 10px;
   cursor: pointer;
 }
+
 .add-container {
   padding: 20px;
   display: flex;
   justify-content: center;
+
 }
+
 .dropdown {
   width: 100%;
   padding: 10px;
@@ -463,6 +511,7 @@ button:active {
   background-color: white;
   color: #333;
 }
+
 ion-button {
   --background: #FFC2D1;
   --background-activated: #ffadb9;
