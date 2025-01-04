@@ -233,17 +233,27 @@ const addExpense = async () => {
   }
 
   try {
+    // Convert selected date to the local timezone (Malaysia: Asia/Kuala_Lumpur)
+    const expenseDate = new Date(date.value.getTime() - date.value.getTimezoneOffset() * 60000)
+      .toISOString()
+      .split('T')[0]; // Get YYYY-MM-DD format without timezone adjustment
+
+    // Debugging: Log the selected and formatted date
+    console.log('Selected Date (raw):', date.value);
+    console.log('Expense Date (formatted):', expenseDate);
+
+
     const { error } = await supabase
       .from('Expenses')
       .insert([
         {
-          expenseDate: date.value.toISOString().split('T')[0],
+          expenseDate: expenseDate,
           category: selectedCategory.value,
           expenseAmount: parseFloat(expenseAmount.value),
           expenseDescription: expenseDescription.value,
           recurringSchedule: recurringSchedule.value,
           user_id: user.value.id,
-          lastRecurringDate: date.value.toISOString().split('T')[0],
+          lastRecurringDate: expenseDate,
         }
       ]);
 
@@ -256,7 +266,7 @@ const addExpense = async () => {
     const addedAmount = parseFloat(expenseAmount.value);
     const todayDate = new Date().toISOString().split('T')[0];
 
-    if (date.value.toISOString().split('T')[0] === todayDate) {
+    if (expenseDate === todayDate) {
       appState.todayExpense += addedAmount; // Add to today's expenses
     }
 
