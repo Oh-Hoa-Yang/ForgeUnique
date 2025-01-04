@@ -22,7 +22,7 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function handleRecurringExpenses() {
-  const today = DateTime.now().startOf("day"); // Today's date (e.g., 2025-01-08)
+  const today = DateTime.now().setZone("Asia/Kuala_Lumpur").startOf("day"); // Today's date (e.g., 2025-01-08)
 
   // Step 1: Fetch all recurring expenses (not "Once")
   const { data: expenses, error } = await supabase
