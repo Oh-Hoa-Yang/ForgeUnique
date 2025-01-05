@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import { SplashScreen } from '@capacitor/splash-screen';
+// import { SplashScreen } from '@capacitor/splash-screen';
 // import { App } from '@capacitor/app';
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();

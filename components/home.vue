@@ -1,161 +1,169 @@
 <template>
-  <ion-content class="custom-background">
-    <div class="container">
-      <!-- Expense and To-Do List Sections (first row) -->
-      <div class="row">
-        <!-- Expense Section (Button Behavior) -->
-        <button class="expense-button" @click="router.push('/expensehomepage')">
-          <div class="expense">
-            <h3 style="text-align: center; font-weight: bold;">Expense</h3>
-            <p><b>Monthly Budget:</b> <br>{{ budget }} MYR</p><br>
-            <p><b>Total Monthly Expenses:</b><br> {{ monthlyExpense }} MYR</p><br>
-            <p><b>Today Expenses:</b> <br>{{ todayExpense }} MYR</p>
-          </div>
-        </button>
+  <PullRefresh v-model="loading" @refresh="handleRefresh"
+    style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
+    loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
+    success-duration="500" animation-duration="300" head-height="50">
 
-        <!-- To-Do List Section -->
-        <div class="todo-list">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="font-weight: bold;">To-Do List</h3>
-            <button @click="openAddTodoModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395;">+</button>
-          </div>
-          <ul>
-            <li v-for="todo in todos.filter(todo => todo.todosStatus === 'incomplete')" :key="todo.id"
-              style="display: flex; justify-content: space-between; align-items: center;">
-              <span :class="{ priority: todo.todosPriority }">{{ todo.todosPriority }}</span>
-              <h4>{{ todo.todosDescription }}</h4>
-              <div>
-                <button @click="editItem(todo)"><span class="line-md--edit-twotone"></span></button>
-                <button @click="confirmDelete(todo.id)"><span class="ic--twotone-delete"></span></button>
-                <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span class="hugeicons--task-done-01"></span></button>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Add/Edit Modal -->
-      <div v-if="showAddEditModal" class="modal-overlay">
-        <div class="modal-content">
-          <h3 style="text-align: center; font-weight: bold;">{{ isEditing ? 'Edit To-Do' : 'Add To-Do' }}</h3>
-          <form @submit.prevent="saveTodo">
-            <ion-label>Description</ion-label>
-            <ion-input v-model="currentTodo.todosDescription" placeholder="Description" required />
-
-            <ion-label>Priority</ion-label>
-            <ion-input v-model.number="currentTodo.todosPriority" placeholder="Priority (e.g., 1, 2, 3)" required
-              type="number" />
-
-            <ion-label>Deadline</ion-label>
-            <ion-input v-model="currentTodo.todosDeadline" type="datetime-local" required />
-
-            <div style="text-align: center; margin-top: 15px;">
-              <ion-button type="submit">Save</ion-button>
-              <ion-button @click="closeTodosModal">Cancel</ion-button>
+    <ion-content class="custom-background">
+      <div class="container">
+        <!-- Expense and To-Do List Sections (first row) -->
+        <div class="row">
+          <!-- Expense Section (Button Behavior) -->
+          <button class="expense-button" @click="router.push('/expensehomepage')">
+            <div class="expense">
+              <h3 style="text-align: center; font-weight: bold;">Expense</h3>
+              <p><b>Monthly Budget:</b> <br>{{ budget }} MYR</p><br>
+              <p><b>Total Monthly Expenses:</b><br> {{ monthlyExpense }} MYR</p><br>
+              <p><b>Today Expenses:</b> <br>{{ todayExpense }} MYR</p>
             </div>
-          </form>
-        </div>
-      </div>
+          </button>
 
-      <!-- Confirmation Modal for Delete/Complete -->
-      <div v-if="showConfirmationModal" class="modal-overlay">
-        <div class="modal-content">
-          <p>Want to make this listing as {{ confirmationAction }}? </p>
-          <div style="text-align: center; margin-top: 15px;">
-            <ion-button @click="confirmAction">Yes</ion-button>
-            <ion-button @click="closeConfirmationModal">No</ion-button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sketching Plan Section -->
-      <div class="sketch-plan">
-        <h3 style="text-align: center; font-weight: bold;">Sketching Plan</h3>
-
-        <!-- Modal for adding new sketchbook -->
-        <div v-if="showModal" class="modal-overlay">
-          <div class="modal-content">
-            <ion-label>Create New Sketchbook</ion-label>
-            <ion-input type="text" v-model="newSketchbookTitle" placeholder="Enter Sketchbook Title" />
-            <div style="text-align: center;">
-              <ion-button @click="createSketchbook">Create</ion-button>
-              <ion-button @click="closeModal">Cancel</ion-button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sketchbook List and Create Button -->
-        <div v-if="!selectedSketch">
-          <div>
+          <!-- To-Do List Section -->
+          <div class="todo-list">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <h4>Available Sketchbooks</h4>
-              <button @click="openModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395">+</button>
+              <h3 style="font-weight: bold;">To-Do List</h3>
+              <button @click="openAddTodoModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395;">+</button>
             </div>
             <ul>
-              <li v-for="sketch in paginatedSketchbooks" :key="sketch.id"
-                :class="{ active: selectedSketch === sketch.id }" style="border-bottom: 3px solid #f0f0f0;">
-                <span @click="selectSketchbook(sketch)">
-                  {{ sketch.title }}
-                </span>
-                <div style="display: flex; justify-content: end; align-items: center;">
-                  <button @click.stop="openEditModal(sketch)"><span class="line-md--edit-twotone"></span></button>
-                  <button @click.stop="deleteSketchbook(sketch.id)"><span class="ic--twotone-delete"></span></button>
+              <li v-for="todo in todos.filter(todo => todo.todosStatus === 'incomplete')" :key="todo.id"
+                style="display: flex; justify-content: space-between; align-items: center;">
+                <span :class="{ priority: todo.todosPriority }">{{ todo.todosPriority }}</span>
+                <h4>{{ todo.todosDescription }}</h4>
+                <div>
+                  <button @click="editItem(todo)"><span class="line-md--edit-twotone"></span></button>
+                  <button @click="confirmDelete(todo.id)"><span class="ic--twotone-delete"></span></button>
+                  <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span
+                      class="hugeicons--task-done-01"></span></button>
                 </div>
               </li>
             </ul>
-            <br>
-            <div style="display: flex; justify-content: space-between;">
-              <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
-                <<<< </button>
-                  <span>Page {{ currentPage }} of {{ totalPages }}</span>
-                  <button @click="nextPage" :disabled="currentPage === totalPages" style="color: #FD8395;">>>></button>
+          </div>
+        </div>
+
+        <!-- Add/Edit Modal -->
+        <div v-if="showAddEditModal" class="modal-overlay">
+          <div class="modal-content">
+            <h3 style="text-align: center; font-weight: bold;">{{ isEditing ? 'Edit To-Do' : 'Add To-Do' }}</h3>
+            <form @submit.prevent="saveTodo">
+              <ion-label>Description</ion-label>
+              <ion-input v-model="currentTodo.todosDescription" placeholder="Description" required />
+
+              <ion-label>Priority</ion-label>
+              <ion-input v-model.number="currentTodo.todosPriority" placeholder="Priority (e.g., 1, 2, 3)" required
+                type="number" />
+
+              <ion-label>Deadline</ion-label>
+              <ion-input v-model="currentTodo.todosDeadline" type="datetime-local" required />
+
+              <div style="text-align: center; margin-top: 15px;">
+                <ion-button type="submit">Save</ion-button>
+                <ion-button @click="closeTodosModal">Cancel</ion-button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Confirmation Modal for Delete/Complete -->
+        <div v-if="showConfirmationModal" class="modal-overlay">
+          <div class="modal-content">
+            <p>Want to make this listing as {{ confirmationAction }}? </p>
+            <div style="text-align: center; margin-top: 15px;">
+              <ion-button @click="confirmAction">Yes</ion-button>
+              <ion-button @click="closeConfirmationModal">No</ion-button>
             </div>
           </div>
         </div>
 
-        <!-- Sketching Canvas Section  SECOND PART OF SKETCHING PLAN -->
-        <div v-if="selectedSketch">
-          <div style="display: flex; align-items: center;">
-            <button @click="backToSketchbookList">
-              < </button>
-                <h4><b>Sketchbook: {{ selectedSketch?.title }}</b> (Page {{ currentPageNumber }})</h4>
+        <!-- Sketching Plan Section -->
+        <div class="sketch-plan">
+          <h3 style="text-align: center; font-weight: bold;">Sketching Plan</h3>
+
+          <!-- Modal for adding new sketchbook -->
+          <div v-if="showModal" class="modal-overlay">
+            <div class="modal-content">
+              <ion-label>Create New Sketchbook</ion-label>
+              <ion-input type="text" v-model="newSketchbookTitle" placeholder="Enter Sketchbook Title" />
+              <div style="text-align: center;">
+                <ion-button @click="createSketchbook">Create</ion-button>
+                <ion-button @click="closeModal">Cancel</ion-button>
+              </div>
+            </div>
           </div>
 
-          <!-- Tool Selection -->
-          <div class="tool-selection">
-            <button @click="selectTool('black')">⚫️ Black</button>
-            <button @click="selectTool('blue')">🔵 Blue</button>
-            <button @click="selectTool('red')">🔴 Red</button>
-            <button @click="selectTool('eraser')"><span class="solar--eraser-bold-duotone"></span> Eraser</button>
+          <!-- Sketchbook List and Create Button -->
+          <div v-if="!selectedSketch">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h4>Available Sketchbooks</h4>
+                <button @click="openModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395">+</button>
+              </div>
+              <ul>
+                <li v-for="sketch in paginatedSketchbooks" :key="sketch.id"
+                  :class="{ active: selectedSketch === sketch.id }" style="border-bottom: 3px solid #f0f0f0;">
+                  <span @click="selectSketchbook(sketch)">
+                    {{ sketch.title }}
+                  </span>
+                  <div style="display: flex; justify-content: end; align-items: center;">
+                    <button @click.stop="openEditModal(sketch)"><span class="line-md--edit-twotone"></span></button>
+                    <button @click.stop="deleteSketchbook(sketch.id)"><span class="ic--twotone-delete"></span></button>
+                  </div>
+                </li>
+              </ul>
+              <br>
+              <div style="display: flex; justify-content: space-between;">
+                <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
+                  <<<< </button>
+                    <span>Page {{ currentPage }} of {{ totalPages }}</span>
+                    <button @click="nextPage" :disabled="currentPage === totalPages"
+                      style="color: #FD8395;">>>></button>
+              </div>
+            </div>
           </div>
 
-          <div class="canvas-controls">
-            <button @click="prevPage">Previous</button>
-            <button @click="saveCanvas">Save</button>
-            <button @click="nextSketchPage">Next</button>
+          <!-- Sketching Canvas Section  SECOND PART OF SKETCHING PLAN -->
+          <div v-if="selectedSketch">
+            <div style="display: flex; align-items: center;">
+              <button @click="backToSketchbookList">
+                < </button>
+                  <h4><b>Sketchbook: {{ selectedSketch?.title }}</b> (Page {{ currentPageNumber }})</h4>
+            </div>
+
+            <!-- Tool Selection -->
+            <div class="tool-selection">
+              <button @click="selectTool('black')">⚫️ Black</button>
+              <button @click="selectTool('blue')">🔵 Blue</button>
+              <button @click="selectTool('red')">🔴 Red</button>
+              <button @click="selectTool('eraser')"><span class="solar--eraser-bold-duotone"></span> Eraser</button>
+            </div>
+
+            <div class="canvas-controls">
+              <button @click="prevPage">Previous</button>
+              <button @click="saveCanvas">Save</button>
+              <button @click="nextSketchPage">Next</button>
+            </div>
+
+            <!-- Sketch Canvas -->
+            <div class="signature-container">
+              <vue-signature-pad ref="signaturePad" :options="signatureOptions" class="signature-canvas"
+                @end="onSketchEnd" />
+            </div>
           </div>
 
-          <!-- Sketch Canvas -->
-          <div class="signature-container">
-            <vue-signature-pad ref="signaturePad" :options="signatureOptions" class="signature-canvas"
-              @end="onSketchEnd" />
-          </div>
-        </div>
-
-        <!-- Modal for editing a sketchbook title -->
-        <div v-if="showEditModal" class="modal-overlay">
-          <div class="modal-content">
-            <ion-label>Edit Sketchbook Title</ion-label>
-            <ion-input type="text" v-model="editedSketchbookTitle" placeholder="Enter New Title" />
-            <div style="text-align: center;">
-              <ion-button @click="editSketchbookTitle">Save</ion-button>
-              <ion-button @click="closeEditModal">Cancel</ion-button>
+          <!-- Modal for editing a sketchbook title -->
+          <div v-if="showEditModal" class="modal-overlay">
+            <div class="modal-content">
+              <ion-label>Edit Sketchbook Title</ion-label>
+              <ion-input type="text" v-model="editedSketchbookTitle" placeholder="Enter New Title" />
+              <div style="text-align: center;">
+                <ion-button @click="editSketchbookTitle">Save</ion-button>
+                <ion-button @click="closeEditModal">Cancel</ion-button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </ion-content>
+    </ion-content>
+  </PullRefresh>
 </template>
 
 <script setup>
@@ -164,6 +172,20 @@ import { useAuthUser } from '~/composables/useAuthUser';
 import { VueSignaturePad } from '@selemondev/vue3-signature-pad';
 import { _backgroundColor, _maxWidth } from '#tailwind-config/theme';
 import { nextTick } from 'vue';
+import PullRefresh from 'pull-refresh-vue3';
+
+const loading = ref(false);
+const handleRefresh = async () => {
+  try {
+    loading.value = true; // Start loading
+    await fetchExpenses();
+  } catch (error) {
+    console.error('Refresh error:', error);
+    toastError({ title: 'Error', description: 'Failed to refresh data.' });
+  } finally {
+    loading.value = false; // Stop loading
+  }
+};
 
 const { toastError, toastSuccess } = useAppToast();
 const { fetchUser } = useAuthUser();
@@ -180,11 +202,11 @@ const fetchBudget = async () => {
   if (!user.value) return;
 
   try {
-    const {data, error} = await supabase 
-    .from('Users')
-    .select('budget')
-    .eq('user_id', user.value.id)
-    .single()
+    const { data, error } = await supabase
+      .from('Users')
+      .select('budget')
+      .eq('user_id', user.value.id)
+      .single()
 
     if (error) throw error;
 
@@ -197,12 +219,12 @@ const fetchBudget = async () => {
     console.error('Error fetching budget from supabase:', err.message);
     return 0;
   }
-}; 
+};
 
 //Reactive state for budget 
 const budget = computed(() => {
   if (appState.budget === 0) {
-    fetchBudget().then((fetchedBudget) => { 
+    fetchBudget().then((fetchedBudget) => {
       appState.budget = fetchedBudget; // Update appState after manual fetch
     });
   }
@@ -218,6 +240,28 @@ const fetchExpenses = async () => {
     const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
     const todayDate = currentDate.toISOString().split('T')[0];
 
+    // Logging the current local date and time
+    console.log("Current Date (local time):", currentDate.toISOString());
+
+    // Create a new Date object for Malaysia's date at midnight UTC (equivalent to Malaysia's midnight)
+    const malaysiaDateStart = new Date(Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()));
+
+    // Apply Malaysia's UTC+8 hours offset by adding 8 hours to the UTC midnight date
+    malaysiaDateStart.setHours(malaysiaDateStart.getHours() + 8); // UTC +8 = Malaysia Time
+
+    // Log Malaysia date at midnight
+    console.log("Malaysia Midnight Date (UTC+8):", malaysiaDateStart.toISOString());
+
+    // Set the start and end of Malaysia's day
+    const malaysiaDateEnd = new Date(malaysiaDateStart);
+    malaysiaDateEnd.setHours(23, 59, 59, 999); // Set to the end of day (11:59:59.999 PM)
+
+    // Convert the start of Malaysia day to YYYY-MM-DD format
+    const malaysiaDate = malaysiaDateStart.toISOString().split('T')[0]; 
+
+    // Log Malaysia date for comparison
+    console.log("Malaysia Date (for comparison):", malaysiaDate);  // This should show today's date in Malaysia Time (YYYY-MM-DD)
+    
     const { data: expenses, error } = await supabase
       .from('Expenses')
       .select('expenseAmount, expenseDate')
@@ -240,7 +284,10 @@ const fetchExpenses = async () => {
         .reduce((sum, expense) => sum + expense.expenseAmount, 0);
 
       fetchedTodayExpense = expenses
-        .filter((expense) => expense.expenseDate === todayDate)
+        .filter((expense) => {
+          const expenseDate = expense.expenseDate;
+          return expenseDate === malaysiaDate;
+        })
         .reduce((sum, expense) => sum + expense.expenseAmount, 0);
     }
 
@@ -255,23 +302,9 @@ const fetchExpenses = async () => {
 };
 
 // Reactive state for expenses
-const monthlyExpense = computed(() => {
-  if (appState.monthlyExpense === 0) {
-    fetchExpenses().then(({ monthlyExpense }) => {
-      appState.monthlyExpense = monthlyExpense; // Update appState after manual fetch
-    });
-  }
-  return appState.monthlyExpense;
-});
+const monthlyExpense = computed(() => appState.monthlyExpense);
+const todayExpense = computed(() => appState.todayExpense);
 
-const todayExpense = computed(() => {
-  if (appState.todayExpense === 0) {
-    fetchExpenses().then(({ todayExpense }) => {
-      appState.todayExpense = todayExpense; // Update appState after manual fetch
-    });
-  }
-  return appState.todayExpense;
-});
 
 
 
@@ -844,10 +877,10 @@ const todoToDelete = ref(null);
 
 const fetchTodos = async () => {
   const { data, error } = await supabase
-  .from('ToDoLists')
-  .select('*')
-  .order('todosPriority', { ascending: true })
-  .eq('user_id', user.value.id)
+    .from('ToDoLists')
+    .select('*')
+    .order('todosPriority', { ascending: true })
+    .eq('user_id', user.value.id)
   if (!error) {
     todos.value = data;
     console.log('Fetched todos:', todos.value);
@@ -893,11 +926,11 @@ const saveTodo = async () => {
         .from('ToDoLists')
         .update({ ...currentTodo.value, userEmail: userEmail })
         .eq('id', currentTodo.value.id);
-        
+
       if (error) {
         console.error('Error updating todo:', error.message);
-        toastError({title:'Error', description:'Failed to update the todos.'});
-      } 
+        toastError({ title: 'Error', description: 'Failed to update the todos.' });
+      }
     } else {
       //Add new todo
       const { error } = await supabase
@@ -905,7 +938,7 @@ const saveTodo = async () => {
         .insert([{ ...currentTodo.value, userEmail: userEmail, user_id: user.value.id }])
       if (error) {
         console.error('Error adding new todo:', error.message);
-        toastError({title:'Error', description:'Failed to add the todos.'});
+        toastError({ title: 'Error', description: 'Failed to add the todos.' });
       }
     }
     closeTodosModal();
