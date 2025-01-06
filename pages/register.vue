@@ -110,7 +110,7 @@ const handleRegister = async () => {
 
   // Validate password rules
   if (!validatePassword(password.value)) {
-    const errorMessage = 'Password must be at least 8 characters long, and include an uppercase letter, a lowercase letter, a number, and a special character.';
+    const errorMessage = 'Password must be at least 8 characters long, and include an uppercase letter (A-Z), a lowercase letter(a-z), a number(0-9), and a special character (`@`, `$`, `!`, `%`, `*`, `?`, `&`, `.`)';
     passwordError.value = errorMessage;
     toastError({ title: 'Password Error', description: errorMessage });
     return;
