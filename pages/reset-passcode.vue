@@ -21,7 +21,7 @@
         </ion-item>
         <ion-button style="width: 100%;" type="submit" class="custom-button">Reset Passcode</ion-button>
       </form>
-      <router-link style="text-align:center; color:#FD8395;" to="/">
+      <router-link style="text-align:center; color:#FD8395;" to="/forgot_passcode">
         <p>Return</p>
       </router-link>
     </ion-content>
