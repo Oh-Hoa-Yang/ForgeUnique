@@ -45,6 +45,13 @@ const success = ref(false); // Track whether password reset was successful
 const router = useRouter();
 const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
+const passwordError = ref(null);
+
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+    return regex.test(password);
+  };
+
 const resetPassword = async () => {
   const token = route.query.token; // Get token from the URL query params
   if (password.value !== confirmPassword.value) {
@@ -52,17 +59,15 @@ const resetPassword = async () => {
     return;
   }
 
-   // Validate password rules
-   if (!validatePassword(password.value)) {
+
+  passwordError.value = null;
+  
+
+  // Validate password rules
+  if (!validatePassword(password.value)) {
     const errorMessage = 'Password must be at least 8 characters long, and include an uppercase letter (A-Z), a lowercase letter(a-z), a number(0-9), and a special character (`@`, `$`, `!`, `%`, `*`, `?`, `&`, `.`).';
     passwordError.value = errorMessage;
     toastError({ title: 'Password Error', description: errorMessage });
-    return;
-  }
-
-  // Password match check
-  if (password.value !== confirmPassword.value) {
-    toastError({ title: 'Error', description: 'Passwords do not match.' });
     return;
   }
 
@@ -91,9 +96,11 @@ ion-button {
   width: 100%;
   padding: 20px;
 }
+
 .custom-background {
   --background: #FFEDF5;
 }
+
 .custom-button {
   --background: #FFC2D1;
   --background-activated: #ffadb9;
