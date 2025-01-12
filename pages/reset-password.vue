@@ -50,6 +50,20 @@ const resetPassword = async () => {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
     return;
   }
+
+   // Validate password rules
+   if (!validatePassword(password.value)) {
+    const errorMessage = 'Password must be at least 8 characters long, and include an uppercase letter (A-Z), a lowercase letter(a-z), a number(0-9), and a special character (`@`, `$`, `!`, `%`, `*`, `?`, `&`, `.`).';
+    toastError({ title: 'Password Error', description: errorMessage });
+    return;
+  }
+
+  // Password match check
+  if (password.value !== confirmPassword.value) {
+    toastError({ title: 'Error', description: 'Passwords do not match.' });
+    return;
+  }
+  
   const supabase = useSupabaseClient();
   // Reset password using the token from the email link
   const { error } = await supabase.auth.updateUser({
