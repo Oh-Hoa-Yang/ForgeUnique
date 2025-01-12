@@ -5,24 +5,24 @@
       <!-- <VDatePicker class="calendar" v-model="date" /> -->
     </ion-card>
 
-    <!-- Monthly Plan Card  PART  --> 
+    <!-- Yearly Plan Card  PART  --> 
     <ion-card style="padding: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <h5 style="font-weight: bold; text-align: center;">YEARLY PLAN</h5>
         <button @click="openModal" style="font-size:24px; padding: 5px 10px; color: #FD8395;">+</button>
       </div>
 
-      <!-- Year and Month Dropdowns -->
+      <!-- Year Dropdowns -->
       <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
         <select v-model="selectedYear" @change="fetchYearlyPlans" class="year-selector">
           <option v-for="year in yearsList" :key="year" :value="year">{{ year }}</option>
         </select>
       </div>
 
-      <!-- Displaying the Monthly Plan Records -->
+      <!-- Displaying the Yearly Plan Records -->
       <div v-if="yearlyPlanData.length > 0" style="padding: 20px;">
         <ol>
-          <!-- Loop through monthlyPlanData and display each record with a numbered list -->
+          <!-- Loop through yearlyPlanData and display each record with a numbered list -->
           <li v-for="(plan, index) in paginatedPlans" :key="plan.id" style="margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <strong>{{ index + 1 }}. {{ plan.yearlyDescription }}</strong>
@@ -61,7 +61,7 @@
       <!-- Modal for editing existing yearly plan -->
       <div v-if="showEditModal" class="modal-overlay">
         <div class="modal-content">
-          <ion-label>Edit Monthly Plan for {{ selectedYear }}</ion-label>
+          <ion-label>Edit Yearly Plan for {{ selectedYear }}</ion-label>
           <ion-input type="text" v-model="editYearlyPlanDescription" placeholder="Edit yearly plan description" />
           <div style="text-align: center;">
             <ion-button @click="updateYearlyPlan">Update</ion-button>
@@ -150,7 +150,7 @@ const nextPage = () => {
 };
 
 const showModal = ref(false);
-const newYearlyPlanDescription = ref(''); //Holds the new monthky plan desc
+const newYearlyPlanDescription = ref(''); //Holds the new yearly plan desc
 // Open modal to add a new record
 const openModal = () => {
   console.log(`Open modal to add new record for: ${selectedYear.value}`);
@@ -201,7 +201,7 @@ const createYearlyPlan = async () => {
   }
 };
 
-//EDIT Monthly Plan ---- PART ----
+//EDIT Yearly Plan ---- PART ----
 const showEditModal = ref(false);
 const editYearlyPlanDescription = ref('');
 const currentEditPlanId = ref(null);
@@ -238,7 +238,7 @@ const updateYearlyPlan = async () => {
       console.error('Error updating yearly plan:', error);
       toastError({title:'Error', description:'Failed to update the plan'});
     } else {
-      toastSuccess({title:'Success',description:'Monthly plan updated'});
+      toastSuccess({title:'Success',description:'Yearly plan updated'});
       fetchYearlyPlans();
       closeEditModal();
     }
@@ -261,7 +261,7 @@ const deleteYearlyPlan = async (planId) => {
       console.error('Error deleting yearly plan:', error);
       toastError({ title: 'Error', description: 'Failed to delete the plan' });
     } else {
-      toastSuccess({ title: 'Success', description: 'Monthly plan deleted' });
+      toastSuccess({ title: 'Success', description: 'Yearly plan deleted' });
       fetchYearlyPlans(); // Fetch updated plans after deletion
     }
   } catch (err) {
@@ -300,7 +300,7 @@ ion-button {
   /* Ensure card background color is visible */
 }
 
-/* Monthly Plan */
+/* Yearly Plan */
 .year-selector {
   padding: 10px;
   font-size: 16px;
