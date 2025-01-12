@@ -109,4 +109,11 @@ ion-button {
   --background-pressed: #ffadb9;
   --color: black;
 }
+
+/* for error message */
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-left: 10px;
+}
 </style>
