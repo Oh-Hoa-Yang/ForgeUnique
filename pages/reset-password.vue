@@ -12,6 +12,7 @@
               <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
+          <p v-if="passwordError" class="error-message">{{ passwordError }}</p>
           <ion-item>
             <ion-label position="stacked">Confirm Password</ion-label>
             <ion-input v-model="confirmPassword" type="password" name="confirmPassword"
@@ -54,6 +55,7 @@ const resetPassword = async () => {
    // Validate password rules
    if (!validatePassword(password.value)) {
     const errorMessage = 'Password must be at least 8 characters long, and include an uppercase letter (A-Z), a lowercase letter(a-z), a number(0-9), and a special character (`@`, `$`, `!`, `%`, `*`, `?`, `&`, `.`).';
+    passwordError.value = errorMessage;
     toastError({ title: 'Password Error', description: errorMessage });
     return;
   }
@@ -63,7 +65,7 @@ const resetPassword = async () => {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
     return;
   }
-  
+
   const supabase = useSupabaseClient();
   // Reset password using the token from the email link
   const { error } = await supabase.auth.updateUser({
