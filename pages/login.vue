@@ -6,12 +6,12 @@
         <ion-item>
           <ion-label position="stacked">Email</ion-label>
           <ion-input v-model="email" type="email" name="email" placeholder="Please enter your email"
-            style="font-style:italic" required></ion-input>
+            style="font-style:italic" required :disabled="isLoading"></ion-input>
         </ion-item>
         <ion-item>
           <ion-label position="stacked">Password</ion-label>
           <ion-input v-model="password" name="password" type="password" placeholder="Please enter your password"
-            style="font-style:italic" required>
+            style="font-style:italic" required :disabled="isLoading">
             <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
@@ -20,10 +20,13 @@
             <p style="font-style:italic; padding-right:20px;">FORGOT PASSWORD?</p>
           </router-link>
         </div>
-        <ion-button style="width: 100%;" type="submit" class="custom-button">Login</ion-button>
+        <ion-button style="width: 100%;" type="submit" class="custom-button" :disabled="isLoading">
+          <ion-spinner v-if="isLoading" name="crescent"></ion-spinner>
+          <span v-else>Login</span>
+        </ion-button>
       </form>
       <ion-button style="width: 100%; display:flex; justify-content: center; align-items: center;" class="custom-button"
-        router-link="/register">Register</ion-button>
+        router-link="/register" :disabled="isLoading">Register</ion-button>
     </ion-content>
   </ion-page>
 </template>
@@ -32,23 +35,39 @@
 import { useAppToast } from '~/composables/useAppToast'; 
 const email = ref('');
 const password = ref('');
+const isLoading = ref(false);
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient(); 
 const router = useRouter();  
+
 const handleLogin = async () => {
+  if (isLoading.value) return;
+  
   if (!email.value || !password.value) {
     toastError({ title: 'Error', description: 'Email and password are required.' });
     return;
   }
-  const { data: { user }, error } = await supabase.auth.signInWithPassword({
-    email: email.value,
-    password: password.value,
-  });
-  if (error) {
-    toastError({ title: 'Login Error', description: error.message });
-  } else if (user) {
-    toastSuccess({ title: 'Success', description: 'Logged in successfully!' });
-    router.push('/'); 
+
+  try {
+    isLoading.value = true;
+    const { data: { user }, error } = await supabase.auth.signInWithPassword({
+      email: email.value,
+      password: password.value,
+    });
+
+    if (error) {
+      toastError({ title: 'Login Error', description: error.message });
+    } else if (user) {
+      // Clear form
+      email.value = '';
+      password.value = '';
+      toastSuccess({ title: 'Success', description: 'Logged in successfully!' });
+      router.push('/'); 
+    }
+  } catch (err) {
+    toastError({ title: 'Unexpected Error', description: 'An error occurred during login.' });
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -86,5 +105,11 @@ ion-button {
   --background-hover: #ffadb9;
   --background-pressed: #ffadb9;
   --color: black;
+}
+
+ion-spinner {
+  width: 20px;
+  height: 20px;
+  color: black;
 }
 </style>

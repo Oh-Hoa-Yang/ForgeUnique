@@ -7,21 +7,21 @@
           <ion-item>
             <ion-label position="stacked">Email</ion-label>
             <ion-input v-model="email" name="email" type="email" placeholder="Please enter your email"
-              style="font-style:italic" required></ion-input>
+              style="font-style:italic" required :disabled="isLoading"></ion-input>
           </ion-item>
           <ion-item>
             <ion-label position="stacked">Password</ion-label>
             <ion-input v-model="password" name="password" type="password" placeholder="Please enter your password"
-              style="font-style:italic" required>
+              style="font-style:italic" required :disabled="isLoading">
               <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
-          <p v-if="passwordError" class="error-message">{{ passwordError }}</p>
+          <p v-if="passwordError" class="error-message pl-3 -mt-4">{{ passwordError }}</p>
 
           <ion-item>
             <ion-label position="stacked">Confirm Password</ion-label>
             <ion-input v-model="confirmPassword" name="confirmPassword" type="password"
-              placeholder="Please enter your password again" style="font-style:italic" required>
+              placeholder="Please enter your password again" style="font-style:italic" required :disabled="isLoading">
               <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
@@ -29,16 +29,16 @@
           <ion-item>
             <ion-label position="stacked">Passcode</ion-label>
             <ion-input v-model="passcode" name="passcode" type="number" placeholder="Please enter your passcode"
-              style="font-style:italic" required>
+              style="font-style:italic" required :disabled="isLoading">
               <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
-          <p v-if="passcodeError" class="error-message">{{ passcodeError }}</p>
+          <p v-if="passcodeError" class="error-message pl-3 -mt-4">{{ passcodeError }}</p>
 
           <ion-item>
             <ion-label position="stacked">Confirm Passcode</ion-label>
             <ion-input v-model="confirmPasscode" name="confirmPasscode" type="number"
-              placeholder="Please enter your passcode again" style="font-style:italic" required>
+              placeholder="Please enter your passcode again" style="font-style:italic" required :disabled="isLoading">
               <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
@@ -48,7 +48,10 @@
               <p style="font-style:italic">Registered? Click here to Login!</p>
             </router-link>
           </div>
-          <ion-button style="width: 100%;" type="submit" class="custom-button">Register</ion-button>
+          <ion-button style="width: 100%;" type="submit" class="custom-button" :disabled="isLoading">
+            <ion-spinner v-if="isLoading" name="crescent"></ion-spinner>
+            <span v-else>Register</span>
+          </ion-button>
         </form>
       </div>
       <div v-else>
@@ -62,7 +65,7 @@
             We have sent an email to <strong>{{ email }}</strong> for verification.
             <strong>Important:</strong> The link will expire in 5 minutes.
           </ion-card-content>    
-          <p style="font-style:italic">Redirecting to the registration page in 5 minutes if not verified...</p>
+          <p style="font-style:italic">Redirecting to the login page in 10 seconds...</p>
         </ion-card>
       </div>
     </ion-content>
@@ -75,7 +78,7 @@ import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';
 
 const success = ref(false);
-const pending = ref(false);
+const isLoading = ref(false);
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient();
 const router = useRouter();
@@ -102,11 +105,27 @@ const validatePasscode = (passcode) => {
   return /^\d{6}$/.test(passcode);
 };
 
-const handleRegister = async () => {
-  if (pending.value) return;  // Prevent multiple requests if one is already in progress
-  
+const clearForm = () => {
+  email.value = '';
+  password.value = '';
+  confirmPassword.value = '';
+  passcode.value = '';
+  confirmPasscode.value = '';
   passwordError.value = null;
   passcodeError.value = null;
+};
+
+const handleRegister = async () => {
+  if (isLoading.value) return;
+
+  passwordError.value = null;
+  passcodeError.value = null;
+
+  // Basic validation
+  if (!email.value || !password.value || !confirmPassword.value || !passcode.value || !confirmPasscode.value) {
+    toastError({ title: 'Validation Error', description: 'All fields are required.' });
+    return;
+  }
 
   // Validate password rules
   if (!validatePassword(password.value)) {
@@ -136,9 +155,9 @@ const handleRegister = async () => {
     return;
   }
 
-  pending.value = true;
-
   try {
+    isLoading.value = true;
+
     const { data, error } = await supabase.auth.signUp({
       email: email.value,
       password: password.value,
@@ -171,12 +190,13 @@ const handleRegister = async () => {
       });
 
     if (insertError) {
-      toastError({ title: 'Registration Error', description: "This email is already registered. Please use a different email" });
-      console.error("Registration Error");
+      toastError({ title: 'Registration Error', description: "Failed to save user data. Please try again." });
+      console.error("Registration Error:", insertError);
       return;
     }
 
     success.value = true;
+    clearForm();
     toastSuccess({
       title: 'Registration Successful',
       description: 'A confirmation email has been sent. Please verify your email.'
@@ -187,9 +207,10 @@ const handleRegister = async () => {
     }, 10000);
 
   } catch (err) {
-    toastError({ title: 'Unexpected Error', description: err.message });
+    console.error("Unexpected Error:", err);
+    toastError({ title: 'Unexpected Error', description: 'An error occurred during registration. Please try again.' });
   } finally {
-    pending.value = false;
+    isLoading.value = false;
   }
 };
 </script>
@@ -224,5 +245,11 @@ hr {
   color: red;
   font-size: 12px;
   margin-left: 10px;
+}
+
+ion-spinner {
+  width: 20px;
+  height: 20px;
+  color: black;
 }
 </style>

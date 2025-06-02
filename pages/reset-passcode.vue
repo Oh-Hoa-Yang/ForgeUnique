@@ -7,19 +7,22 @@
         <ion-item>
           <ion-label position="stacked">New Passcode</ion-label>
           <ion-input v-model="newPasscode" type="number" name="passcode" placeholder="Please enter your new passcode"
-            style="font-style: italic;" required>
+            style="font-style: italic;" required :disabled="isLoading">
             <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
-        <p v-if="passcodeError" class="error-message" style="padding: 20px;">{{ passcodeError }}</p>
+        <p v-if="passcodeError" class="error-message pl-3 -mt-4">{{ passcodeError }}</p>
         <ion-item>
           <ion-label position="stacked">Confirm New Passcode</ion-label>
           <ion-input v-model="confirmPasscode" name="confirmPasscode" type="number"
-            placeholder="Please enter your new passcode again" style="font-style: italic;" required>
+            placeholder="Please enter your new passcode again" style="font-style: italic;" required :disabled="isLoading">
             <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
-        <ion-button style="width: 100%;" type="submit" class="custom-button">Reset Passcode</ion-button>
+        <ion-button style="width: 100%;" type="submit" class="custom-button" :disabled="isLoading">
+          <ion-spinner v-if="isLoading" name="crescent"></ion-spinner>
+          <span v-else>Reset Passcode</span>
+        </ion-button>
       </form>
       <router-link style="text-align:center; color:#FD8395;" to="/forgot_passcode">
         <p>Return</p>
@@ -30,8 +33,10 @@
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';  // For Hashing 
+
 const newPasscode = ref('');
 const confirmPasscode = ref('');
+const isLoading = ref(false);
 const { toastError, toastSuccess } = useAppToast();
 const passcodeError = ref(null);
 
@@ -42,23 +47,39 @@ definePageMeta({
 const validatePasscode = (passcode) => {
   return /^\d{6}$/.test(passcode);  // Ensure exactly 6 digits
 };
+
+const clearForm = () => {
+  newPasscode.value = '';
+  confirmPasscode.value = '';
+  passcodeError.value = null;
+};
+
 const resetPasscode = async () => {
+  if (isLoading.value) return;
+
   const supabase = useSupabaseClient();
   const user = useSupabaseUser();
+
   // Step 1: Check if user is logged in
   if (!user.value) {
-    toastError({ title: 'Error', description: 'No user logged in.' });
+    toastError({ title: 'Error', description: 'No user logged in. Please log in first.' });
+    router.push('/login');
     return;
   }
-  
-  console.log("User Info: ", user.value); // Debugging the user details
-  
+
   // Step 2: Check if passcode fields are filled
   if (!newPasscode.value || !confirmPasscode.value) {
-    toastError({ title: 'Error', description: 'Both fields are required.' });
+    toastError({ title: 'Error', description: 'Both passcode fields are required.' });
     return;
   }
-  // Step 3: Validate passcode
+
+  // Step 3: Check if passcodes match
+  if (newPasscode.value !== confirmPasscode.value) {
+    toastError({ title: 'Passcode Error', description: 'Passcodes do not match.' });
+    return;
+  }
+
+  // Step 4: Validate passcode
   passcodeError.value = null;
   
   if (!validatePasscode(newPasscode.value)) {
@@ -67,29 +88,31 @@ const resetPasscode = async () => {
     toastError({ title: 'Passcode Error', description: errorMessage });
     return;
   }
-  
-  if (newPasscode.value !== confirmPasscode.value) {
-    toastError({ title: 'Passcode Error', description: 'Passcodes do not match.' });
-    return;
-  }
-  // Step 4: Hash the passcode before storing
-  const hashedPasscode = CryptoJS.SHA256(newPasscode.value).toString();
-  // Step 5: Update the passcode in the Users table
+
   try {
-    const { data, error } = await supabase
-      .from('Users')  // Assuming your public table is named 'Users'
+    isLoading.value = true;
+    // Step 5: Hash the passcode before storing
+    const hashedPasscode = CryptoJS.SHA256(newPasscode.value).toString();
+
+    // Step 6: Update the passcode in the Users table
+    const { error } = await supabase
+      .from('Users')
       .update({ passcode: hashedPasscode })
       .eq('user_id', user.value.id);
-    console.log("Supabase Response: ", data, error); // Debugging the result
+
     if (error) {
-      toastError({ title: 'Error', description: `Failed to reset passcode: ${error.message}` });
+      console.error("Database error:", error);
+      toastError({ title: 'Error', description: 'Failed to update passcode. Please try again.' });
     } else {
-      toastSuccess({ title: 'Success', description: 'Passcode has been reset!' });
-      navigateTo('/');  // Redirect user to index page after successful reset
+      clearForm();
+      toastSuccess({ title: 'Success', description: 'Passcode has been reset successfully!' });
+      navigateTo('/');
     }
   } catch (err) {
-    console.error("Unexpected error: ", err);
-    toastError({ title: 'Error', description: 'An unexpected error occurred.' });
+    console.error("Unexpected error:", err);
+    toastError({ title: 'Error', description: 'An unexpected error occurred. Please try again.' });
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -119,5 +142,11 @@ ion-button {
   color: red;
   font-size: 12px;
   margin-left: 10px;
+}
+
+ion-spinner {
+  width: 20px;
+  height: 20px;
+  color: black;
 }
 </style>

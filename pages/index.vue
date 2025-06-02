@@ -109,6 +109,7 @@ const checkPasscode = async () => {
 
   if (data && data.length > 0 && data[0].passcode === hashedPasscode) {
     toastSuccess({ title: 'Success', description: 'Passcode verified!' });
+    await resetPasscode();
     router.push('/homepage');
   } else {
     toastError({ title: 'Incorrect Passcode', description: 'The passcode you entered is incorrect. Please try again!' });

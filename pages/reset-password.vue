@@ -8,19 +8,22 @@
           <ion-item>
             <ion-label position="stacked">New Password</ion-label>
             <ion-input v-model="password" type="password" name="password" placeholder="Enter new password"
-              style="font-style: italic;" required>
+              style="font-style: italic;" required :disabled="isLoading">
               <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
-          <p v-if="passwordError" class="error-message">{{ passwordError }}</p>
+          <p v-if="passwordError" class="error-message pl-3 -mt-4">{{ passwordError }}</p>
           <ion-item>
             <ion-label position="stacked">Confirm Password</ion-label>
             <ion-input v-model="confirmPassword" type="password" name="confirmPassword"
-              placeholder="Please enter your new password again" style="font-style: italic;" required>
+              placeholder="Please enter your new password again" style="font-style: italic;" required :disabled="isLoading">
               <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
             </ion-input>
           </ion-item>
-          <ion-button style="width: 100%;" type="submit" class="custom-button">Reset Password</ion-button>
+          <ion-button style="width: 100%;" type="submit" class="custom-button" :disabled="isLoading">
+            <ion-spinner v-if="isLoading" name="crescent"></ion-spinner>
+            <span v-else>Reset Password</span>
+          </ion-button>
         </form>
       </div>
       <div v-else>
@@ -41,27 +44,46 @@
 import { useAppToast } from '~/composables/useAppToast';
 const password = ref('');
 const confirmPassword = ref('');
-const success = ref(false); // Track whether password reset was successful
+const success = ref(false);
+const isLoading = ref(false);
 const router = useRouter();
 const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
 const passwordError = ref(null);
 
-  const validatePassword = (password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
-    return regex.test(password);
-  };
+const validatePassword = (password) => {
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+  return regex.test(password);
+};
+
+const clearForm = () => {
+  password.value = '';
+  confirmPassword.value = '';
+  passwordError.value = null;
+};
 
 const resetPassword = async () => {
+  if (isLoading.value) return;
+
   const token = route.query.token; // Get token from the URL query params
+  
+  if (!token) {
+    toastError({ title: 'Error', description: 'Invalid or expired reset link. Please request a new password reset.' });
+    setTimeout(() => router.push('/forgot_password'), 3000);
+    return;
+  }
+
+  if (!password.value || !confirmPassword.value) {
+    toastError({ title: 'Error', description: 'Both password fields are required.' });
+    return;
+  }
+
   if (password.value !== confirmPassword.value) {
     toastError({ title: 'Error', description: 'Passwords do not match.' });
     return;
   }
 
-
   passwordError.value = null;
-  
 
   // Validate password rules
   if (!validatePassword(password.value)) {
@@ -71,17 +93,32 @@ const resetPassword = async () => {
     return;
   }
 
-  const supabase = useSupabaseClient();
-  // Reset password using the token from the email link
-  const { error } = await supabase.auth.updateUser({
-    password: password.value,
-    access_token: token, // Use the token to authenticate the user
-  });
-  if (error) {
-    toastError({ title: 'Error', description: 'Failed to reset password.' });
-  } else {
-    toastSuccess({ title: 'Success', description: 'Password reset successfully!' });
-    success.value = true; // Display success message
+  try {
+    isLoading.value = true;
+    const supabase = useSupabaseClient();
+    
+    const { error } = await supabase.auth.updateUser({
+      password: password.value,
+      access_token: token,
+    });
+
+    if (error) {
+      if (error.message.includes('expired')) {
+        toastError({ title: 'Error', description: 'The reset link has expired. Please request a new password reset.' });
+        setTimeout(() => router.push('/forgot_password'), 3000);
+      } else {
+        toastError({ title: 'Error', description: 'Failed to reset password. ' + error.message });
+      }
+    } else {
+      clearForm();
+      success.value = true;
+      toastSuccess({ title: 'Success', description: 'Password reset successfully!' });
+    }
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    toastError({ title: 'Error', description: 'An unexpected error occurred. Please try again.' });
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
@@ -115,5 +152,11 @@ ion-button {
   color: red;
   font-size: 12px;
   margin-left: 10px;
+}
+
+ion-spinner {
+  width: 20px;
+  height: 20px;
+  color: black;
 }
 </style>
