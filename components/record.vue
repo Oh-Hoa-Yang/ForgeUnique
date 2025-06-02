@@ -2,18 +2,23 @@
   <ion-content>
     <div>
       <div style="display: flex; justify-items: center; justify-content: center; margin-top: 20px;">
-        <button @click="startRecording" :disabled="isRecording" class="start-button"><span class="fluent--mic-record-28-regular"></span></button>
-        <button @click="stopRecording" :disable="!isRecording" class="stop-button"><span class="fluent--record-stop-20-regular"></span></button>
+        <button 
+          @click="isRecording ? stopRecording() : startRecording()" 
+          :class="['record-button', { 'recording': isRecording }]"
+        >
+          <span :class="isRecording ? 'fluent--record-stop-20-regular' : 'fluent--mic-record-28-regular'"></span>
+        </button>
       </div>
 
       <!-- List of recordings -->
-      <div v-for="(clip, index) in recordings" :key="clip.audio_number" style="display: flex; justify-content: space-between; align-items: center; margin-left: 20px; margin-right: 20px; border-color:grey; border-width: 1px; border-left-color: white; border-right-color: white; padding: 5px;">
-        <!-- Display the audio_number -->
-        <div style="display: block;">
-          <p>Audio {{ clip.audio_number }}</p>
+      <div v-for="clip in sortedRecordings" :key="clip.audio_number" style="display: flex; justify-content: space-between; align-items: center; margin-left: 20px; margin-right: 20px; border-bottom: 1px solid #eee; padding: 10px 5px;">
+        <div class="audio-badge">
+          {{ clip.audio_number }}
         </div>
         <audio :src="clip.src" controls class="custom-audio-player"></audio>
-        <button @click="deleteAudio(clip)" style="display: flex;"><span class="material-symbols--delete-outline"></span></button>
+        <button @click="deleteAudio(clip)" class="delete-button">
+          <span class="material-symbols--delete-outline"></span>
+        </button>
       </div>  
     </div>
   </ion-content>
@@ -72,10 +77,12 @@ const stopRecording = async () => {
 
   if (result.value && result.value.recordDataBase64) {
     const audioDataBase64 = result.value.recordDataBase64;
+    const nextAudioNumber = await getNextAudioNumber(); // Get the next number first
     const audioClip = {
       src: `data:${result.value.mimeType};base64,${audioDataBase64}`,
       mimeType: result.value.mimeType,
       dataBase64: audioDataBase64,
+      audio_number: nextAudioNumber, // Add the audio number to the clip
     };
     recordings.value.push(audioClip); // Add the new recording to the list
     await uploadClip(audioClip); // Upload the recording immediately
@@ -91,12 +98,8 @@ const uploadClip = async (clip) => {
     type: 'audio/mpeg',
   });
 
-  // Get the next audio_number for the user from Supabase
-  const nextAudioNumber = await getNextAudioNumber();
-  console.log('Next Audio Number:', nextAudioNumber);
-
-  // Unique file name with the format {user.value.id}_audio{nextAudioNumber}
-  const fileName = `${user.value.id}_audio${nextAudioNumber}.mp3`;
+  // Use the audio_number that was already assigned
+  const fileName = `${user.value.id}_audio${clip.audio_number}.mp3`;
   console.log('Generated File Name:', fileName);
 
   const file = new File([blob], fileName, { type: 'audio/mpeg' });
@@ -134,8 +137,8 @@ const uploadClip = async (clip) => {
     console.log("Public URL of uploaded audio:", publicUrl);
 
     // Save the public URL and audio_number to the Supabase table
-    await saveAudioUrl(publicUrl, nextAudioNumber, fileName);
-    audioCounter.value = nextAudioNumber; // Increment the counter for the next audio file
+    await saveAudioUrl(publicUrl, clip.audio_number, fileName);
+    audioCounter.value = clip.audio_number; // Update the counter with the current audio number
   
     const clipIndex = recordings.value.findIndex((rec) => rec.src === clip.src);
     if (clipIndex !== -1) {
@@ -179,7 +182,7 @@ const saveAudioUrl = async (audioUrl, audioNumber, fileName) => {
 };
 
 // Fetch the next audio number for the user (by finding the max audio_number)
-const getNextAudioNumber = async () => {
+const getNextAudioNumber = async () => {  
   try {
     const { data: maxAudioNumberData, error: fetchError } = await supabase
       .from('audio_clips')
@@ -273,21 +276,44 @@ onMounted(async () => {
     toastError({ title: 'Error', description: 'Failed to fetch audio clips.' });
   }
 });
+
+// Add this computed property for sorted recordings
+const sortedRecordings = computed(() => {
+  return [...recordings.value].sort((a, b) => a.audio_number - b.audio_number);
+});
 </script>
 
 <style scoped>
-button {
+.record-button {
   margin: 10px;
+  transition: opacity 0.3s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
 }
 
-button:disabled {
-  opacity: 0.5;
-  pointer-events: none;
+.record-button.recording {
+  opacity: 0.6;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .custom-audio-player {
-  width: 75%; /* Adjust width to fit the container */
-  height: 50px; /* Increase height */
+  width: 75%;
+  height: 50px;
 }
 
 .fluent--mic-record-28-regular {
@@ -309,11 +335,39 @@ button:disabled {
 }
 
 .material-symbols--delete-outline {
-  /* display: inline-block; */
   width: 50px;
   height: 50px;
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z'/%3E%3C/svg%3E");
+}
+
+.audio-badge {
+  background-color: #FFC2D1;
+  color: black;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  min-width: 30px;
+}
+
+.delete-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.delete-button:hover {
+  transform: scale(1.1);
 }
 </style>
