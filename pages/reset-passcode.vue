@@ -73,19 +73,18 @@ const resetPasscode = async () => {
     return;
   }
 
-  // Step 3: Check if passcodes match
-  if (newPasscode.value !== confirmPasscode.value) {
-    toastError({ title: 'Passcode Error', description: 'Passcodes do not match.' });
-    return;
-  }
-
-  // Step 4: Validate passcode
+  // Step 3: Validate passcode format first
   passcodeError.value = null;
-  
   if (!validatePasscode(newPasscode.value)) {
     const errorMessage = 'Passcode must be exactly 6 digits.';
     passcodeError.value = errorMessage;
     toastError({ title: 'Passcode Error', description: errorMessage });
+    return;
+  }
+
+  // Step 4: Check if passcodes match
+  if (newPasscode.value !== confirmPasscode.value) {
+    toastError({ title: 'Passcode Error', description: 'Passcodes do not match.' });
     return;
   }
 
@@ -103,6 +102,7 @@ const resetPasscode = async () => {
     if (error) {
       console.error("Database error:", error);
       toastError({ title: 'Error', description: 'Failed to update passcode. Please try again.' });
+      return;
     } else {
       clearForm();
       toastSuccess({ title: 'Success', description: 'Passcode has been reset successfully!' });
@@ -111,6 +111,7 @@ const resetPasscode = async () => {
   } catch (err) {
     console.error("Unexpected error:", err);
     toastError({ title: 'Error', description: 'An unexpected error occurred. Please try again.' });
+    return;
   } finally {
     isLoading.value = false;
   }

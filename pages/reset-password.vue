@@ -106,8 +106,10 @@ const resetPassword = async () => {
       if (error.message.includes('expired')) {
         toastError({ title: 'Error', description: 'The reset link has expired. Please request a new password reset.' });
         setTimeout(() => router.push('/forgot_password'), 3000);
+        return;
       } else {
         toastError({ title: 'Error', description: 'Failed to reset password. ' + error.message });
+        return;
       }
     } else {
       clearForm();
@@ -117,6 +119,7 @@ const resetPassword = async () => {
   } catch (err) {
     console.error("Unexpected error:", err);
     toastError({ title: 'Error', description: 'An unexpected error occurred. Please try again.' });
+    return;
   } finally {
     isLoading.value = false;
   }
