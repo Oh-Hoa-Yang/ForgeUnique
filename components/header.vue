@@ -13,7 +13,7 @@
       <ion-buttons slot="end">
 
         <!-- Menu Button using IonIcon -->
-        <button class="icon-button" @click="toggleMenu">
+        <button class="icon-button mr-4" @click="toggleMenu">
           <ion-icon :icon="menuIcon"></ion-icon>
         </button>
       </ion-buttons>
