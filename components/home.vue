@@ -5,158 +5,160 @@
     success-duration="500" animation-duration="300" head-height="50">
 
     <ion-content class="custom-background">
-      <div class="container">
-        <!-- Expense and To-Do List Sections (first row) -->
-        <div class="row">
-          <!-- Expense Section (Button Behavior) -->
-          <button class="expense-button" @click="router.push('/expensehomepage')">
-            <div class="expense">
-              <h3 style="text-align: center; font-weight: bold;">Expense</h3>
-              <p><b>Monthly Budget:</b> <br>{{ budget }} MYR</p><br>
-              <p><b>Total Monthly Expenses:</b><br> {{ monthlyExpense }} MYR</p><br>
-              <p><b>Today Expenses:</b> <br>{{ todayExpense }} MYR</p>
-            </div>
-          </button>
-
-          <!-- To-Do List Section -->
-          <div class="todo-list">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <h3 style="font-weight: bold;">To-Do List</h3>
-              <button @click="openAddTodoModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395;">+</button>
-            </div>
-            <ul>
-              <li v-for="todo in todos.filter(todo => todo.todosStatus === 'incomplete')" :key="todo.id"
-                style="display: flex; justify-content: space-between; align-items: center;">
-                <span :class="{ priority: todo.todosPriority }">{{ todo.todosPriority }}</span>
-                <h4>{{ todo.todosDescription }}</h4>
-                <div>
-                  <button @click="editItem(todo)"><span class="line-md--edit-twotone"></span></button>
-                  <button @click="confirmDelete(todo.id)"><span class="ic--twotone-delete"></span></button>
-                  <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span
-                      class="hugeicons--task-done-01"></span></button>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Add/Edit Modal -->
-        <div v-if="showAddEditModal" class="modal-overlay">
-          <div class="modal-content">
-            <h3 style="text-align: center; font-weight: bold;">{{ isEditing ? 'Edit To-Do' : 'Add To-Do' }}</h3>
-            <form @submit.prevent="saveTodo">
-              <ion-label>Description</ion-label>
-              <ion-input v-model="currentTodo.todosDescription" placeholder="Description" required />
-
-              <ion-label>Priority</ion-label>
-              <ion-input v-model.number="currentTodo.todosPriority" placeholder="Priority (e.g., 1, 2, 3)" required
-                type="number" />
-
-              <ion-label>Deadline</ion-label>
-              <ion-input v-model="currentTodo.todosDeadline" type="datetime-local" required />
-
-              <div style="text-align: center; margin-top: 15px;">
-                <ion-button type="submit">Save</ion-button>
-                <ion-button @click="closeTodosModal">Cancel</ion-button>
+      <div>
+        <div class="container mx-auto">
+          <!-- Expense and To-Do List Sections (first row) -->
+          <div class="row">
+            <!-- Expense Section (Button Behavior) -->
+            <button class="expense-button" @click="router.push('/expensehomepage')">
+              <div class="expense">
+                <h3 style="text-align: center; font-weight: bold;">Expense</h3>
+                <p><b>Monthly Budget:</b> <br>{{ budget }} MYR</p><br>
+                <p><b>Total Monthly Expenses:</b><br> {{ monthlyExpense }} MYR</p><br>
+                <p><b>Today Expenses:</b> <br>{{ todayExpense }} MYR</p>
               </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- Confirmation Modal for Delete/Complete -->
-        <div v-if="showConfirmationModal" class="modal-overlay">
-          <div class="modal-content">
-            <p>Want to make this listing as {{ confirmationAction }}? </p>
-            <div style="text-align: center; margin-top: 15px;">
-              <ion-button @click="confirmAction">Yes</ion-button>
-              <ion-button @click="closeConfirmationModal">No</ion-button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sketching Plan Section -->
-        <div class="sketch-plan">
-          <h3 style="text-align: center; font-weight: bold;">Sketching Plan</h3>
-
-          <!-- Modal for adding new sketchbook -->
-          <div v-if="showModal" class="modal-overlay">
-            <div class="modal-content">
-              <ion-label>Create New Sketchbook</ion-label>
-              <ion-input type="text" v-model="newSketchbookTitle" placeholder="Enter Sketchbook Title" />
-              <div style="text-align: center;">
-                <ion-button @click="createSketchbook">Create</ion-button>
-                <ion-button @click="closeModal">Cancel</ion-button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sketchbook List and Create Button -->
-          <div v-if="!selectedSketch">
-            <div>
+            </button>
+  
+            <!-- To-Do List Section -->
+            <div class="todo-list">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h4>Available Sketchbooks</h4>
-                <button @click="openModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395">+</button>
+                <h3 style="font-weight: bold;">To-Do List</h3>
+                <button @click="openAddTodoModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395;">+</button>
               </div>
               <ul>
-                <li v-for="sketch in paginatedSketchbooks" :key="sketch.id"
-                  :class="{ active: selectedSketch === sketch.id }" style="border-bottom: 3px solid #f0f0f0;">
-                  <span @click="selectSketchbook(sketch)">
-                    {{ sketch.title }}
-                  </span>
-                  <div style="display: flex; justify-content: end; align-items: center;">
-                    <button @click.stop="openEditModal(sketch)"><span class="line-md--edit-twotone"></span></button>
-                    <button @click.stop="deleteSketchbook(sketch.id)"><span class="ic--twotone-delete"></span></button>
+                <li v-for="todo in todos.filter(todo => todo.todosStatus === 'incomplete')" :key="todo.id"
+                  style="display: flex; justify-content: space-between; align-items: center;">
+                  <span :class="{ priority: todo.todosPriority }">{{ todo.todosPriority }}</span>
+                  <h4>{{ todo.todosDescription }}</h4>
+                  <div>
+                    <button @click="editItem(todo)"><span class="line-md--edit-twotone"></span></button>
+                    <button @click="confirmDelete(todo.id)"><span class="ic--twotone-delete"></span></button>
+                    <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span
+                        class="hugeicons--task-done-01"></span></button>
                   </div>
                 </li>
               </ul>
-              <br>
-              <div style="display: flex; justify-content: space-between;">
-                <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
-                  <<<< </button>
-                    <span>Page {{ currentPage }} of {{ totalPages }}</span>
-                    <button @click="nextPage" :disabled="currentPage === totalPages"
-                      style="color: #FD8395;">>>></button>
+            </div>
+          </div>
+  
+          <!-- Add/Edit Modal -->
+          <div v-if="showAddEditModal" class="modal-overlay">
+            <div class="modal-content">
+              <h3 style="text-align: center; font-weight: bold;">{{ isEditing ? 'Edit To-Do' : 'Add To-Do' }}</h3>
+              <form @submit.prevent="saveTodo">
+                <ion-label>Description</ion-label>
+                <ion-input v-model="currentTodo.todosDescription" placeholder="Description" required />
+  
+                <ion-label>Priority</ion-label>
+                <ion-input v-model.number="currentTodo.todosPriority" placeholder="Priority (e.g., 1, 2, 3)" required
+                  type="number" />
+  
+                <ion-label>Deadline</ion-label>
+                <ion-input v-model="currentTodo.todosDeadline" type="datetime-local" required />
+  
+                <div style="text-align: center; margin-top: 15px;">
+                  <ion-button type="submit">Save</ion-button>
+                  <ion-button @click="closeTodosModal">Cancel</ion-button>
+                </div>
+              </form>
+            </div>
+          </div>
+  
+          <!-- Confirmation Modal for Delete/Complete -->
+          <div v-if="showConfirmationModal" class="modal-overlay">
+            <div class="modal-content">
+              <p>Want to make this listing as {{ confirmationAction }}? </p>
+              <div style="text-align: center; margin-top: 15px;">
+                <ion-button @click="confirmAction">Yes</ion-button>
+                <ion-button @click="closeConfirmationModal">No</ion-button>
               </div>
             </div>
           </div>
-
-          <!-- Sketching Canvas Section  SECOND PART OF SKETCHING PLAN -->
-          <div v-if="selectedSketch">
-            <div style="display: flex; align-items: center;">
-              <button @click="backToSketchbookList">
-                < </button>
-                  <h4><b>Sketchbook: {{ selectedSketch?.title }}</b> (Page {{ currentPageNumber }})</h4>
+  
+          <!-- Sketching Plan Section -->
+          <div class="sketch-plan">
+            <h3 style="text-align: center; font-weight: bold;">Sketching Plan</h3>
+  
+            <!-- Modal for adding new sketchbook -->
+            <div v-if="showModal" class="modal-overlay">
+              <div class="modal-content">
+                <ion-label>Create New Sketchbook</ion-label>
+                <ion-input type="text" v-model="newSketchbookTitle" placeholder="Enter Sketchbook Title" />
+                <div style="text-align: center;">
+                  <ion-button @click="createSketchbook">Create</ion-button>
+                  <ion-button @click="closeModal">Cancel</ion-button>
+                </div>
+              </div>
             </div>
-
-            <!-- Tool Selection -->
-            <div class="tool-selection">
-              <button @click="selectTool('black')">⚫️ Black</button>
-              <button @click="selectTool('blue')">🔵 Blue</button>
-              <button @click="selectTool('red')">🔴 Red</button>
-              <button @click="selectTool('eraser')"><span class="solar--eraser-bold-duotone"></span> Eraser</button>
+  
+            <!-- Sketchbook List and Create Button -->
+            <div v-if="!selectedSketch">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h4>Available Sketchbooks</h4>
+                  <button @click="openModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395">+</button>
+                </div>
+                <ul>
+                  <li v-for="sketch in paginatedSketchbooks" :key="sketch.id"
+                    :class="{ active: selectedSketch === sketch.id }" style="border-bottom: 3px solid #f0f0f0;">
+                    <span @click="selectSketchbook(sketch)">
+                      {{ sketch.title }}
+                    </span>
+                    <div style="display: flex; justify-content: end; align-items: center;">
+                      <button @click.stop="openEditModal(sketch)"><span class="line-md--edit-twotone"></span></button>
+                      <button @click.stop="deleteSketchbook(sketch.id)"><span class="ic--twotone-delete"></span></button>
+                    </div>
+                  </li>
+                </ul>
+                <br>
+                <div style="display: flex; justify-content: space-between;">
+                  <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
+                    <<<< </button>
+                      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+                      <button @click="nextPage" :disabled="currentPage === totalPages"
+                        style="color: #FD8395;">>>></button>
+                </div>
+              </div>
             </div>
-
-            <div class="canvas-controls">
-              <button @click="prevPage">Previous</button>
-              <button @click="saveCanvas">Save</button>
-              <button @click="nextSketchPage">Next</button>
+  
+            <!-- Sketching Canvas Section  SECOND PART OF SKETCHING PLAN -->
+            <div v-if="selectedSketch">
+              <div style="display: flex; align-items: center;">
+                <button @click="backToSketchbookList">
+                  < </button>
+                    <h4><b>Sketchbook: {{ selectedSketch?.title }}</b> (Page {{ currentPageNumber }})</h4>
+              </div>
+  
+              <!-- Tool Selection -->
+              <div class="tool-selection">
+                <button @click="selectTool('black')">⚫️ Black</button>
+                <button @click="selectTool('blue')">🔵 Blue</button>
+                <button @click="selectTool('red')">🔴 Red</button>
+                <button @click="selectTool('eraser')"><span class="solar--eraser-bold-duotone"></span> Eraser</button>
+              </div>
+  
+              <div class="canvas-controls">
+                <button @click="prevPage">Previous</button>
+                <button @click="saveCanvas">Save</button>
+                <button @click="nextSketchPage">Next</button>
+              </div>
+  
+              <!-- Sketch Canvas -->
+              <div class="signature-container">
+                <vue-signature-pad ref="signaturePad" :options="signatureOptions" class="signature-canvas"
+                  @end="onSketchEnd" />
+              </div>
             </div>
-
-            <!-- Sketch Canvas -->
-            <div class="signature-container">
-              <vue-signature-pad ref="signaturePad" :options="signatureOptions" class="signature-canvas"
-                @end="onSketchEnd" />
-            </div>
-          </div>
-
-          <!-- Modal for editing a sketchbook title -->
-          <div v-if="showEditModal" class="modal-overlay">
-            <div class="modal-content">
-              <ion-label>Edit Sketchbook Title</ion-label>
-              <ion-input type="text" v-model="editedSketchbookTitle" placeholder="Enter New Title" />
-              <div style="text-align: center;">
-                <ion-button @click="editSketchbookTitle">Save</ion-button>
-                <ion-button @click="closeEditModal">Cancel</ion-button>
+  
+            <!-- Modal for editing a sketchbook title -->
+            <div v-if="showEditModal" class="modal-overlay">
+              <div class="modal-content">
+                <ion-label>Edit Sketchbook Title</ion-label>
+                <ion-input type="text" v-model="editedSketchbookTitle" placeholder="Enter New Title" />
+                <div style="text-align: center;">
+                  <ion-button @click="editSketchbookTitle">Save</ion-button>
+                  <ion-button @click="closeEditModal">Cancel</ion-button>
+                </div>
               </div>
             </div>
           </div>
