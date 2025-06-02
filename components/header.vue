@@ -3,7 +3,7 @@
   <ion-header>
     <ion-toolbar color="light">
       <ion-buttons slot="start">
-        <div class="left-logo">
+        <div class="left-logo p-2">
           <img class="logo" src="/public/img/header.png" alt="ForgeUnique Logo" />
         </div>
       </ion-buttons>
