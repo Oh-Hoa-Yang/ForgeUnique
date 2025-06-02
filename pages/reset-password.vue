@@ -66,15 +66,17 @@ const resetPassword = async () => {
   if (isLoading.value) return;
 
   const token = route.query.token; // Get token from the URL query params
-  
-  if (!token) {
-    toastError({ title: 'Error', description: 'Invalid or expired reset link. Please request a new password reset.' });
-    setTimeout(() => router.push('/forgot_password'), 3000);
-    return;
-  }
 
   if (!password.value || !confirmPassword.value) {
     toastError({ title: 'Error', description: 'Both password fields are required.' });
+    return;
+  }
+
+  // Validate password rules
+  if (!validatePassword(password.value)) {
+    const errorMessage = 'Password must be at least 8 characters long, and include an uppercase letter (A-Z), a lowercase letter(a-z), a number(0-9), and a special character (`@`, `$`, `!`, `%`, `*`, `?`, `&`, `.`).';
+    passwordError.value = errorMessage;
+    toastError({ title: 'Password Error', description: errorMessage });
     return;
   }
 
@@ -85,32 +87,18 @@ const resetPassword = async () => {
 
   passwordError.value = null;
 
-  // Validate password rules
-  if (!validatePassword(password.value)) {
-    const errorMessage = 'Password must be at least 8 characters long, and include an uppercase letter (A-Z), a lowercase letter(a-z), a number(0-9), and a special character (`@`, `$`, `!`, `%`, `*`, `?`, `&`, `.`).';
-    passwordError.value = errorMessage;
-    toastError({ title: 'Password Error', description: errorMessage });
-    return;
-  }
-
   try {
     isLoading.value = true;
     const supabase = useSupabaseClient();
     
     const { error } = await supabase.auth.updateUser({
       password: password.value,
-      access_token: token,
+      access_token: token, //Use for authenticate the user
     });
 
     if (error) {
-      if (error.message.includes('expired')) {
-        toastError({ title: 'Error', description: 'The reset link has expired. Please request a new password reset.' });
-        setTimeout(() => router.push('/forgot_password'), 3000);
+        toastError({ title: 'Error', description: 'Failed to reset password. ' });
         return;
-      } else {
-        toastError({ title: 'Error', description: 'Failed to reset password. ' + error.message });
-        return;
-      }
     } else {
       clearForm();
       success.value = true;
