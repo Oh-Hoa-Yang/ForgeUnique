@@ -1,87 +1,74 @@
 <template>
   <!-- Main Page with Content -->
   <ion-page id="main-content">
-    <!-- Header Component -->
-    <Header />
-
-    <!-- Pull to refresh component wrapped around ion-content -->
-    <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
-      loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
-      success-duration="500" animation-duration="300" head-height="50">
-      <!-- Main Content (imported component) -->
-    <ion-content class="custom-background">
-        <ion-card class="page-card">
-          <div class="top-row-container">
-            <button @click="router.push('/expensehomepage')">
-              <span class="lets-icons--back"></span>
-            </button>
-            <h1 style="font-size: 25px;">
-              <b>EXPENSE RECORDS</b>
-            </h1>
-            <div></div>
-          </div>
-
-          <!-- Total Expense Button  -->
-          <div style="display: flex; justify-content: center;">
-            <ion-button class="balance-button" disabled="true">
-              Balance (RM{{ monthlyExpense }})
-            </ion-button>
-          </div>
-
-          <!-- Search -->
-          <div style="display: flex; justify-content: center; padding: 10px;">
-            <ion-item style="--background: #FFD6E5;">
-              <ion-label><span class="ic--sharp-search"></span></ion-label>
-              <ion-input class="input-field" type="text" v-model="searchQuery" placeholder="Search by description"
-                @input="filterRecords">
-              </ion-input>
-            </ion-item>
-          </div>
-
-
-
-          <!-- Expense Categories and Records -->
-          <div v-for="category in categoriesWithRecords" :key="category.name">
-            <div v-if="category.records.length > 0" class="category-section">
-              <!-- Category Header -->
-              <div class="category-header" @click="toggleDropdown(category.name)">
-                <ion-icon :class="category.iconClass"></ion-icon>
-                <span class="category-name">{{ category.name }}</span>
-                <span class="category-total">RM{{ formatAmount(category.totalAmount) }}</span>
-                <ion-icon
-                  :class="isDropdownOpen(category.name) ? 'mingcute--up-line' : 'mingcute--down-line'"></ion-icon>
-              </div>
-
-              <!-- Expense Records -->
-              <ul v-show="isDropdownOpen(category.name)" class="dropdown-content">
-                <li v-for="record in category.records" :key="record.id" class="record-item with-bullet"
-                  @click="goToEditExpense(record)">
-                  <span class="expense-amount">RM{{ record.expenseAmount }}</span>
-                  <span class="expense-description">{{ record.expenseDescription }}</span>
-                  <span class="expense-date">{{ formatDate(record.expenseDate) }}</span>
-                </li>
-              </ul>
+    <div class="custom-background">
+      <!-- Pull to refresh component -->
+      <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
+        loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
+        success-duration="500" animation-duration="300" head-height="50">
+        
+        <div class="container">
+          <ion-card class="page-card">
+            <div class="top-row-container">
+              <button @click="router.push('/expensehomepage')">
+                <span class="lets-icons--back"></span>
+              </button>
+              <h1 style="font-size: 25px;">
+                <b>EXPENSE RECORDS</b>
+              </h1>
+              <div></div>
             </div>
-          </div>
 
+            <!-- Total Expense Button  -->
+            <div style="display: flex; justify-content: center;">
+              <ion-button class="balance-button" disabled="true">
+                Balance (RM{{ monthlyExpense }})
+              </ion-button>
+            </div>
 
+            <!-- Search -->
+            <div style="display: flex; justify-content: center; padding: 10px;">
+              <ion-item style="--background: #FFD6E5;">
+                <ion-label><span class="ic--sharp-search"></span></ion-label>
+                <ion-input class="input-field" type="text" v-model="searchQuery" placeholder="Search by description"
+                  @input="filterRecords">
+                </ion-input>
+              </ion-item>
+            </div>
 
+            <!-- Expense Categories and Records -->
+            <div v-for="category in categoriesWithRecords" :key="category.name">
+              <div v-if="category.records.length > 0" class="category-section">
+                <!-- Category Header -->
+                <div class="category-header" @click="toggleDropdown(category.name)">
+                  <ion-icon :class="category.iconClass"></ion-icon>
+                  <span class="category-name">{{ category.name }}</span>
+                  <span class="category-total">RM{{ formatAmount(category.totalAmount) }}</span>
+                  <ion-icon
+                    :class="isDropdownOpen(category.name) ? 'mingcute--up-line' : 'mingcute--down-line'"></ion-icon>
+                </div>
 
-        </ion-card>
-      </ion-content>
-    </PullRefresh>
-
-    <!-- Footer Component -->
-    <Footer :current-route="route.path" />
+                <!-- Expense Records -->
+                <ul v-show="isDropdownOpen(category.name)" class="dropdown-content">
+                  <li v-for="record in category.records" :key="record.id" class="record-item with-bullet"
+                    @click="goToEditExpense(record)">
+                    <span class="expense-amount">RM{{ record.expenseAmount }}</span>
+                    <span class="expense-description">{{ record.expenseDescription }}</span>
+                    <span class="expense-date">{{ formatDate(record.expenseDate) }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </ion-card>
+        </div>
+      </PullRefresh>
+    </div>
   </ion-page>
 </template>
 
 <script setup>
-import Header from '~/components/header.vue';
-import Footer from '~/components/footer.vue';
 import { useRoute } from 'vue-router';
 import PullRefresh from 'pull-refresh-vue3';
-
 
 definePageMeta({
   middleware: 'auth'
@@ -93,9 +80,6 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
 const appState = inject('appState');
-if (!appState) {
-  console.error('Failed to inject appState. Ensure App.vue provides it.');
-}
 
 // Categories and their icons
 const categories = ref([
@@ -116,7 +100,6 @@ const categories = ref([
   { name: "Charity", iconClass: "mdi--charity" },
   { name: "Others", iconClass: "basil--other-1-outline" },
 ]);
-
 
 // States
 const defaultRecords = ref([]); // Current month's records
@@ -168,8 +151,6 @@ const fetchRecords = async () => {
   }
 };
 
-
-
 const handleRefresh = async () => {
   await fetchRecords();  // Fetch new records
 };
@@ -200,8 +181,6 @@ watch(searchQuery, async (newQuery) => {
     records.value = defaultRecords.value; // Reset to current month's records
   }
 });
-
-
 
 // Filtered categories based on records and search query
 const categoriesWithRecords = computed(() => {
@@ -253,8 +232,23 @@ onMounted(fetchRecords);
 
 <style scoped>
 .custom-background {
-  --background: #FFEDF5;
-  /* height: 10000000px; */
+  background: #FFEDF5;
+  min-height: 100vh;
+  width: 100%;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  min-height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .page-card {
@@ -329,14 +323,6 @@ onMounted(fetchRecords);
   outline: none;
 }
 
-
-
-
-
-
-
-
-
 .category-header {
   display: flex;
   justify-content: space-between;
@@ -403,20 +389,13 @@ onMounted(fetchRecords);
   padding: 10px 20px;
 }
 
-
-
-
-
-
-
-
 .mingcute--up-line {
   display: inline-block;
   width: 24px;
   height: 24px;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath d='M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z'/%3E%3Cpath fill='%23ff65bc' d='M11.293 8.293a1 1 0 0 1 1.414 0l5.657 5.657a1 1 0 0 1-1.414 1.414L12 10.414l-4.95 4.95a1 1 0 0 1-1.414-1.414z'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath d='M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z'/%3E%3Cpath fill='%23ff65bc' d='M11.293 8.293a1 1 0 0 1 1.414 0l5.657 5.657a1 1 0 0 1-1.414 1.414L12 10.414l-4.95 4.95a1 1 0 0 1-1.414-1.414z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 .mingcute--down-line {
@@ -425,7 +404,7 @@ onMounted(fetchRecords);
   height: 24px;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath d='M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z'/%3E%3Cpath fill='%23ff65bc' d='M12.707 15.707a1 1 0 0 1-1.414 0L5.636 10.05A1 1 0 1 1 7.05 8.636l4.95 4.95l4.95-4.95a1 1 0 0 1 1.414 1.414z'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath d='M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z'/%3E%3Cpath fill='%23ff65bc' d='M12.707 15.707a1 1 0 0 1-1.414 0L5.636 10.05A1 1 0 1 1 7.05 8.636l4.95 4.95l4.95-4.95a1 1 0 0 1 1.414 1.414z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 .mdi--food {
@@ -560,7 +539,7 @@ onMounted(fetchRecords);
   height: 50px;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M12.75 3.94c1-.72 2.16-1.08 3.47-1.08c.72 0 1.51.19 2.37.59q1.29.585 2.04 1.38c1.03 1.28 1.46 2.77 1.31 4.47c-.16 1.7-.72 3.03-1.69 3.97l-7.59 7.59c-.19.19-.43.28-.71.28s-.51-.09-.7-.28a.94.94 0 0 1-.28-.7c0-.28.09-.52.28-.71l4.59-4.59c.25-.22.25-.45 0-.7s-.48-.25-.7 0l-4.59 4.59a.95.95 0 0 1-.71.28c-.28 0-.51-.09-.7-.28a.94.94 0 0 1-.28-.7c0-.28.09-.52.28-.71l4.59-4.59q.405-.375 0-.75c-.23-.25-.45-.25-.7 0l-4.59 4.64a.98.98 0 0 1-.71.28c-.28 0-.52-.09-.73-.28c-.2-.19-.3-.42-.3-.7q0-.42.33-.75l4.6-4.6c.25-.25.25-.48 0-.7s-.49-.22-.71 0L6.28 14.5c-.22.2-.45.31-.7.31c-.28 0-.52-.1-.7-.31c-.19-.2-.29-.44-.29-.72s.1-.51.29-.7C7.94 10 9.83 8.14 10.55 7.45l3.56 3.52c.39.37.84.56 1.39.56c.7 0 1.25-.28 1.66-.84c.28-.41.38-.86.3-1.36s-.29-.92-.63-1.27zm2.06 6.33L10.55 6l-7.08 7.08c-.84-.85-1.32-2.15-1.43-3.92c-.11-1.76.37-3.29 1.43-4.57c1.19-1.18 2.61-1.78 4.26-1.78c1.66 0 3.07.6 4.22 1.78l4.27 4.27c.19.19.28.42.28.7s-.09.52-.28.71c-.19.18-.42.28-.72.28c-.27 0-.5-.1-.69-.28'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M12.75 3.94c1-.72 2.16-1.08 3.47-1.08c.72 0 1.51.19 2.37.59q1.29.585 2.04 1.38c1.03 1.28 1.46 2.77 1.31 4.47c-.16 1.7-.72 3.03-1.69 3.97l-7.59 7.59c-.19.19-.43.28-.71.28s-.51-.09-.7-.28a.94.94 0 0 1-.28-.7c0-.28.09-.52.28-.71l4.59-4.59c.25-.22.25-.45 0-.7s-.48-.25-.7 0l-4.59 4.59a.95.95 0 0 1-.71.28c-.28 0-.52-.09-.7-.28a.94.94 0 0 1-.28-.7c0-.28.09-.52.28-.71l4.59-4.59q.405-.375 0-.75c-.23-.25-.45-.25-.7 0l-4.59 4.64a.98.98 0 0 1-.71.28c-.28 0-.52-.09-.73-.28c-.2-.19-.3-.42-.3-.7q0-.42.33-.75l4.6-4.6c.25-.25.25-.48 0-.7s-.49-.22-.71 0L6.28 14.5c-.22.2-.45.31-.7.31c-.28 0-.52-.1-.7-.31c-.19-.2-.29-.44-.29-.72s.1-.51.29-.7C7.94 10 9.83 8.14 10.55 7.45l3.56 3.52c.39.37.84.56 1.39.56c.7 0 1.25-.28 1.66-.84c.28-.41.38-.86.3-1.36s-.29-.92-.63-1.27zm2.06 6.33L10.55 6l-7.08 7.08c-.84-.85-1.32-2.15-1.43-3.92c-.11-1.76.37-3.29 1.43-4.57c1.19-1.18 2.61-1.78 4.26-1.78c1.66 0 3.07.6 4.22 1.78l4.27 4.27c.19.19.28.42.28.7s-.09.52-.28.71c-.19.18-.42.28-.72.28c-.27 0-.5-.1-.69-.28'/%3E%3C/svg%3E");
 }
 
 .basil--other-1-outline {

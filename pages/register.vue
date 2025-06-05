@@ -77,6 +77,10 @@ import { ref } from 'vue';
 import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';
 
+definePageMeta({
+  layout: 'auth'
+})
+
 const success = ref(false);
 const isLoading = ref(false);
 const { toastError, toastSuccess } = useAppToast();

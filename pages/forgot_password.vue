@@ -28,6 +28,10 @@ const isLoading = ref(false);
 const { toastError, toastSuccess } = useAppToast();
 const router = useRouter();
 
+definePageMeta({
+  layout: 'auth'
+})
+
 const sendResetLink = async () => {
   if (isLoading.value) return;
 

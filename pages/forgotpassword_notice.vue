@@ -20,6 +20,10 @@ const { toastError, toastSuccess } = useAppToast();
 const router = useRouter();
 const supabase = useSupabaseClient();
 
+definePageMeta({
+  layout: 'auth'
+})
+
 </script>
 
 <style scoped>

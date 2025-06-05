@@ -41,7 +41,8 @@ const { toastError, toastSuccess } = useAppToast();
 const passcodeError = ref(null);
 
 definePageMeta({
-  middleware: 'auth'
+  middleware: 'auth',
+  layout: 'auth'
 })
 
 const validatePasscode = (passcode) => {

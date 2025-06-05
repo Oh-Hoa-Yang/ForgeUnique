@@ -1,17 +1,19 @@
 <template>
-  <ion-app>
-    <!-- Main router outlet for all page content, with correct content ID -->
-    <ion-router-outlet></ion-router-outlet>
-    <UNotifications />
-  </ion-app>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
 
 <script setup>
 // import { SplashScreen } from '@capacitor/splash-screen';
 // import { App } from '@capacitor/app';
+import Header from '~/components/header.vue';
+import Footer from '~/components/footer.vue';
+
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
+const route = useRoute();
 
 setTimeout(() => {
   SplashScreen.hide();
@@ -119,6 +121,25 @@ onMounted(fetchData);
 // Provide the reactive state
 provide('appState', appState);
 </script>
+
+<style>
+/* Global styles */
+html, body {
+  overflow: hidden;
+}
+
+.ion-page {
+  overflow: hidden;
+}
+
+ion-content {
+  --overflow: hidden;
+}
+
+.scroll-y {
+  overflow: hidden !important;
+}
+</style>
 
 <!-- <script setup>
 const supabase = useSupabaseClient();

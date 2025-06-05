@@ -51,6 +51,10 @@ const route = useRoute();
 const { toastError, toastSuccess } = useAppToast();
 const passwordError = ref(null);
 
+definePageMeta({
+  layout: 'auth'
+})
+
 const validatePassword = (password) => {
   const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
   return regex.test(password);

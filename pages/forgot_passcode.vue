@@ -27,6 +27,10 @@
 import { useAppToast } from '~/composables/useAppToast';
 const router = useRouter();
 
+definePageMeta({
+  layout: 'auth'
+})
+
 const password = ref('');
 const isLoading = ref(false);
 const { toastError, toastSuccess } = useAppToast();

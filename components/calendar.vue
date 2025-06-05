@@ -1,17 +1,18 @@
 <template>
-  <ion-content class="custom-background">
-    <!-- Pull to refresh component wrapped around ion-content -->
-    <PullRefresh v-model="loading" @refresh="handleRefresh"
+<div class="custom-background">
+  <!-- Pull to refresh component -->
+  <!-- <PullRefresh v-model="loading" @refresh="handleRefresh"
       style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
       loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
-      success-duration="500" animation-duration="300" head-height="50">
+      success-duration="500" animation-duration="300" head-height="50"> -->
 
-      <div class="content-wrapper">
-
-        <ion-card class="calendar-card">
-          <VCalendar color="pink" :attributes="attrs" is-dark="{}" expanded />
-          <!-- <VDatePicker class="calendar" v-model="date" /> -->
-          <div class="yearly-plan-button">
+      <div class="container mx-auto">
+        <ion-card>
+          <div class="calendar-card h-fit">
+            <VCalendar color="pink" :attributes="attrs" is-dark="{}" expanded />
+          </div>
+            <!-- <VDatePicker class="calendar" v-model="date" /> -->
+            <div class="yearly-plan-button">
             <ion-button router-link="/yearlyplanpage">YEARLY PLAN</ion-button>
           </div>
         </ion-card>
@@ -198,10 +199,9 @@
             <p>You have no records found. Escape yourself from comfort zone! Good Luck!</p>
           </div>
         </ion-card>
-        <br><br>
       </div>
-    </PullRefresh>
-  </ion-content>
+    <!-- </PullRefresh> -->
+  </div>
 </template>
 
 <script setup>
@@ -712,14 +712,29 @@ const deleteImprovementPlan = async (planId) => {
 
 <style scoped>
 .custom-background {
-  --background: #FFEDF5;
-  /* height: 15000000px; */
+  background: #FFEDF5;
+  min-height: 100vh;
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  /* overflow: hidden;  */
 }
 
-.content-wrapper {
-  height: 100%;
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  flex: 1;
+  box-sizing: border-box;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   overflow: auto;
-  touch-action: auto;
+  padding: 20px;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  scroll-behavior: smooth; /* Smooth scrolling on modern browsers */
 }
 
 ion-button {
@@ -736,11 +751,10 @@ ion-button {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  background-color: white;
-  /* Ensure card background color is visible */
+  width: 100%;
+  height: auto;
+  min-height: fit-content;
+  flex-shrink: 0; /* Prevent calendar from shrinking */
 }
 
 .yearly-plan-button {
@@ -819,5 +833,14 @@ select {
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M8 9h8v10H8z' opacity='0.3'/%3E%3Cpath fill='%23ff65bc' d='m15.5 4l-1-1h-5l-1 1H5v2h14V4zM6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM8 9h8v10H8z'/%3E%3C/svg%3E");
+}
+
+ion-card {
+  height: auto;
+  min-height: fit-content;
+  overflow: visible;
+  padding: 20px;
+  margin: 0;
+  flex-shrink: 0; 
 }
 </style>

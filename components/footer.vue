@@ -1,16 +1,20 @@
 <template>
-  <!-- Bottom Navigation -->
-  <div class="bottom-nav">
-    <button @click="navigateToPage('/calendarpage')" :class="{ active: isActive('/calendarpage') }" class="tab-button">
-      <ion-icon :icon="calendarIcon"></ion-icon>
-    </button>
-    <button @click="navigateToPage('/homepage')" :class="{ active: isActive('/homepage') }" class="tab-button">
-      <ion-icon :icon="homeIcon"></ion-icon>
-    </button>
-    <button @click="navigateToPage('/recordpage')" :class="{ active: isActive('/recordpage') }" class="tab-button">
-      <ion-icon :icon="recordingIcon"></ion-icon>
-    </button>
-  </div>
+  <!-- Using Ionic's native footer component -->
+  <ion-footer>
+    <ion-toolbar>
+      <div class="bottom-nav">
+        <button @click="navigateToPage('/calendarpage')" :class="{ active: isActive('/calendarpage') }" class="tab-button">
+          <ion-icon :icon="calendarIcon"></ion-icon>
+        </button>
+        <button @click="navigateToPage('/homepage')" :class="{ active: isActive('/homepage') }" class="tab-button">
+          <ion-icon :icon="homeIcon"></ion-icon>
+        </button>
+        <button @click="navigateToPage('/recordpage')" :class="{ active: isActive('/recordpage') }" class="tab-button">
+          <ion-icon :icon="recordingIcon"></ion-icon>
+        </button>
+      </div>
+    </ion-toolbar>
+  </ion-footer>
 </template>
 
 <script setup>
@@ -40,11 +44,8 @@ const isActive = (path) => {
   justify-content: space-around;
   padding: 10px;
   background-color: #fff;
-  position: fixed;
-  bottom: 0;
   width: 100%;
   border-top: 1px solid #ddd;
-  z-index: 1;
 }
 
 .tab-button {
@@ -64,5 +65,17 @@ ion-icon {
 
 .tab-button:hover ion-icon {
   color: #FD8395;
+}
+
+/* Add styles for ion-footer and ion-toolbar */
+ion-footer {
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+ion-toolbar {
+  --background: #fff;
+  --border-color: #ddd;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <ion-content>
-    <div>
+  <div class="custom-background">
+    <div class="container mx-auto">
       <div style="display: flex; justify-items: center; justify-content: center; margin-top: 20px;">
         <button 
           @click="isRecording ? stopRecording() : startRecording()" 
@@ -21,7 +21,7 @@
         </button>
       </div>  
     </div>
-  </ion-content>
+  </div>
 </template>
 
 <script setup>
@@ -284,6 +284,29 @@ const sortedRecordings = computed(() => {
 </script>
 
 <style scoped>
+.custom-background {
+  background: #FFEDF5;
+  min-height: 100vh;
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  flex: 1;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
 .record-button {
   margin: 10px;
   transition: opacity 0.3s ease;

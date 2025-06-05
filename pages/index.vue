@@ -46,7 +46,8 @@ import { useAppToast } from '~/composables/useAppToast';
 import CryptoJS from 'crypto-js';
 
 definePageMeta({
-  middleware: 'auth'
+  middleware: 'auth',
+  layout: 'auth'
 })
 
 const router = useRouter(); 

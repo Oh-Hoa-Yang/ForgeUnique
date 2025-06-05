@@ -1,5 +1,5 @@
 <template>
-  <ion-content class="custom-background">
+  <div class="custom-background">
     <ion-card class="calendar-card">
       <VCalendar color="pink" :attributes="attrs" is-dark="{}" expanded />
       <!-- <VDatePicker class="calendar" v-model="date" /> -->
@@ -71,7 +71,7 @@
       </div>
     </ion-card>
     <br><br>
-  </ion-content>
+  </div>
 </template>
 
 <script setup>
@@ -274,9 +274,11 @@ const deleteYearlyPlan = async (planId) => {
 
 <style scoped>
 .custom-background {
-  --background: #FFEDF5;
-  height: 100%;
-  /* height: 10000000px; */
+  background: #FFEDF5;
+  min-height: 100%;
+  width: 100%;
+  padding: 1rem;
+  overflow-y: auto;
 }
 
 ion-button {

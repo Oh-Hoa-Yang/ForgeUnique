@@ -1,34 +1,31 @@
 <template>
   <!-- Main Page with Content -->
   <ion-page id="main-content">
-    <!-- Header Component -->
-    <Header />
-
     <!-- Main Content (imported component) -->
     <ion-content>
       <ion-card class="expense-card">
-      <h1 style="text-align: center; font-weight: bold; color: black;">EXPENSE</h1>
-      <h4 style="font-style: italic;">**Select the categories below to <b style="color: black;">ADD</b> your expense.</h4>
+        <h1 style="text-align: center; font-weight: bold; color: black;">EXPENSE</h1>
+        <h4 style="font-style: italic;">**Select the categories below to <b style="color: black;">ADD</b> your expense.</h4>
 
-      <!-- Categories Grid -->
-       <div class="categories-grid">
-        <ion-button
-          v-for="category in categories"
-          :key="category.name"
-          class="category-btn"
-          @click="goToAddExpensePage(category.name)"
-        >
-        <div class="category-content">
-          <span :class="category.iconClass" class="category-icon"></span> 
-          <span class="category-name">{{ category.name }}</span>
+        <!-- Categories Grid -->
+        <div class="categories-grid">
+          <ion-button
+            v-for="category in categories"
+            :key="category.name"
+            class="category-btn"
+            @click="goToAddExpensePage(category.name)"
+          >
+            <div class="category-content">
+              <span :class="category.iconClass" class="category-icon"></span> 
+              <span class="category-name">{{ category.name }}</span>
+            </div>
+          </ion-button>
         </div>
-        </ion-button>
-       </div>
 
-       <!-- Total Expense Button  -->
-       <div style="display: flex; justify-content: center;">
-         <ion-button class="balance-button" disabled="true">
-           Expense ({{ appState.monthlyExpense }})
+        <!-- Total Expense Button  -->
+        <div style="display: flex; justify-content: center;">
+          <ion-button class="balance-button" disabled="true">
+            Expense ({{ appState.monthlyExpense }})
           </ion-button>
         </div>
         
@@ -40,39 +37,34 @@
         </div>
         
         <!-- Expense Record Button -->
-       <div style="display: flex; justify-content: center;">
-         <ion-button class="record-button" @click="router.push('/expenserecordpage')">
-          Record
-         </ion-button>
-       </div>
-    </ion-card>
+        <div style="display: flex; justify-content: center;">
+          <ion-button class="record-button" @click="router.push('/expenserecordpage')">
+            Record
+          </ion-button>
+        </div>
+      </ion-card>
 
-     <!-- Custom Modal for Budget -->
-     <div v-if="showModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3>Set Your Budget</h3>
-        <ion-input
-          v-model="newBudget"
-          type="number"
-          placeholder="Enter your budget"
-          class="budget-input"
-        ></ion-input>
-        <div class="modal-buttons">
-          <ion-button @click="setBudget">Set</ion-button>
-          <ion-button color="medium" @click="closeModal">Cancel</ion-button>
+      <!-- Custom Modal for Budget -->
+      <div v-if="showModal" class="modal-overlay">
+        <div class="modal-content">
+          <h3>Set Your Budget</h3>
+          <ion-input
+            v-model="newBudget"
+            type="number"
+            placeholder="Enter your budget"
+            class="budget-input"
+          ></ion-input>
+          <div class="modal-buttons">
+            <ion-button @click="setBudget">Set</ion-button>
+            <ion-button color="medium" @click="closeModal">Cancel</ion-button>
+          </div>
         </div>
       </div>
-    </div>
     </ion-content>
-
-    <!-- Footer Component -->
-    <Footer :current-route="route.path" />
   </ion-page>
 </template>
 
 <script setup>
-import Header from '~/components/header.vue';
-import Footer from '~/components/footer.vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();

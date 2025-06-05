@@ -40,6 +40,10 @@ const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient(); 
 const router = useRouter();  
 
+definePageMeta({
+  layout: 'auth'
+})
+
 const handleLogin = async () => {
   if (isLoading.value) return;
   
