@@ -713,12 +713,15 @@ const deleteImprovementPlan = async (planId) => {
 <style scoped>
 .custom-background {
   background: #FFEDF5;
-  min-height: 100vh;
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  /* overflow: hidden;  */
+  overflow: hidden;
 }
 
 .container {
@@ -728,13 +731,13 @@ const deleteImprovementPlan = async (planId) => {
   width: 100%;
   flex: 1;
   box-sizing: border-box;
-  background: white;
+  
   border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow: auto;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
   padding: 20px;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-  scroll-behavior: smooth; /* Smooth scrolling on modern browsers */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 ion-button {

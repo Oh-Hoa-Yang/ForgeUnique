@@ -286,11 +286,15 @@ const sortedRecordings = computed(() => {
 <style scoped>
 .custom-background {
   background: #FFEDF5;
-  min-height: 100vh;
-  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   padding: 1rem;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .container {
@@ -299,12 +303,16 @@ const sortedRecordings = computed(() => {
   gap: 20px;
   width: 100%;
   flex: 1;
-  padding: 20px;
   box-sizing: border-box;
-  overflow-y: auto;
   background: white;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  padding: 20px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  margin: auto;
 }
 
 .record-button {
