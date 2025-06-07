@@ -45,7 +45,6 @@ const isActive = (path) => {
   padding: 10px;
   background-color: #fff;
   width: 100%;
-  border-top: 1px solid #ddd;
 }
 
 .tab-button {
