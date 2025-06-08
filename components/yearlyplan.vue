@@ -1,8 +1,11 @@
 <template>
   <div class="custom-background">
-    <ion-card class="calendar-card">
+    <div class="container mx-auto">
+    <ion-card>
+      <div class="calendar-card">
       <VCalendar color="pink" :attributes="attrs" is-dark="{}" expanded />
       <!-- <VDatePicker class="calendar" v-model="date" /> -->
+       </div>
     </ion-card>
 
     <!-- Yearly Plan Card  PART  --> 
@@ -71,6 +74,7 @@
       </div>
     </ion-card>
     <br><br>
+    </div>
   </div>
 </template>
 
@@ -297,6 +301,33 @@ const deleteYearlyPlan = async (planId) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 90vh;
+  height: 100%;
+  width: 100%;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  flex: 1;
+  box-sizing: border-box;
+  border-radius: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+ion-card {
+  height: auto;
+  min-height: fit-content;
+  overflow: visible;
+  padding: 20px;
+  margin: 0;
+  flex-shrink: 0; 
 }
 
 ion-button {
@@ -313,10 +344,10 @@ ion-button {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  background-color: white;
+  width: 100%;
+  height: auto;
+  min-height: fit-content;
+  flex-shrink: 0; 
   /* Ensure card background color is visible */
 }
 

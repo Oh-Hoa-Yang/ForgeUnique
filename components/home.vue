@@ -15,6 +15,8 @@
               <p><b>Monthly Budget:</b> <br>{{ budget }} MYR</p><br>
               <p><b>Total Monthly Expenses:</b><br> {{ monthlyExpense }} MYR</p><br>
               <p><b>Today Expenses:</b> <br>{{ todayExpense }} MYR</p>
+              <br>
+              <p class="text-start font-italic">Click this section to manage your expenses.</p>
             </div>
           </button>
   
@@ -25,11 +27,11 @@
               <button @click="openAddTodoModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395;">+</button>
             </div>
             <ul>
-              <li v-for="todo in todos.filter(todo => todo.todosStatus === 'incomplete')" :key="todo.id"
+              <li v-for="todo in paginatedTodos" :key="todo.id"
                 style="display: flex; justify-content: space-between; align-items: center;">
                 <span :class="{ priority: todo.todosPriority }">{{ todo.todosPriority }}</span>
-                <h4>{{ todo.todosDescription }}</h4>
-                <div>
+                <h4 class="text-start mx-9">{{ todo.todosDescription }}</h4>
+                <div class="flex flex-row whitespace-nowrap gap-2">
                   <button @click="editItem(todo)"><span class="line-md--edit-twotone"></span></button>
                   <button @click="confirmDelete(todo.id)"><span class="ic--twotone-delete"></span></button>
                   <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span
@@ -37,6 +39,13 @@
                 </div>
               </li>
             </ul>
+            <!-- Add Pagination Controls -->
+            <div v-if="todos.length > 0" style="display: flex; justify-content: space-between; margin-top: 10px;">
+              <button @click="previousTodoPage" :disabled="currentTodoPage === 1" style="color: #FD8395;">
+                <<<</button>
+              <span>Page {{ currentTodoPage }} of {{ totalTodoPages }}</span>
+              <button @click="nextTodoPage" :disabled="currentTodoPage === totalTodoPages" style="color: #FD8395;">>>></button>
+            </div>
           </div>
         </div>
   
@@ -143,9 +152,15 @@
             </div>
   
             <!-- Sketch Canvas -->
-            <div class="signature-container">
-              <vue-signature-pad ref="signaturePad" :options="signatureOptions" class="signature-canvas"
-                @end="onSketchEnd" />
+            <div class="h-screen">
+              <div class="signature-container h-full">
+                <vue-signature-pad 
+                  ref="signaturePad" 
+                  :options="signatureOptions"  
+                  class="signature-canvas"
+                  @end="onSketchEnd" 
+                />
+              </div>
             </div>
           </div>
   
@@ -1005,6 +1020,32 @@ onIonViewWillEnter(async () => {
   await refreshAllData();
 });
 
+// Add pagination variables for todos
+const currentTodoPage = ref(1);
+const todosPerPage = 5;
+const totalTodoPages = computed(() => Math.ceil(todos.value.filter(todo => todo.todosStatus === 'incomplete').length / todosPerPage));
+
+// Add computed property for paginated todos
+const paginatedTodos = computed(() => {
+  const incompleteTodos = todos.value.filter(todo => todo.todosStatus === 'incomplete');
+  const start = (currentTodoPage.value - 1) * todosPerPage;
+  const end = start + todosPerPage;
+  return incompleteTodos.slice(start, end);
+});
+
+// Add pagination navigation functions
+const previousTodoPage = () => {
+  if (currentTodoPage.value > 1) {
+    currentTodoPage.value--;
+  }
+};
+
+const nextTodoPage = () => {
+  if (currentTodoPage.value < totalTodoPages.value) {
+    currentTodoPage.value++;
+  }
+};
+
 </script>
 
 
@@ -1083,20 +1124,19 @@ ion-button {
 
 .sketch-plan {
   background-color: #fff;
-  padding: 10px;
+  padding: 20px;
   border-radius: 8px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* This is important for flex child to properly scroll */
   overflow: hidden; /* Prevent content from spilling out */
 }
 
 .signature-container {
-  flex: 1;
-  min-height: 0; /* Allow container to shrink */
   position: relative;
   overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 .signature-canvas {

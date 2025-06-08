@@ -743,7 +743,6 @@ onIonViewWillEnter(async () => {
   width: 100%;
   flex: 1;
   box-sizing: border-box;
-  
   border-radius: 8px;
   overflow-y: scroll;
   overscroll-behavior: contain;
@@ -768,7 +767,7 @@ ion-button {
   align-items: center;
   width: 100%;
   height: auto;
-  min-height: fit-content;
+  max-height: fit-content;
   flex-shrink: 0; /* Prevent calendar from shrinking */
 }
 
@@ -852,7 +851,7 @@ select {
 
 ion-card {
   height: auto;
-  min-height: fit-content;
+  max-height: fit-content;
   overflow: visible;
   padding: 20px;
   margin: 0;

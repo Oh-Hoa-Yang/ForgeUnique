@@ -4,44 +4,40 @@
     <!-- Main Content (imported component) -->
      <div class="custom-background">
       <div class="container mx-auto">
-       <ion-card class="expense-card">
+       <ion-card class="expense-card mx-4">
          <h1 style="text-align: center; font-weight: bold; color: black;">EXPENSE</h1>
          <h4 style="font-style: italic;">**Select the categories below to <b style="color: black;">ADD</b> your expense.</h4>
  
          <!-- Categories Grid -->
-         <div class="categories-grid">
+         <div class="grid grid-cols-5 gap-3 my-4 md:grid-cols-4 max-sm:grid-cols-2 gap-4">
            <ion-button
              v-for="category in categories"
              :key="category.name"
              class="category-btn"
              @click="goToAddExpensePage(category.name)"
            >
-             <div class="category-content">
+             <div>
                <span :class="category.iconClass" class="category-icon"></span> 
-               <span class="category-name">{{ category.name }}</span>
+               <span class="category-name text-[10px]"><br>{{ category.name }}</span>
              </div>
            </ion-button>
          </div>
  
-         <!-- Total Expense Button  -->
-         <div style="display: flex; justify-content: center;">
-           <ion-button class="balance-button" disabled="true">
-             Expense ({{ appState.monthlyExpense }})
-           </ion-button>
-         </div>
-         
-         <!-- Expense budget Button with display  -->
-         <div style="display: flex; justify-content: center;">
-           <ion-button class="budget-button" @click="openModal">
-             Budget ({{ budget }})
-           </ion-button>
-         </div>
-         
-         <!-- Expense Record Button -->
-         <div style="display: flex; justify-content: center;">
-           <ion-button class="record-button" @click="router.push('/expenserecordpage')">
-             Record
-           </ion-button>
+         <div class="mx-2 flex flex-wrap flex-col justify-between"> 
+           <!-- Total Expense Button  -->
+             <ion-button class="balance-button" disabled="true">
+               Expense ({{ appState.monthlyExpense }})
+             </ion-button>
+           
+           <!-- Expense budget Button with display  -->
+             <ion-button class="budget-button" @click="openModal">
+               Budget ({{ budget }})
+             </ion-button>
+           
+           <!-- Expense Record Button -->
+             <ion-button class="record-button" @click="router.push('/expenserecordpage')">
+               Record
+             </ion-button>
          </div>
        </ion-card>
  
@@ -275,7 +271,7 @@ watch(
   bottom: 0;
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .container {
@@ -286,29 +282,23 @@ watch(
   flex: 1;
   box-sizing: border-box;
   border-radius: 8px;
-  overflow-y: scroll;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  overflow-y: auto;
 }
 
 .expense-card {
   display: flex;
   flex-direction: column;
-  min-height: fit-content;
-  flex-shrink: 0;
+  /* flex: 1; */
   align-items: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   background-color: white;
+  overflow-y: auto;
+  max-height: 100vh;
+  height: 100%;
   /* Ensure card background color is visible */
-}
-
-.categories-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr); /* Always 5 items per row */
-  gap: 10px;
-  margin: 20px auto;
-  max-width: 100%; /* Ensure it stretches as needed */
 }
 
 .category-btn {
@@ -325,18 +315,6 @@ watch(
   margin: 0 auto;
 }
 
-@media (max-width: 768px) {
-  .categories-grid {
-    grid-template-columns: repeat(3, 1fr); /* 3 items per row on smaller screens */
-  }
-}
-
-@media (max-width: 480px) {
-  .categories-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 items per row on very small screens */
-  }
-}
-
 .category-icon {
   font-size: 24px;
   margin-bottom: 5px;
@@ -346,7 +324,6 @@ watch(
 }
 
 .category-name {
-  font-size: 12px;
   text-align: center;
   margin-top: 5px;
 }
@@ -499,8 +476,8 @@ watch(
   --background: #FFD6E5;
   --color: #000;
   font-size: 30px;
-  height: 150px;
-  width: 500px;
+  width: 100%;
+  height: 100px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;

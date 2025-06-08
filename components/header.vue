@@ -120,6 +120,7 @@ ion-toolbar {
 .left-logo {
   display: flex;
   align-items: center;
+  object-fit: contain;
 }
 
 .logo {

@@ -7,7 +7,7 @@
       loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
       success-duration="500" animation-duration="300" head-height="50"> -->
         
-        <div class="container">
+        <div class="container mx-auto">
         <ion-card class="page-card">
           <div class="top-row-container">
             <button @click="router.push('/expensehomepage')">
@@ -27,9 +27,9 @@
           </div>
 
           <!-- Search -->
-          <div style="display: flex; justify-content: center; padding: 10px;">
+          <div style="display: flex; justify-content: center; padding: 10px;" class="items-center">
             <ion-item style="--background: #FFD6E5;">
-              <ion-label><span class="ic--sharp-search"></span></ion-label>
+              <ion-label><span class="ic--sharp-search mt-2"></span></ion-label>
               <ion-input class="input-field" type="text" v-model="searchQuery" placeholder="Search by description"
                 @input="filterRecords">
               </ion-input>
@@ -259,12 +259,13 @@ onMounted(fetchRecords);
 
 .container {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 20px;
   width: 100%;
-  min-height: 100%;
   padding: 20px;
   box-sizing: border-box;
+  height: fit-content;
 }
 
 .page-card {
