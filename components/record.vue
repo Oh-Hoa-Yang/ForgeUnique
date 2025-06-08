@@ -1,25 +1,27 @@
 <template>
   <div class="custom-background">
-    <div class="container mx-auto">
-      <div style="display: flex; justify-items: center; justify-content: center; margin-top: 20px;">
-        <button 
-          @click="isRecording ? stopRecording() : startRecording()" 
-          :class="['record-button', { 'recording': isRecording }]"
-        >
-          <span :class="isRecording ? 'fluent--record-stop-20-regular' : 'fluent--mic-record-28-regular'"></span>
-        </button>
-      </div>
-
-      <!-- List of recordings -->
-      <div v-for="clip in sortedRecordings" :key="clip.audio_number" style="display: flex; justify-content: space-between; align-items: center; margin-left: 20px; margin-right: 20px; border-bottom: 1px solid #eee; padding: 10px 5px;">
-        <div class="audio-badge">
-          {{ clip.audio_number }}
+    <div class="container mx-auto ">
+      <div class="contain">
+        <div style="display: flex; justify-items: center; justify-content: center; margin-top: 20px;">
+          <button 
+            @click="isRecording ? stopRecording() : startRecording()" 
+            :class="['record-button', { 'recording': isRecording }]"
+          >
+            <span :class="isRecording ? 'fluent--record-stop-20-regular' : 'fluent--mic-record-28-regular'"></span>
+          </button>
         </div>
-        <audio :src="clip.src" controls class="custom-audio-player"></audio>
-        <button @click="deleteAudio(clip)" class="delete-button">
-          <span class="material-symbols--delete-outline"></span>
-        </button>
-      </div>  
+  
+        <!-- List of recordings -->
+        <div v-for="clip in sortedRecordings" :key="clip.audio_number" style="display: flex; justify-content: space-between; align-items: center; margin-left: 20px; margin-right: 20px; border-bottom: 1px solid #eee; padding: 10px 5px;">
+          <div class="audio-badge">
+            {{ clip.audio_number }}
+          </div>
+          <audio :src="clip.src" controls class="custom-audio-player"></audio>
+          <button @click="deleteAudio(clip)" class="delete-button">
+            <span class="material-symbols--delete-outline"></span>
+          </button>
+        </div>  
+      </div>
     </div>
   </div>
 </template>
@@ -303,15 +305,17 @@ const sortedRecordings = computed(() => {
   width: 100%;
   flex: 1;
   box-sizing: border-box;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   overflow-y: scroll;
   overscroll-behavior: contain;
   padding: 20px;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
-  margin: auto;
+}
+
+.contain {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .record-button {
