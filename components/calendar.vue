@@ -207,27 +207,24 @@
 <script setup>
 import 'v-calendar/style.css';
 import { useAppToast } from '~/composables/useAppToast';
-import PullRefresh from 'pull-refresh-vue3';
+import { onIonViewWillEnter } from '@ionic/vue';
 
 const { toastError, toastSuccess } = useAppToast();
 
 const loading = ref(false);
-const handleRefresh = async () => {
-  try {
-    loading.value = true; // Start loading
-    await fetchBiggestGain(); // Fetch the biggest gain data
-    await fetchImprovementPlans();
-    await fetchMonthlyPlans();
-  } catch (error) {
-    console.error('Refresh error:', error);
-    toastError({ title: 'Error', description: 'Failed to refresh data.' });
-  } finally {
-    loading.value = false; // Stop loading
-  }
-};
-
-
-
+// const handleRefresh = async () => {
+//   try {
+//     loading.value = true; // Start loading
+//     await fetchBiggestGain(); // Fetch the biggest gain data
+//     await fetchImprovementPlans();
+//     await fetchMonthlyPlans();
+//   } catch (error) {
+//     console.error('Refresh error:', error);
+//     toastError({ title: 'Error', description: 'Failed to refresh data.' });
+//   } finally {
+//     loading.value = false; // Stop loading
+//   }
+// };
 
 const attrs = ref([
   {
@@ -707,6 +704,22 @@ const deleteImprovementPlan = async (planId) => {
     toastError({ title: 'Error', description: 'An unexpected error occurred' });
   }
 };
+
+const refreshCalendarData = async () => {
+  try {
+    await fetchMonthlyPlans();
+    await fetchImprovementPlans();
+    await fetchBiggestGain();
+  } catch (error) {
+    console.error('Error refreshing calendar data:', error);
+    toastError({ title: 'Error', description: 'Failed to refresh calendar data' });
+  }
+};
+
+// Use Ionic's lifecycle hook to refresh data when view enters
+onIonViewWillEnter(async () => {
+  await refreshCalendarData();
+});
 
 </script>
 

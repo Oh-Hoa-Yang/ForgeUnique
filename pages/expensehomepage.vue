@@ -2,65 +2,67 @@
   <!-- Main Page with Content -->
   <ion-page id="main-content">
     <!-- Main Content (imported component) -->
-    <ion-content>
-      <ion-card class="expense-card">
-        <h1 style="text-align: center; font-weight: bold; color: black;">EXPENSE</h1>
-        <h4 style="font-style: italic;">**Select the categories below to <b style="color: black;">ADD</b> your expense.</h4>
-
-        <!-- Categories Grid -->
-        <div class="categories-grid">
-          <ion-button
-            v-for="category in categories"
-            :key="category.name"
-            class="category-btn"
-            @click="goToAddExpensePage(category.name)"
-          >
-            <div class="category-content">
-              <span :class="category.iconClass" class="category-icon"></span> 
-              <span class="category-name">{{ category.name }}</span>
-            </div>
-          </ion-button>
-        </div>
-
-        <!-- Total Expense Button  -->
-        <div style="display: flex; justify-content: center;">
-          <ion-button class="balance-button" disabled="true">
-            Expense ({{ appState.monthlyExpense }})
-          </ion-button>
-        </div>
-        
-        <!-- Expense budget Button with display  -->
-        <div style="display: flex; justify-content: center;">
-          <ion-button class="budget-button" @click="openModal">
-            Budget ({{ budget }})
-          </ion-button>
-        </div>
-        
-        <!-- Expense Record Button -->
-        <div style="display: flex; justify-content: center;">
-          <ion-button class="record-button" @click="router.push('/expenserecordpage')">
-            Record
-          </ion-button>
-        </div>
-      </ion-card>
-
-      <!-- Custom Modal for Budget -->
-      <div v-if="showModal" class="modal-overlay">
-        <div class="modal-content">
-          <h3>Set Your Budget</h3>
-          <ion-input
-            v-model="newBudget"
-            type="number"
-            placeholder="Enter your budget"
-            class="budget-input"
-          ></ion-input>
-          <div class="modal-buttons">
-            <ion-button @click="setBudget">Set</ion-button>
-            <ion-button color="medium" @click="closeModal">Cancel</ion-button>
-          </div>
-        </div>
+     <div class="custom-background">
+      <div class="container mx-auto">
+       <ion-card class="expense-card">
+         <h1 style="text-align: center; font-weight: bold; color: black;">EXPENSE</h1>
+         <h4 style="font-style: italic;">**Select the categories below to <b style="color: black;">ADD</b> your expense.</h4>
+ 
+         <!-- Categories Grid -->
+         <div class="categories-grid">
+           <ion-button
+             v-for="category in categories"
+             :key="category.name"
+             class="category-btn"
+             @click="goToAddExpensePage(category.name)"
+           >
+             <div class="category-content">
+               <span :class="category.iconClass" class="category-icon"></span> 
+               <span class="category-name">{{ category.name }}</span>
+             </div>
+           </ion-button>
+         </div>
+ 
+         <!-- Total Expense Button  -->
+         <div style="display: flex; justify-content: center;">
+           <ion-button class="balance-button" disabled="true">
+             Expense ({{ appState.monthlyExpense }})
+           </ion-button>
+         </div>
+         
+         <!-- Expense budget Button with display  -->
+         <div style="display: flex; justify-content: center;">
+           <ion-button class="budget-button" @click="openModal">
+             Budget ({{ budget }})
+           </ion-button>
+         </div>
+         
+         <!-- Expense Record Button -->
+         <div style="display: flex; justify-content: center;">
+           <ion-button class="record-button" @click="router.push('/expenserecordpage')">
+             Record
+           </ion-button>
+         </div>
+       </ion-card>
+ 
+       <!-- Custom Modal for Budget -->
+       <div v-if="showModal" class="modal-overlay">
+         <div class="modal-content">
+           <h3>Set Your Budget</h3>
+           <ion-input
+             v-model="newBudget"
+             type="number"
+             placeholder="Enter your budget"
+             class="budget-input"
+           ></ion-input>
+           <div class="modal-buttons">
+             <ion-button @click="setBudget">Set</ion-button>
+             <ion-button color="medium" @click="closeModal">Cancel</ion-button>
+           </div>
+         </div>
+       </div>
       </div>
-    </ion-content>
+     </div>
   </ion-page>
 </template>
 
@@ -265,15 +267,38 @@ watch(
 
 <style scoped>
 .custom-background {
-  --background: #FFEDF5;
-  /* height: 10000000px; */
+  background: #FFEDF5;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  flex: 1;
+  box-sizing: border-box;
+  border-radius: 8px;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 .expense-card {
+  display: flex;
+  flex-direction: column;
+  min-height: fit-content;
+  flex-shrink: 0;
   align-items: center;
-  padding: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
   background-color: white;
   /* Ensure card background color is visible */
 }

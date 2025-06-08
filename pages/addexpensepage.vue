@@ -1,12 +1,8 @@
 <template>
   <!-- Main Page with Content -->
   <ion-page id="main-content">
-    <!-- Header Component -->
-    <Header />
-
     <!-- Main Content (imported component) -->
-    <ion-content class="custom-background">
-      <ion-card>
+      <ion-card class="custom-background">
         <div class="top-row-container">
           <button @click="navBackExpenseHome">
             <span class="lets-icons--back"></span>
@@ -71,7 +67,6 @@
 
 
       </ion-card>
-    </ion-content>
 
 
     <!-- Modal for Date Picker -->
@@ -109,16 +104,10 @@
         </div>
       </div>
     </div>
-
-
-    <!-- Footer Component -->
-    <Footer :current-route="route.path" />
   </ion-page>
 </template>
 
 <script setup>
-import Header from '~/components/header.vue';
-import Footer from '~/components/footer.vue';
 import { useRoute } from 'vue-router';
 import { useAppToast } from '~/composables/useAppToast';
 import 'v-calendar/style.css';

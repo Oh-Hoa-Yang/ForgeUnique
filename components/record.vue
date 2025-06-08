@@ -29,6 +29,7 @@
 <script setup>
 import { VoiceRecorder } from 'capacitor-voice-recorder';
 import { useAppToast } from '~/composables/useAppToast.js';
+import { onIonViewWillEnter } from '@ionic/vue';
 
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
@@ -38,6 +39,19 @@ const { toastError, toastSuccess } = useAppToast();
 const isRecording = ref(false);
 const recordings = ref([]); // Store the list of audio clips
 const audioCounter = ref(0);
+
+const refreshRecordings = async () => {
+  try {
+    await fetchRecordings();
+  } catch (error) {
+    console.error('Error refreshing recordings:', error);
+    toastError({ title: 'Error', description: 'Failed to refresh recordings' });
+  }
+}
+
+onIonViewWillEnter(async () => {
+  await refreshRecordings();
+});
 
 // Check if the device can record audio
 const canRecord = async () => {

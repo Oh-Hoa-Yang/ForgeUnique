@@ -77,8 +77,22 @@
 <script setup>
 import 'v-calendar/style.css';
 import { useAppToast } from '~/composables/useAppToast';
+import { onIonViewWillEnter } from '@ionic/vue';
 
 const { toastError, toastSuccess } = useAppToast();
+
+const refreshYearlyPlans = async () => {
+  try {
+    await fetchYearlyPlans();
+  } catch (error) {
+    console.error('Error refreshing yearly plans:', error);
+    toastError({ title: 'Error', description: 'Failed to refresh yearly plans' });
+  }
+}
+
+onIonViewWillEnter(async () => {
+  await refreshYearlyPlans();
+});
 
 const attrs = ref([
   {
@@ -275,10 +289,14 @@ const deleteYearlyPlan = async (planId) => {
 <style scoped>
 .custom-background {
   background: #FFEDF5;
-  min-height: 100%;
-  width: 100%;
-  padding: 1rem;
-  overflow-y: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 ion-button {

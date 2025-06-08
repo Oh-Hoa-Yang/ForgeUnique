@@ -3,72 +3,73 @@
   <ion-page id="main-content">
     <div class="custom-background">
       <!-- Pull to refresh component -->
-      <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
-        loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
-        success-duration="500" animation-duration="300" head-height="50">
+    <!-- <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
+      loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
+      success-duration="500" animation-duration="300" head-height="50"> -->
         
         <div class="container">
-          <ion-card class="page-card">
-            <div class="top-row-container">
-              <button @click="router.push('/expensehomepage')">
-                <span class="lets-icons--back"></span>
-              </button>
-              <h1 style="font-size: 25px;">
-                <b>EXPENSE RECORDS</b>
-              </h1>
-              <div></div>
-            </div>
+        <ion-card class="page-card">
+          <div class="top-row-container">
+            <button @click="router.push('/expensehomepage')">
+              <span class="lets-icons--back"></span>
+            </button>
+            <h1 style="font-size: 25px;">
+              <b>EXPENSE RECORDS</b>
+            </h1>
+            <div></div>
+          </div>
 
-            <!-- Total Expense Button  -->
-            <div style="display: flex; justify-content: center;">
-              <ion-button class="balance-button" disabled="true">
-                Balance (RM{{ monthlyExpense }})
-              </ion-button>
-            </div>
+          <!-- Total Expense Button  -->
+          <div style="display: flex; justify-content: center;">
+            <ion-button class="balance-button" disabled="true">
+              Balance (RM{{ monthlyExpense }})
+            </ion-button>
+          </div>
 
-            <!-- Search -->
-            <div style="display: flex; justify-content: center; padding: 10px;">
-              <ion-item style="--background: #FFD6E5;">
-                <ion-label><span class="ic--sharp-search"></span></ion-label>
-                <ion-input class="input-field" type="text" v-model="searchQuery" placeholder="Search by description"
-                  @input="filterRecords">
-                </ion-input>
-              </ion-item>
-            </div>
+          <!-- Search -->
+          <div style="display: flex; justify-content: center; padding: 10px;">
+            <ion-item style="--background: #FFD6E5;">
+              <ion-label><span class="ic--sharp-search"></span></ion-label>
+              <ion-input class="input-field" type="text" v-model="searchQuery" placeholder="Search by description"
+                @input="filterRecords">
+              </ion-input>
+            </ion-item>
+          </div>
 
-            <!-- Expense Categories and Records -->
-            <div v-for="category in categoriesWithRecords" :key="category.name">
-              <div v-if="category.records.length > 0" class="category-section">
-                <!-- Category Header -->
-                <div class="category-header" @click="toggleDropdown(category.name)">
-                  <ion-icon :class="category.iconClass"></ion-icon>
-                  <span class="category-name">{{ category.name }}</span>
-                  <span class="category-total">RM{{ formatAmount(category.totalAmount) }}</span>
-                  <ion-icon
-                    :class="isDropdownOpen(category.name) ? 'mingcute--up-line' : 'mingcute--down-line'"></ion-icon>
-                </div>
-
-                <!-- Expense Records -->
-                <ul v-show="isDropdownOpen(category.name)" class="dropdown-content">
-                  <li v-for="record in category.records" :key="record.id" class="record-item with-bullet"
-                    @click="goToEditExpense(record)">
-                    <span class="expense-amount">RM{{ record.expenseAmount }}</span>
-                    <span class="expense-description">{{ record.expenseDescription }}</span>
-                    <span class="expense-date">{{ formatDate(record.expenseDate) }}</span>
-                  </li>
-                </ul>
+          <!-- Expense Categories and Records -->
+          <div v-for="category in categoriesWithRecords" :key="category.name">
+            <div v-if="category.records.length > 0" class="category-section">
+              <!-- Category Header -->
+              <div class="category-header" @click="toggleDropdown(category.name)">
+                <ion-icon :class="category.iconClass"></ion-icon>
+                <span class="category-name">{{ category.name }}</span>
+                <span class="category-total">RM{{ formatAmount(category.totalAmount) }}</span>
+                <ion-icon
+                  :class="isDropdownOpen(category.name) ? 'mingcute--up-line' : 'mingcute--down-line'"></ion-icon>
               </div>
+
+              <!-- Expense Records -->
+              <ul v-show="isDropdownOpen(category.name)" class="dropdown-content">
+                <li v-for="record in category.records" :key="record.id" class="record-item with-bullet"
+                  @click="goToEditExpense(record)">
+                  <span class="expense-amount">RM{{ record.expenseAmount }}</span>
+                  <span class="expense-description">{{ record.expenseDescription }}</span>
+                  <span class="expense-date">{{ formatDate(record.expenseDate) }}</span>
+                </li>
+              </ul>
             </div>
-          </ion-card>
+          </div>
+        </ion-card>
         </div>
-      </PullRefresh>
+    <!-- </PullRefresh> -->
     </div>
   </ion-page>
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router';
-import PullRefresh from 'pull-refresh-vue3';
+// import PullRefresh from 'pull-refresh-vue3';\
+import { onIonViewWillEnter } from '@ionic/vue';
 
 definePageMeta({
   middleware: 'auth'
@@ -80,6 +81,7 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
 const appState = inject('appState');
+
 
 // Categories and their icons
 const categories = ref([
@@ -151,9 +153,23 @@ const fetchRecords = async () => {
   }
 };
 
-const handleRefresh = async () => {
-  await fetchRecords();  // Fetch new records
+// const handleRefresh = async () => {
+//   await fetchRecords();  // Fetch new records
+// };
+
+//New add to replace PullRefresh`
+const refreshRecords = async () => {
+  try {
+    await fetchRecords();
+  } catch (error) {
+    console.error('Error refreshing records:', error);
+    toastError({ title: 'Error', description: 'Failed to refresh expense record data.' });
+  } 
 };
+
+onIonViewWillEnter(async () => {
+  await refreshRecords();
+});
 
 const fetchAllRecords = async () => {
   try {
@@ -292,7 +308,7 @@ onMounted(fetchRecords);
 }
 
 .ic--sharp-search {
-  display: inline-block;
+  display: inline-block; 
   width: 28px;
   height: 28px;
   background-repeat: no-repeat;

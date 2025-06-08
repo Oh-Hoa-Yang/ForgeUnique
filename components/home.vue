@@ -173,19 +173,20 @@ import { VueSignaturePad } from '@selemondev/vue3-signature-pad';
 import { _backgroundColor, _maxWidth } from '#tailwind-config/theme';
 import { nextTick } from 'vue';
 import PullRefresh from 'pull-refresh-vue3';
+import { onIonViewWillEnter } from '@ionic/vue';
 
 const loading = ref(false);
-const handleRefresh = async () => {
-  try {
-    loading.value = true; // Start loading
-    await fetchExpenses();
-  } catch (error) {
-    console.error('Refresh error:', error);
-    toastError({ title: 'Error', description: 'Failed to refresh data.' });
-  } finally {
-    loading.value = false; // Stop loading
-  }
-};
+// const handleRefresh = async () => {
+//   try {
+//     loading.value = true; // Start loading
+//     await fetchExpenses();
+//   } catch (error) {
+//     console.error('Refresh error:', error);
+//     toastError({ title: 'Error', description: 'Failed to refresh data.' });
+//   } finally {
+//     loading.value = false; // Stop loading
+//   }
+// };
 
 const { toastError, toastSuccess } = useAppToast();
 const { fetchUser } = useAuthUser();
@@ -985,6 +986,24 @@ const closeConfirmationModal = () => {
   showConfirmationModal.value = false;
   todoToDelete.value = null;
 };
+
+//New add to replace PullRefresh
+const refreshAllData = async () => {
+  try {
+    await fetchExpenses();
+    await fetchTodos();
+    await fetchSketchbooks();
+    await fetchBudget();
+  } catch (error) {
+    console.error('Error refreshing data:', error);
+    toastError({ title: 'Error', description: 'Failed to refresh data' });
+  }
+};
+
+// Use Ionic's lifecycle hook to refresh data when view enters
+onIonViewWillEnter(async () => {
+  await refreshAllData();
+});
 
 </script>
 
