@@ -26,7 +26,8 @@
          <div class="mx-2 flex flex-wrap flex-col justify-between"> 
            <!-- Total Expense Button  -->
              <ion-button class="balance-button" disabled="true">
-               Expense ({{ appState.monthlyExpense }})
+               <!-- Expense ({{ appState.monthlyExpense }}) -->
+               Expense ({{ monthlyExpense }})
              </ion-button>
            
            <!-- Expense budget Button with display  -->
@@ -64,6 +65,7 @@
 
 <script setup>
 import { useRoute } from 'vue-router';
+import { onIonViewWillEnter } from '@ionic/vue';
 
 const route = useRoute();
 
@@ -79,50 +81,66 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const router = useRouter();
 
-const appState = inject('appState');
-if (!appState) {
-  console.error('Failed to inject appState. Ensure App.vue provides it.');
-}
+const monthlyExpense = ref(0);
 
 const fetchExpenses = async () => {
-  if (!user.value) return;
-
+  if (!user.value) {
+    console.log('No user found'); 
+    return;
+  }
+  
   try {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
 
+    console.log('Fetching expenses for:', { year: currentYear, month: currentMonth });
+
     const { data: expenses, error } = await supabase
       .from('Expenses')
       .select('expenseAmount, expenseDate')
-      .eq('user_id', user.value.id);
+      .eq('user_id', user.value.id)
 
-    if (error) throw error;
-
-    let fetchedMonthlyExpense = 0;
-
-    if (expenses) {
-      fetchedMonthlyExpense = expenses
-        .filter((expense) => {
-          const expenseDate = new Date(expense.expenseDate);
-          return (
-            expenseDate.getFullYear() === currentYear &&
-            expenseDate.getMonth() + 1 === currentMonth
-          );
-        })
-        .reduce((sum, expense) => sum + expense.expenseAmount, 0);
-
+    if (error) {
+      console.error('Error fetching expenses:', error);
+      monthlyExpense.value = 0;
+      return;
     }
 
-    appState.monthlyExpense = fetchedMonthlyExpense;
+    // let fetchedMonthlyExpense = 0;
 
-    return { monthlyExpense: fetchedMonthlyExpense};
+    // if (expenses) {
+    //   fetchedMonthlyExpense = expenses
+    //     .filter((expense) => {
+    //       const expenseDate = new Date(expense.expenseDate);
+    //       return (
+    //         expenseDate.getFullYear() === currentYear &&
+    //         expenseDate.getMonth() + 1 === currentMonth
+    //       );
+    //     })
+    //     .reduce((sum, expense) => sum + expense.expenseAmount, 0);
+
+    const total = expenses ? expenses.filter((expense) => {
+      const expenseDate = new Date(expense.expenseDate);
+      return (
+        expenseDate.getFullYear() === currentYear &&
+        expenseDate.getMonth() + 1 === currentMonth
+      );
+    })
+    .reduce((sum, expense) => sum + (expense.expenseAmount || 0), 0)
+    : 0;
+    console.log('Total expense for current month:', total);
+
+    monthlyExpense.value = total;
   } catch (err) {
     console.error('Error fetching expenses from Supabase:', err.message);
-    return { monthlyExpense: 0 };
+    // monthlyExpense.value = fetchedMonthlyExpense;
+    // return { monthlyExpense: fetchedMonthlyExpense };
+  // } catch (err) {
+  //   console.error('Error fetching expenses from Supabase:', err.message);
+  //   return { monthlyExpense: 0 };
   }
 };
-
 
 //General
 const totalExpense = ref(0);
@@ -161,15 +179,15 @@ const closeModal = () => {
 
 //Fetch the current budget from Supabase 
 const fetchBudget = async () => {
-  try{
+  try {
     const { data, error } = await supabase
-    .from('Users')
-    .select('budget')
-    .eq('user_id', user.value.id)
-    .single();
-    
+      .from('Users')
+      .select('budget')
+      .eq('user_id', user.value.id)
+      .single();
+
     if (error) throw error;
-    
+
     budget.value = data?.budget || 0;
   } catch (err) {
     console.error('Error fetching budget:', err.message);
@@ -179,25 +197,29 @@ const fetchBudget = async () => {
 //Set the new budget and update in Supabase 
 const setBudget = async () => {
   if (!newBudget.value) {
-    toastError({ title: "Error", description: 'Budget cannot be empty!'});
+    toastError({ title: "Error", description: 'Budget cannot be empty!' });
     return;
   }
-  
+
   try {
     const { error } = await supabase
+    // .from('Users')
+    // .update({ budget: parseFloat(newBudget.value), email: user.value.email }) //Ensure the budget is stored as float
+    // .eq('user_id', user.value.id);
     .from('Users')
-    .update({ budget: parseFloat(newBudget.value), email: user.value.email }) //Ensure the budget is stored as float
+    .update({ budget: parseFloat(newBudget.value), email: user.value.email })
     .eq('user_id', user.value.id);
     
     if (error) throw error;
     
-    budget.value = parseFloat(newBudget.value); //update local
-    appState.budget = budget.value;
+    // budget.value = parseFloat(newBudget.value); //update local
+    // appState.budget = budget.value;
+    budget.value = parseFloat(newBudget.value);
     closeModal();
-    toastSuccess({ title:'Success', description: 'Budget updated successfully!'})
+    toastSuccess({ title: 'Success', description: 'Budget updated successfully!' })
   } catch (err) {
     console.error('Error updating budget:', err.message);
-    toastError({ title:'Error', description:'Failed to update budget. Try again!'});
+    toastError({ title: 'Error', description: 'Failed to update budget. Try again!' });
   }
 };
 
@@ -212,52 +234,69 @@ onMounted(() => {
 });
 
 //Fetch Total Expense
-const fetchTotalExpense = async () => {
+// const fetchTotalExpense = async () => {
+//   try {
+//     const currentDate = new Date();
+//     const currentYear = currentDate.getFullYear();
+//     const currentMonth = currentDate.getMonth() + 1; // JavaScript months are zero-based
+    
+//     // Query the database for the sum of expenseAmount for the current year and month
+//     const { data, error } = await supabase
+//     .from('Expenses')
+//     .select('expenseAmount, expenseDate') // Fetch expenseAmount and expenseDate
+//     .eq('user_id', user.value.id);
+    
+//     if (error) {
+//       console.error('Error fetching expenses:', error);
+//       return;
+//     }
+    
+//     // Filter and sum expenses for the same year and month
+//     const total = data
+//     .filter((expense) => {
+//       const expenseDate = new Date(expense.expenseDate);
+//       return (
+//         expenseDate.getFullYear() === currentYear &&
+//         expenseDate.getMonth() + 1 === currentMonth
+//       );
+//     })
+//     .reduce((sum, expense) => sum + expense.expenseAmount, 0);
+    
+//     totalExpense.value = total;
+//   } catch (error) {
+//     console.error('Unexpected error:', error);
+//   }
+// };
+
+//Call the total expense
+// onMounted(fetchTotalExpense);
+onMounted(fetchExpenses);
+// Watch for query changes
+// watch(
+//   () => route.query.refresh,
+//   (refresh) => {
+//     if (refresh) {
+//       fetchExpenses();
+//     }
+//   },
+//   { immediate: true } // Run on component mount
+// );
+
+// Function to refresh all data
+const refreshData = async () => {
   try {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are zero-based
-    
-    // Query the database for the sum of expenseAmount for the current year and month
-    const { data, error } = await supabase
-    .from('Expenses')
-    .select('expenseAmount, expenseDate') // Fetch expenseAmount and expenseDate
-    .eq('user_id', user.value.id);
-    
-    if (error) {
-      console.error('Error fetching expenses:', error);
-      return;
-    }
-    
-    // Filter and sum expenses for the same year and month
-    const total = data
-    .filter((expense) => {
-      const expenseDate = new Date(expense.expenseDate);
-      return (
-        expenseDate.getFullYear() === currentYear &&
-        expenseDate.getMonth() + 1 === currentMonth
-      );
-    })
-    .reduce((sum, expense) => sum + expense.expenseAmount, 0);
-    
-    totalExpense.value = total;
+    await fetchExpenses();
+    await fetchBudget();
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('Error refreshing data:', error);
+    toastError({ title: 'Error', description: 'Failed to refresh data' });
   }
 };
 
-//Call the total expense
-onMounted(fetchTotalExpense);
-// Watch for query changes
-watch(
-  () => route.query.refresh,
-  (refresh) => {
-    if (refresh) {
-      fetchTotalExpense();
-    }
-  },
-  { immediate: true } // Run on component mount
-);
+// Use Ionic's lifecycle hook to refresh data when view enters
+onIonViewWillEnter(async () => {
+  await refreshData();
+});
 
 </script>
 
