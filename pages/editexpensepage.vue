@@ -2,7 +2,9 @@
   <!-- Main Page with Content -->
   <ion-page id="main-content">
     <!-- Main Content (imported component) -->
-      <ion-card class="custom-background">
+     <div class="custom-background">
+      <div class="container mx-auto">
+      <ion-card class="expense-card">
         <div class="top-row-container">
           <button @click="navBackExpenseRecord">
             <span class="lets-icons--back"></span>
@@ -108,6 +110,8 @@
           <ion-button color="medium" @click="closeRecurringModal">Cancel</ion-button>
         </div>
       </div>
+    </div>
+    </div>
     </div>
   </ion-page>
 </template>
@@ -349,8 +353,39 @@ const deleteExpense = async () => {
 
 <style scoped>
 .custom-background {
-  --background: #FFEDF5;
-  /* height: 10000000px; */
+  background: #FFEDF5;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  flex: 1;
+  box-sizing: border-box;
+  border-radius: 8px;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.expense-card{
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  height: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  background-color: white;
+  overflow-y: auto;
 }
 
 .top-row-container {
