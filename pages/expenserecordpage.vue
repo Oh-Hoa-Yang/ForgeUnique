@@ -298,33 +298,32 @@ onMounted(fetchRecords);
 <style scoped>
 .custom-background {
   background: #FFEDF5;
-  min-height: 100vh;
   width: 100%;
-  padding: 1rem;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
 
 .container {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 20px;
   width: 100%;
-  padding: 20px;
+  flex: 1;
   box-sizing: border-box;
-  height: fit-content;
+  overscroll-behavior: contain;
+  padding: 20px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 .page-card {
-  align-items: center;
+  background: white;
   padding: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   border-radius: 8px;
-  background-color: white;
-  /* Ensure card background color is visible */
-  /* height: 1000000000000000px; */
+  /* width: 100%; */
+  display: flex;
+  flex-direction: column;
 }
 
 .top-row-container {
