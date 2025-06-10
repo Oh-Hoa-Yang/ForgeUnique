@@ -153,7 +153,7 @@
   
             <!-- Sketch Canvas -->
             <div class="h-screen">
-              <div class="signature-container h-full">
+              <div class="signature-container h-full border border-black-100">
                 <vue-signature-pad 
                   ref="signaturePad" 
                   :options="signatureOptions"  
@@ -1054,14 +1054,16 @@ const nextTodoPage = () => {
 <style scoped>
 .custom-background {
   background: #FFEDF5;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  &:has(.modal-overlay) {
+    position: fixed;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    inset: 0;
+  }
 }
 
 ion-button {
@@ -1074,25 +1076,20 @@ ion-button {
 }
 
 .container {
+  flex: 1;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  width: 100%;
-  flex: 1;
-  box-sizing: border-box;
-  overflow-y: scroll;
-  overscroll-behavior: contain;
-  padding: 20px;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
 }
 
 .row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 2fr;
   gap: 20px;
-  height: auto;
-  min-height: fit-content;
+  margin-bottom: 20px;
 }
 
 .expense-button {
@@ -1101,8 +1098,11 @@ ion-button {
   padding: 0;
   cursor: pointer;
   width: 100%;
+  height: 100%; /* Take full height of grid cell */
   text-align: left;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .expense-button:hover {
@@ -1113,13 +1113,22 @@ ion-button {
 .expense {
   background-color: #fff;
   padding: 20px;
-  border-radius: 10px;
+  line-height: 1.5;
+  border-radius: 8px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .todo-list {
-  background-color: #f9f9f9;
+  background-color: #fff;
   padding: 20px;
   border-radius: 8px;
+  height: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .sketch-plan {
@@ -1129,7 +1138,8 @@ ion-button {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Prevent content from spilling out */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  min-height: 1400px; /* Ensure minimum height for sketching area */
 }
 
 .signature-container {
@@ -1144,20 +1154,28 @@ ion-button {
   user-select: none;
   width: 100% !important;
   height: 100% !important;
-  border: 1px solid #ccc;
+  border: 1px solid #aaaaaa;
 }
 
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
+  inset: 0;
+  width: 100dvw;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
+  z-index: 9999;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  overscroll-behavior: contain;
+  touch-action: none;
+  pointer-events: all;
+  overflow: hidden;
+  -webkit-overflow-scrolling: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .modal-content {
@@ -1166,11 +1184,22 @@ ion-button {
   border-radius: 8px;
   max-width: 90%;
   width: 500px;
-  margin: 0 auto;
-  z-index: 1001;
+  margin: 20px;
+  z-index: 10000;
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
   position: relative;
-  text-align: center;
+  max-height: 80vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+ion-input {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 100%; 
 }
 
 .canvas-controls,
