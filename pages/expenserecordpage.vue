@@ -80,8 +80,8 @@ const router = useRouter();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
-const appState = inject('appState');
-
+// Remove appState injection
+// const appState = inject('appState');
 
 // Categories and their icons
 const categories = ref([
@@ -104,12 +104,11 @@ const categories = ref([
 ]);
 
 // States
-const defaultRecords = ref([]); // Current month's records
-
-const records = ref([]);
+const defaultRecords = ref([]); // All records
+const records = ref([]); // Filtered records for display
 const searchQuery = ref('');
 const dropdownState = ref({});
-const monthlyExpense = computed(() => appState.monthlyExpense || 0);
+const monthlyExpense = ref(0);
 const loading = ref(false);
 
 const adjustToUTC = (date) => {
@@ -118,34 +117,71 @@ const adjustToUTC = (date) => {
   return utcDate;
 };
 
-// Fetch records from Supabase
+// // Fetch records from Supabase
+// const fetchRecords = async () => {
+//   const currentMonthStart = adjustToUTC(new Date());
+//   currentMonthStart.setDate(1);
+//   currentMonthStart.setHours(0, 0, 0, 0); //Start of the month
+// Filter records for current month
+const filterCurrentMonthRecords = (allRecords) => {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1; // 1-based month
+
+  // const currentMonthEnd = new Date(currentMonthStart);
+  // currentMonthEnd.setMonth(currentMonthEnd.getMonth() + 1); //Move to next month
+  // currentMonthEnd.setDate(0); //Last day of the current month
+  // currentMonthEnd.setHours(23, 59, 59, 999); //End of the month
+  return allRecords.filter((record) => {
+    const expenseDate = new Date(record.expenseDate);
+    return (
+      expenseDate.getFullYear() === currentYear &&
+      expenseDate.getMonth() + 1 === currentMonth
+    );
+  });
+};
+
+  // console.log('Start Date (UTC):', currentMonthStart.toISOString());
+  // console.log('End Date (UTC):', currentMonthEnd.toISOString());
+  // Calculate total expense for current month
+const calculateMonthlyExpense = (allRecords) => {
+  const currentMonthRecords = filterCurrentMonthRecords(allRecords);
+  return currentMonthRecords.reduce((sum, expense) => sum + (expense.expenseAmount || 0), 0);
+};
+
+// Fetch ALL records from Supabase
 const fetchRecords = async () => {
-  const currentMonthStart = adjustToUTC(new Date());
-  currentMonthStart.setDate(1);
-  currentMonthStart.setHours(0, 0, 0, 0); //Start of the month
-
-  const currentMonthEnd = new Date(currentMonthStart);
-  currentMonthEnd.setMonth(currentMonthEnd.getMonth() + 1); //Move to next month
-  currentMonthEnd.setDate(0); //Last day of the current month
-  currentMonthEnd.setHours(23, 59, 59, 999); //End of the month
-
-  console.log('Start Date (UTC):', currentMonthStart.toISOString());
-  console.log('End Date (UTC):', currentMonthEnd.toISOString());
-
   loading.value = true;
 
   try {
     const { data, error } = await supabase
       .from('Expenses')
       .select('*')
-      .eq('user_id', user.value.id)
-      .gte('expenseDate', currentMonthStart.toISOString())
-      .lte('expenseDate', currentMonthEnd.toISOString()); // Filter by date range
+      // .eq('user_id', user.value.id)
+      // .gte('expenseDate', currentMonthStart.toISOString())
+      // .lte('expenseDate', currentMonthEnd.toISOString()); // Filter by date range
+      .eq('user_id', user.value.id);
     if (error) {
       console.error('Error fetching records:', error.message);
+      return;
     }
-    defaultRecords.value =  data;
-    records.value = data;
+    // defaultRecords.value =  data;
+    // records.value = data;
+    
+    defaultRecords.value = data || []; // Store all records
+    
+    // If there's a search query, filter by search
+    if (searchQuery.value.trim()) {
+      records.value = data.filter((record) =>
+        record.expenseDescription.toLowerCase().includes(searchQuery.value.toLowerCase())
+      );
+    } else {
+      // Otherwise, show only current month records
+      records.value = filterCurrentMonthRecords(data);
+    }
+
+    // Calculate monthly expense (always for current month regardless of search)
+    monthlyExpense.value = calculateMonthlyExpense(data);
   } catch (error) {
     console.error('Error fetching records:', error);
   } finally {
@@ -156,8 +192,20 @@ const fetchRecords = async () => {
 // const handleRefresh = async () => {
 //   await fetchRecords();  // Fetch new records
 // };
+watch(searchQuery, (newQuery) => {
+  if (newQuery.trim()) {
+    // Show all matching records when searching
+    records.value = defaultRecords.value.filter((record) =>
+      record.expenseDescription.toLowerCase().includes(newQuery.toLowerCase())
+    );
+  } else {
+    // Show only current month records when not searching
+    records.value = filterCurrentMonthRecords(defaultRecords.value);
+  }
+});
 
-//New add to replace PullRefresh`
+//New add to replace PullRefresh
+// Refresh records
 const refreshRecords = async () => {
   try {
     await fetchRecords();
@@ -167,36 +215,37 @@ const refreshRecords = async () => {
   } 
 };
 
+// Fetch data when entering the page
 onIonViewWillEnter(async () => {
   await refreshRecords();
 });
 
-const fetchAllRecords = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('Expenses')
-      .select('*')
-      .eq('user_id', user.value.id); // Fetch all records for the user
+// const fetchAllRecords = async () => {
+//   try {
+//     const { data, error } = await supabase
+//       .from('Expenses')
+//       .select('*')
+//       .eq('user_id', user.value.id); // Fetch all records for the user
 
-    if (error) {
-      console.error('Error fetching records:', error.message);
-    } else {
-      records.value = data.filter((record) =>
-        record.expenseDescription.toLowerCase().includes(searchQuery.value.toLowerCase())
-      );
-    }
-  } catch (error) {
-    console.error('Error fetching records:', error);
-  }
-};
+//     if (error) {
+//       console.error('Error fetching records:', error.message);
+//     } else {
+//       records.value = data.filter((record) =>
+//         record.expenseDescription.toLowerCase().includes(searchQuery.value.toLowerCase())
+//       );
+//     }
+//   } catch (error) {
+//     console.error('Error fetching records:', error);
+//   }
+// };
 
-watch(searchQuery, async (newQuery) => {
-  if (newQuery.trim()) {
-    await fetchAllRecords(); // Fetch all records and filter based on search query
-  } else {
-    records.value = defaultRecords.value; // Reset to current month's records
-  }
-});
+// watch(searchQuery, async (newQuery) => {
+//   if (newQuery.trim()) {
+//     await fetchAllRecords(); // Fetch all records and filter based on search query
+//   } else {
+//     records.value = defaultRecords.value; // Reset to current month's records
+//   }
+// });
 
 // Filtered categories based on records and search query
 const categoriesWithRecords = computed(() => {
