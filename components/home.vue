@@ -75,7 +75,7 @@
         <!-- Confirmation Modal for Delete/Complete -->
         <div v-if="showConfirmationModal" class="modal-overlay">
           <div class="modal-content">
-            <p>Want to make this listing as {{ confirmationAction }}? </p>
+            <p>Want to make this task <b>"{{ currentTodo.todosDescription }}"</b> as {{ confirmationAction }}? </p>
             <div style="text-align: center; margin-top: 15px;">
               <ion-button @click="confirmAction">Yes</ion-button>
               <ion-button @click="closeConfirmationModal">No</ion-button>
@@ -114,7 +114,7 @@
                   </span>
                   <div style="display: flex; justify-content: end; align-items: center;">
                     <button @click.stop="openEditModal(sketch)"><span class="line-md--edit-twotone"></span></button>
-                    <button @click.stop="deleteSketchbook(sketch.id)"><span class="ic--twotone-delete"></span></button>
+                    <button @click.stop="openDeleteConfirmationModal(sketch)"><span class="ic--twotone-delete"></span></button>
                   </div>
                 </li>
               </ul>
@@ -173,6 +173,16 @@
               <div style="text-align: center;">
                 <ion-button @click="editSketchbookTitle">Save</ion-button>
                 <ion-button @click="closeEditModal">Cancel</ion-button>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="showDeleteConfirmationModal" class="modal-overlay">
+            <div class="modal-content">
+              <p>Want to delete this <b>"{{ selectedSketch?.title }}"</b> sketchbook?</p>
+              <div style="text-align: center; margin-top: 15px;">
+                <ion-button @click="deleteSketchbook(selectedSketch.id); closeDeleteConfirmationModal()">Yes</ion-button>
+                <ion-button @click="closeDeleteConfirmationModal()">No</ion-button>
               </div>
             </div>
           </div>
@@ -899,6 +909,7 @@ const nextPage = () => {
 const todos = ref([]);
 const showAddEditModal = ref(false);
 const showConfirmationModal = ref(false);
+const showDeleteConfirmationModal = ref(false);
 const confirmationAction = ref('');
 const isEditing = ref(false);
 const currentTodo = ref({});
@@ -987,7 +998,7 @@ const confirmDelete = (id) => {
 };
 
 const confirmComplete = (todo) => {
-  confirmationAction.value = 'complete';
+  confirmationAction.value = 'completed task of the month';
   todoToDelete.value = todo.id;
   currentTodo.value = { ...todo, todosStatus: 'completed' };
   showConfirmationModal.value = true;
@@ -1085,6 +1096,17 @@ const nextTodoPage = () => {
   if (currentTodoPage.value < totalTodoPages.value) {
     currentTodoPage.value++;
   }
+};
+
+// Add these functions near other modal-related functions
+const openDeleteConfirmationModal = (sketch) => {
+  selectedSketch.value = sketch;
+  showDeleteConfirmationModal.value = true;
+};
+
+const closeDeleteConfirmationModal = () => {
+  showDeleteConfirmationModal.value = false;
+  selectedSketch.value = null;
 };
 
 </script>
@@ -1240,6 +1262,7 @@ ion-input {
   border-radius: 8px;
   margin-top: 10px;
   margin-bottom: 10px;
+  --padding-start: 10px;
   width: 100%; 
 }
 
