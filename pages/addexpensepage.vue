@@ -120,8 +120,6 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const appState = inject('appState')
-
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
@@ -235,7 +233,6 @@ const addExpense = async () => {
     console.log('Selected Date (raw):', date.value);
     console.log('Expense Date (formatted):', expenseDate);
 
-
     const { error } = await supabase
       .from('Expenses')
       .insert([
@@ -255,28 +252,13 @@ const addExpense = async () => {
     //Success feedback 
     toastSuccess({ title: 'Success', description: 'Expense added successfully!' });
 
-    // Update local `appState`
-    const addedAmount = parseFloat(expenseAmount.value);
-    const todayDate = new Date().toISOString().split('T')[0];
-
-    if (expenseDate === todayDate) {
-      appState.todayExpense += addedAmount; // Add to today's expenses
-    }
-
-    const currentMonth = new Date().getMonth() + 1;
-    const expenseMonth = new Date(date.value).getMonth() + 1;
-
-    if (currentMonth === expenseMonth) {
-      appState.monthlyExpense += addedAmount; // Add to monthly expenses
-    }
-
-    // Reset fields and navigate back
+    // Reset fields and navigate back to home page
     date.value = new Date();
     formattedDate.value = formatDate(date.value);
     expenseAmount.value = '';
     expenseDescription.value = '';
     recurringSchedule.value = 'Once';
-    router.push({ path: '/expensehomepage', query: { refresh: true } });
+    router.push('/expensehomepage');
   } catch (err) {
     console.error('Error adding expense:', err.message);
     toastError({ title: 'Error', description: 'Failed to add expense. Please try again.' });

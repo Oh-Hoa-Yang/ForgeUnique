@@ -17,10 +17,21 @@
             {{ clip.audio_number }}
           </div>
           <audio :src="clip.src" controls class="custom-audio-player"></audio>
-          <button @click="deleteAudio(clip)" class="delete-button">
+          <button @click="openDeleteModal(clip)" class="delete-button">
             <span class="material-symbols--delete-outline"></span>
           </button>
         </div>  
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      <div v-if="showDeleteModal" class="modal-overlay">
+        <div class="modal-content">
+          <p>Want to delete this audio recording <b>{{ clipToDelete?.audio_number }}</b>?</p>
+          <div style="text-align: center; margin-top: 15px;">
+            <ion-button @click="confirmDelete">Yes</ion-button>
+            <ion-button @click="closeDeleteModal">No</ion-button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -39,6 +50,8 @@ const { toastError, toastSuccess } = useAppToast();
 const isRecording = ref(false);
 const recordings = ref([]); // Store the list of audio clips
 const audioCounter = ref(0);
+const showDeleteModal = ref(false);
+const clipToDelete = ref(null);
 
 const refreshRecordings = async () => {
   try {
@@ -297,6 +310,26 @@ onMounted(async () => {
 const sortedRecordings = computed(() => {
   return [...recordings.value].sort((a, b) => a.audio_number - b.audio_number);
 });
+
+// Function to open delete modal
+const openDeleteModal = (clip) => {
+  clipToDelete.value = clip;
+  showDeleteModal.value = true;
+};
+
+// Function to close delete modal
+const closeDeleteModal = () => {
+  showDeleteModal.value = false;
+  clipToDelete.value = null;
+};
+
+// Function to confirm and execute deletion
+const confirmDelete = async () => {
+  if (!clipToDelete.value) return;
+  
+  await deleteAudio(clipToDelete.value);
+  closeDeleteModal();
+};
 </script>
 
 <style scoped>
@@ -419,5 +452,37 @@ const sortedRecordings = computed(() => {
 
 .delete-button:hover {
   transform: scale(1.1);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+ion-button {
+  --background: #FFC2D1;
+  --background-activated: #ffadb9;
+  --background-focused: #ffadb9;
+  --background-hover: #ffadb9;
+  --background-pressed: #ffadb9;
+  --color: black;
+  margin: 5px;
 }
 </style>

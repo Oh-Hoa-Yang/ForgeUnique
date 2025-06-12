@@ -111,6 +111,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteModal" class="modal-overlay">
+      <div class="modal-content">
+        <p>Want to delete this expense <b>"{{ expenseDescription }}"</b>?</p>
+        <div class="modal-buttons">
+          <ion-button @click="confirmDelete">Yes</ion-button>
+          <ion-button color="medium" @click="closeDeleteModal">No</ion-button>
+        </div>
+      </div>
+    </div>
     </div>
     </div>
   </ion-page>
@@ -125,8 +136,6 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const appState = inject('appState')
-
 const { toastError, toastSuccess } = useAppToast();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
@@ -140,6 +149,7 @@ const formattedDate = ref('');
 const expenseAmount = ref('');
 const expenseDescription = ref('');
 const recurringSchedule = ref('Once');
+const showDeleteModal = ref(false);
 
 watch(() => route.query.id, (newId) => {
   expenseId.value = newId;
@@ -306,22 +316,8 @@ const updateExpense = async () => {
     //Success feedback 
     toastSuccess({ title: 'Success', description: 'Expense updated successfully!' });
 
-    // Update local `appState`
-    const addedAmount = parseFloat(expenseAmount.value);
-    const todayDate = new Date().toISOString().split('T')[0];
-
-    if (date.value.toISOString().split('T')[0] === todayDate) {
-      appState.todayExpense += addedAmount; // Add to today's expenses
-    }
-
-    const currentMonth = new Date().getMonth() + 1;
-    const expenseMonth = new Date(date.value).getMonth() + 1;
-
-    if (currentMonth === expenseMonth) {
-      appState.monthlyExpense += addedAmount; // Add to monthly expenses
-    }
-
-    router.push({ path: '/expensehomepage', query: { refresh: true } });
+    // Navigate back to expense home page
+    router.push('/expensehomepage');
   } catch (err) {
     console.error('Error update expense:', err.message);
     toastError({ title: 'Error', description: 'Failed to update expense. Please try again.' });
@@ -329,7 +325,15 @@ const updateExpense = async () => {
 };
 
 
-const deleteExpense = async () => {
+const closeDeleteModal = () => {
+  showDeleteModal.value = false;
+};
+
+const deleteExpense = () => {
+  showDeleteModal.value = true;
+};
+
+const confirmDelete = async () => {
   if (!expenseId.value) return;
 
   try {
@@ -345,6 +349,8 @@ const deleteExpense = async () => {
   } catch (err) {
     console.error('Error deleting expense:', err.message);
     toastError({ title: 'Error', description: 'Failed to delete expense. Please try again.' });
+  } finally {
+    closeDeleteModal();
   }
 };
 
