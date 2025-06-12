@@ -993,20 +993,31 @@ const confirmComplete = (todo) => {
 };
 
 const confirmAction = async () => {
-  if (confirmationAction.value === 'delete') {
-    await supabase
-      .from('ToDoLists')
-      .delete()
-      .eq('id', todoToDelete.value);
-  } else if (confirmationAction.value === 'complete') {
-    await supabase
-      .from('ToDoLists')
-      .update({ todosStatus: 'completed' })
-      .eq('id', todoToDelete.value);
-    todos.value = todos.value.filter(todo => todo.id !== todoToDelete.value);
+  try {
+    if (confirmationAction.value === 'delete') {
+      const { error } = await supabase
+        .from('ToDoLists')
+        .delete()
+        .eq('id', todoToDelete.value);
+      
+      if (error) throw error;
+      toastSuccess({ title: 'Success', description: 'Task is deleted successfully!' });
+    } else if (confirmationAction.value === 'complete') {
+      const { error } = await supabase
+        .from('ToDoLists')
+        .update({ todosStatus: 'completed' })
+        .eq('id', todoToDelete.value);
+      
+      if (error) throw error;
+      todos.value = todos.value.filter(todo => todo.id !== todoToDelete.value);
+      toastSuccess({ title: 'Success', description: 'Task is marked as completed!' });
+    }
+    closeConfirmationModal();
+    await fetchTodos();
+  } catch (error) {
+    console.error('Error during todo action:', error);
+    toastError({ title: 'Error', description: 'Failed to process the action. Please try again.' });
   }
-  closeConfirmationModal();
-  fetchTodos();
 };
 
 const closeConfirmationModal = () => {
