@@ -27,24 +27,27 @@
               <button @click="openAddTodoModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395;">+</button>
             </div>
             <ul>
-              <li v-for="todo in paginatedTodos" :key="todo.id"
-                style="display: flex; justify-content: space-between; align-items: center;">
-                <span :class="{ priority: todo.todosPriority }">{{ todo.todosPriority }}</span>
-                <h4 class="text-start mx-9">{{ todo.todosDescription }}</h4>
-                <div class="flex flex-row whitespace-nowrap gap-2">
-                  <button @click="editItem(todo)"><span class="line-md--edit-twotone"></span></button>
-                  <button @click="confirmDelete(todo.id)"><span class="ic--twotone-delete"></span></button>
-                  <button v-if="todo.todosStatus === 'incomplete'" @click="confirmComplete(todo)"><span
-                      class="hugeicons--task-done-01"></span></button>
+              <li v-for="todo in paginatedTodos" :key="todo.id" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                    <span :class="{ priority: todo.todosPriority }" style="white-space: nowrap;">{{ todo.todosPriority }}</span>
+                    <span style="word-break: break-word; overflow-wrap: break-word; flex: 1;">{{ todo.todosDescription }}</span>
+                  </div>
+                  <div style="display: flex; gap: 5px; margin-left: 10px; flex-shrink: 0;">
+                    <button @click="editItem(todo)"><span class="line-md--edit-twotone"></span></button>
+                    <button @click="handleDeleteTodo(todo)"><span class="ic--twotone-delete"></span></button>
+                    <button v-if="todo.todosStatus === 'incomplete'" @click="handleCompleteTodo(todo)">
+                      <span class="hugeicons--task-done-01"></span>
+                    </button>
+                  </div>
                 </div>
               </li>
             </ul>
             <!-- Add Pagination Controls -->
-            <div v-if="todos.length > 0" style="display: flex; justify-content: space-between; margin-top: 10px;">
-              <button @click="previousTodoPage" :disabled="currentTodoPage === 1" style="color: #FD8395;">
-                <<<</button>
+            <div v-if="todos.length > 0" style="display: flex; justify-content: space-between; margin-top: 20px;">
+              <button @click="previousTodoPage" :disabled="currentTodoPage === 1" style="color: #FD8395;"><<<</button>
               <span>Page {{ currentTodoPage }} of {{ totalTodoPages }}</span>
-              <button @click="nextTodoPage" :disabled="currentTodoPage === totalTodoPages" style="color: #FD8395;">>>></button>
+              <button @click="nextTodoPage" :disabled="currentTodoPage === totalTodoPages" style="color: #FD8395;">>></button>
             </div>
           </div>
         </div>
@@ -72,13 +75,24 @@
           </div>
         </div>
   
-        <!-- Confirmation Modal for Delete/Complete -->
-        <div v-if="showConfirmationModal" class="modal-overlay">
+        <!-- Confirmation Modal for Todo Delete -->
+        <div v-if="showTodoDeleteModal" class="modal-overlay">
           <div class="modal-content">
-            <p>Want to make this task <b>"{{ currentTodo.todosDescription }}"</b> as {{ confirmationAction }}? </p>
+            <p>Want to delete this task <b>"{{ currentTodo.todosDescription }}"</b>?</p>
             <div style="text-align: center; margin-top: 15px;">
-              <ion-button @click="confirmAction">Yes</ion-button>
-              <ion-button @click="closeConfirmationModal">No</ion-button>
+              <ion-button @click="confirmDeleteTodo">Yes</ion-button>
+              <ion-button @click="closeTodoDeleteModal">No</ion-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirmation Modal for Todo Complete -->
+        <div v-if="showCompleteConfirmationModal" class="modal-overlay">
+          <div class="modal-content">
+            <p>Want to mark this task <b>"{{ currentTodo.todosDescription }}"</b> as completed?</p>
+            <div style="text-align: center; margin-top: 15px;">
+              <ion-button @click="confirmCompleteTodo">Yes</ion-button>
+              <ion-button @click="closeCompleteModal">No</ion-button>
             </div>
           </div>
         </div>
@@ -107,24 +121,27 @@
                 <button @click="openModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395">+</button>
               </div>
               <ul>
-                <li v-for="sketch in paginatedSketchbooks" :key="sketch.id"
-                  :class="{ active: selectedSketch === sketch.id }" style="border-bottom: 3px solid #f0f0f0;">
-                  <span @click="selectSketchbook(sketch)">
-                    {{ sketch.title }}
-                  </span>
-                  <div style="display: flex; justify-content: end; align-items: center;">
-                    <button @click.stop="openEditModal(sketch)"><span class="line-md--edit-twotone"></span></button>
-                    <button @click.stop="openDeleteConfirmationModal(sketch)"><span class="ic--twotone-delete"></span></button>
+                <li v-for="sketch in paginatedSketchbooks" :key="sketch.id" 
+                    :class="{ active: selectedSketch === sketch.id }" 
+                    style="border-bottom: 3px solid #f0f0f0; margin-bottom: 10px; padding: 5px 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="display: flex; align-items: center; flex: 1; min-width: 0;">
+                      <span @click="selectSketchbook(sketch)" style="word-break: break-word; overflow-wrap: break-word; cursor: pointer;">
+                        {{ sketch.title }}
+                      </span>
+                    </div>
+                    <div style="display: flex; gap: 5px; margin-left: 10px; flex-shrink: 0;">
+                      <button @click.stop="openEditModal(sketch)"><span class="line-md--edit-twotone"></span></button>
+                      <button @click.stop="openSketchDeleteModal(sketch)"><span class="ic--twotone-delete"></span></button>
+                    </div>
                   </div>
                 </li>
               </ul>
               <br>
-              <div style="display: flex; justify-content: space-between;">
-                <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
-                  <<<< </button>
-                    <span>Page {{ currentPage }} of {{ totalPages }}</span>
-                    <button @click="nextPage" :disabled="currentPage === totalPages"
-                      style="color: #FD8395;">>>></button>
+              <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;"><<<</button>
+                <span>Page {{ currentPage }} of {{ totalPages }}</span>
+                <button @click="nextPage" :disabled="currentPage === totalPages" style="color: #FD8395;">>></button>
               </div>
             </div>
           </div>
@@ -177,12 +194,13 @@
             </div>
           </div>
 
-          <div v-if="showDeleteConfirmationModal" class="modal-overlay">
+          <!-- Confirmation Modal for Sketch Delete -->
+          <div v-if="showSketchDeleteModal" class="modal-overlay">
             <div class="modal-content">
               <p>Want to delete this <b>"{{ selectedSketch?.title }}"</b> sketchbook?</p>
               <div style="text-align: center; margin-top: 15px;">
-                <ion-button @click="deleteSketchbook(selectedSketch.id); closeDeleteConfirmationModal()">Yes</ion-button>
-                <ion-button @click="closeDeleteConfirmationModal()">No</ion-button>
+                <ion-button @click="deleteSketchbook(selectedSketch.id); closeSketchDeleteModal()">Yes</ion-button>
+                <ion-button @click="closeSketchDeleteModal()">No</ion-button>
               </div>
             </div>
           </div>
@@ -414,6 +432,7 @@ const sketchbooks = ref([]);
 const selectedSketch = ref(null); //For user to select the Sketchbook
 const showModal = ref(false);
 const showEditModal = ref(false);
+const showSketchDeleteModal = ref(false);
 const editedSketchbookTitle = ref('');
 
 // Add the missing ref for the edited sketchbook
@@ -908,13 +927,14 @@ const nextPage = () => {
 //TO-dos part 
 const todos = ref([]);
 const showAddEditModal = ref(false);
-const showConfirmationModal = ref(false);
-const showDeleteConfirmationModal = ref(false);
-const confirmationAction = ref('');
+const showTodoDeleteModal = ref(false);
+const showCompleteConfirmationModal = ref(false);
 const isEditing = ref(false);
 const currentTodo = ref({});
 const todoToDelete = ref(null);
+const todoToComplete = ref(null);
 
+// Function to fetch todos
 const fetchTodos = async () => {
   const { data, error } = await supabase
     .from('ToDoLists')
@@ -931,21 +951,81 @@ const fetchTodos = async () => {
 
 onMounted(fetchTodos);
 
-//Open modal to add a new to-do item
+// Modal control functions
 const openAddTodoModal = () => {
   currentTodo.value = { todosDescription: '', todosPriority: '', todosDeadline: '', todosStatus: 'incomplete' };
   isEditing.value = false;
   showAddEditModal.value = true;
 };
 
-//Open modal to edit an existing to-do item
 const editItem = (todo) => {
   currentTodo.value = { ...todo };
   isEditing.value = true;
-  showAddEditModal.value = true; // Use showAddEditModal to toggle the modal for both add and edit
+  showAddEditModal.value = true;
 };
 
-//Save to-do item (either new or update existing)
+const closeTodosModal = () => showAddEditModal.value = false;
+
+// Todo action functions
+const handleDeleteTodo = (todo) => {
+  currentTodo.value = todo;
+  todoToDelete.value = todo.id;
+  showTodoDeleteModal.value = true;
+};
+
+const handleCompleteTodo = (todo) => {
+  currentTodo.value = { ...todo, todosStatus: 'completed' };
+  todoToComplete.value = todo.id;
+  showCompleteConfirmationModal.value = true;
+};
+
+const closeTodoDeleteModal = () => {
+  showTodoDeleteModal.value = false;
+  todoToDelete.value = null;
+  currentTodo.value = {};
+};
+
+const closeCompleteModal = () => {
+  showCompleteConfirmationModal.value = false;
+  todoToComplete.value = null;
+  currentTodo.value = {};
+};
+
+const confirmDeleteTodo = async () => {
+  try {
+    const { error } = await supabase
+      .from('ToDoLists')
+      .delete()
+      .eq('id', todoToDelete.value);
+    
+    if (error) throw error;
+    toastSuccess({ title: 'Success', description: 'Task deleted successfully!' });
+    closeTodoDeleteModal();
+    await fetchTodos();
+  } catch (error) {
+    console.error('Error deleting todo:', error);
+    toastError({ title: 'Error', description: 'Failed to delete task' });
+  }
+};
+
+const confirmCompleteTodo = async () => {
+  try {
+    const { error } = await supabase
+      .from('ToDoLists')
+      .update({ todosStatus: 'completed' })
+      .eq('id', todoToComplete.value);
+    
+    if (error) throw error;
+    toastSuccess({ title: 'Success', description: 'Task marked as completed!' });
+    closeCompleteModal();
+    await fetchTodos();
+  } catch (error) {
+    console.error('Error completing todo:', error);
+    toastError({ title: 'Error', description: 'Failed to complete task' });
+  }
+};
+
+// Save todo function
 const saveTodo = async () => {
   try {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -989,55 +1069,7 @@ const saveTodo = async () => {
   }
 };
 
-const closeTodosModal = () => showAddEditModal.value = false;
-
-const confirmDelete = (id) => {
-  confirmationAction.value = 'delete';
-  todoToDelete.value = id;
-  showConfirmationModal.value = true;
-};
-
-const confirmComplete = (todo) => {
-  confirmationAction.value = 'completed task of the month';
-  todoToDelete.value = todo.id;
-  currentTodo.value = { ...todo, todosStatus: 'completed' };
-  showConfirmationModal.value = true;
-};
-
-const confirmAction = async () => {
-  try {
-    if (confirmationAction.value === 'delete') {
-      const { error } = await supabase
-        .from('ToDoLists')
-        .delete()
-        .eq('id', todoToDelete.value);
-      
-      if (error) throw error;
-      toastSuccess({ title: 'Success', description: 'Task is deleted successfully!' });
-    } else if (confirmationAction.value === 'complete') {
-      const { error } = await supabase
-        .from('ToDoLists')
-        .update({ todosStatus: 'completed' })
-        .eq('id', todoToDelete.value);
-      
-      if (error) throw error;
-      todos.value = todos.value.filter(todo => todo.id !== todoToDelete.value);
-      toastSuccess({ title: 'Success', description: 'Task is marked as completed!' });
-    }
-    closeConfirmationModal();
-    await fetchTodos();
-  } catch (error) {
-    console.error('Error during todo action:', error);
-    toastError({ title: 'Error', description: 'Failed to process the action. Please try again.' });
-  }
-};
-
-const closeConfirmationModal = () => {
-  showConfirmationModal.value = false;
-  todoToDelete.value = null;
-};
-
-//New add to replace PullRefresh
+// New add to replace PullRefresh
 const refreshAllData = async () => {
   try {
     await fetchBudget();
@@ -1099,13 +1131,13 @@ const nextTodoPage = () => {
 };
 
 // Add these functions near other modal-related functions
-const openDeleteConfirmationModal = (sketch) => {
+const openSketchDeleteModal = (sketch) => {
   selectedSketch.value = sketch;
-  showDeleteConfirmationModal.value = true;
+  showSketchDeleteModal.value = true;
 };
 
-const closeDeleteConfirmationModal = () => {
-  showDeleteConfirmationModal.value = false;
+const closeSketchDeleteModal = () => {
+  showSketchDeleteModal.value = false;
   selectedSketch.value = null;
 };
 

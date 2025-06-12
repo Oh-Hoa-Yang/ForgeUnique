@@ -27,17 +27,20 @@
         <ol>
           <!-- Loop through yearlyPlanData and display each record with a numbered list -->
           <li v-for="(plan, index) in paginatedPlans" :key="plan.id" style="margin-bottom: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong>{{ index + 1 }}. {{ plan.yearlyDescription }}</strong>
-              <div style="display: flex; justify-content: end; align-items: center;">
-                <button @click="openEditModal(plan)" style="font-size: 14px; color: #FD8395; "><span class="line-md--edit-twotone"></span></button>
-                <button @click="deleteYearlyPlan(plan.id)" style="font-size: 14px; color: #FD8395;"><span class="ic--twotone-delete"></span></button>
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                <span>{{ index + 1 }}.</span>
+                <span style="word-break: break-word;">{{ plan.yearlyDescription }}</span>
+              </div>
+              <div style="display: flex; gap: 5px; margin-left: 10px;">
+                <button @click="openEditModal(plan)" style="font-size: 14px; color: #FD8395;"><span class="line-md--edit-twotone"></span></button>
+                <button @click="openDeleteConfirmationModal(plan)" style="font-size: 14px; color: #FD8395;"><span class="ic--twotone-delete"></span></button>
               </div>
             </div>
           </li>
         </ol>
         <!-- Pagination -->
-        <div style="display: flex; justify-content: space-between;">
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
           <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
             <<< </button>
               <span>Page {{ currentPage }} of {{ totalPages }}</span>
@@ -69,6 +72,17 @@
           <div style="text-align: center;">
             <ion-button @click="updateYearlyPlan">Update</ion-button>
             <ion-button @click="closeEditModal">Cancel</ion-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation Modal for Delete -->
+      <div v-if="showDeleteConfirmationModal" class="modal-overlay">
+        <div class="modal-content">
+          <p>Want to delete this <b>"{{ planToDelete?.yearlyDescription }}"</b> yearly plan?</p>
+          <div style="text-align: center; margin-top: 15px;">
+            <ion-button @click="confirmDelete">Yes</ion-button>
+            <ion-button @click="closeDeleteConfirmationModal">No</ion-button>
           </div>
         </div>
       </div>
@@ -288,6 +302,28 @@ const deleteYearlyPlan = async (planId) => {
   }
 };
 
+// Add these refs for delete confirmation
+const showDeleteConfirmationModal = ref(false);
+const planToDelete = ref(null);
+
+// Update the delete button click handler
+const openDeleteConfirmationModal = (plan) => {
+  planToDelete.value = plan;
+  showDeleteConfirmationModal.value = true;
+};
+
+const closeDeleteConfirmationModal = () => {
+  showDeleteConfirmationModal.value = false;
+  planToDelete.value = null;
+};
+
+const confirmDelete = async () => {
+  if (planToDelete.value) {
+    await deleteYearlyPlan(planToDelete.value.id);
+    closeDeleteConfirmationModal();
+  }
+};
+
 </script>
 
 <style scoped>
@@ -329,6 +365,15 @@ ion-card {
   margin: 0;
   flex-shrink: 0; 
 }
+
+ion-input {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 100%; 
+}
+
 
 ion-button {
   --background: #FFC2D1;

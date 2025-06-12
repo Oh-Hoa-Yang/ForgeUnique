@@ -34,26 +34,27 @@
             </select>
           </div>
   
-          <!-- Displaying the Monthly Plan Records -->
+          <!-- Monthly Plan Records -->
           <div v-if="monthlyPlanData.length > 0" style="padding: 20px;">
             <ol>
-              <!-- Loop through monthlyPlanData and display each record with a numbered list -->
               <li v-for="(plan, index) in paginatedPlans" :key="plan.id" style="margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <strong>{{ index + 1 }}. {{ plan.monthlyDescription }}</strong>
-                  <div style="display: flex; justify-content: end; align-items: center;">
-                    <button @click="openEditModal(plan)" style="font-size: 14px; color: #FD8395; "><span class="line-md--edit-twotone"></span></button>
-                    <button @click="deleteMonthlyPlan(plan.id)" style="font-size: 14px; color: #FD8395;"><span class="ic--twotone-delete"></span></button>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                    <span>{{ index + 1 }}.</span>
+                    <span style="word-break: break-word;">{{ plan.monthlyDescription }}</span>
+                  </div>
+                  <div style="display: flex; gap: 5px; margin-left: 10px;">
+                    <button @click="openEditModal(plan)" style="font-size: 14px; color: #FD8395;"><span class="line-md--edit-twotone"></span></button>
+                    <button @click="openMonthlyDeleteConfirmationModal(plan)" style="font-size: 14px; color: #FD8395;"><span class="ic--twotone-delete"></span></button>
                   </div>
                 </div>
               </li>
             </ol>
             <!-- Pagination -->
-            <div style="display: flex; justify-content: space-between;">
-              <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;">
-                <<< </button>
-                  <span>Page {{ currentPage }} of {{ totalPages }}</span>
-                  <button @click="nextPage" :disabled="currentPage === totalPages" style="color: #FD8395;"> >>> </button>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+              <button @click="previousPage" :disabled="currentPage === 1" style="color: #FD8395;"><<<</button>
+              <span>Page {{ currentPage }} of {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage === totalPages" style="color: #FD8395;">>></button>
             </div>
           </div>
           <!-- If no records are found -->
@@ -84,6 +85,17 @@
               </div>
             </div>
           </div>
+
+          <!-- Confirmation Modal for Monthly Plan Delete -->
+          <div v-if="showMonthlyDeleteConfirmationModal" class="modal-overlay">
+            <div class="modal-content">
+              <p>Want to delete this <b>"{{ monthlyPlanToDelete?.monthlyDescription }}"</b> monthly plan?</p>
+              <div style="text-align: center; margin-top: 15px;">
+                <ion-button @click="confirmMonthlyDelete">Yes</ion-button>
+                <ion-button @click="closeMonthlyDeleteConfirmationModal">No</ion-button>
+              </div>
+            </div>
+          </div>
         </ion-card>
   
   
@@ -104,27 +116,27 @@
             </select>
           </div>
   
-          <!-- Displaying the Improvement Plan Records -->
+          <!-- Improvement Plan Records -->
           <div v-if="improvementPlanData.length > 0" style="padding: 20px;">
             <ol>
-              <!-- Loop through monthlyPlanData and display each record with a numbered list -->
               <li v-for="(plan, index) in paginatedImprovements" :key="plan.id" style="margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <strong>{{ index + 1 }}. {{ plan.improvementDescription }}</strong>
-                  <div style="display: flex; justify-content: end; align-items: center;">
-                    <button @click="openIEditModal(plan)" style="font-size: 14px; color: #FD8395; "><span class="line-md--edit-twotone"></span></button>
-                    <button @click="deleteImprovementPlan(plan.id)" style="font-size: 14px; color: #FD8395;"><span class="ic--twotone-delete"></span></button>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                    <span>{{ index + 1 }}.</span>
+                    <span style="word-break: break-word;">{{ plan.improvementDescription }}</span>
+                  </div>
+                  <div style="display: flex; gap: 5px; margin-left: 10px;">
+                    <button @click="openIEditModal(plan)" style="font-size: 14px; color: #FD8395;"><span class="line-md--edit-twotone"></span></button>
+                    <button @click="openImprovementDeleteConfirmationModal(plan)" style="font-size: 14px; color: #FD8395;"><span class="ic--twotone-delete"></span></button>
                   </div>
                 </div>
               </li>
             </ol>
             <!-- Pagination -->
-            <div style="display: flex; justify-content: space-between;">
-              <button @click="previousIPage" :disabled="currentIPage === 1" style="color: #FD8395;">
-                <<< </button>
-                  <span>Page {{ currentIPage }} of {{ totalIPages }}</span>
-                  <button @click="nextIPage" :disabled="currentIPage === totalIPages" style="color: #FD8395;"> >>>
-                  </button>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+              <button @click="previousIPage" :disabled="currentIPage === 1" style="color: #FD8395;"><<<</button>
+              <span>Page {{ currentIPage }} of {{ totalIPages }}</span>
+              <button @click="nextIPage" :disabled="currentIPage === totalIPages" style="color: #FD8395;">>></button>
             </div>
           </div>
           <!-- If no records are found -->
@@ -157,6 +169,17 @@
               </div>
             </div>
           </div>
+
+          <!-- Confirmation Modal for Improvement Plan Delete -->
+          <div v-if="showImprovementDeleteConfirmationModal" class="modal-overlay">
+            <div class="modal-content">
+              <p>Want to delete this <b>"{{ improvementPlanToDelete?.improvementDescription }}"</b> improvement plan?</p>
+              <div style="text-align: center; margin-top: 15px;">
+                <ion-button @click="confirmImprovementDelete">Yes</ion-button>
+                <ion-button @click="closeImprovementDeleteConfirmationModal">No</ion-button>
+              </div>
+            </div>
+          </div>
         </ion-card>
   
   
@@ -176,22 +199,23 @@
             </select>
           </div>
   
-          <!-- Displaying the Biggest Gain Records -->
+          <!-- Biggest Gain Records -->
           <div v-if="biggestGainData.length > 0" style="padding: 20px;">
             <ol>
               <li v-for="(todo, index) in paginatedGains" :key="todo.id" style="margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <strong>{{ index + 1 }}. {{ todo.todosDescription }}</strong>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                    <span>{{ index + 1 }}.</span>
+                    <span style="word-break: break-word;">{{ todo.todosDescription }}</span>
+                  </div>
                 </div>
               </li>
             </ol>
             <!-- Pagination -->
-            <div style="display: flex; justify-content: space-between;">
-              <button @click="previousBPage" :disabled="currentBPage === 1" style="color: #FD8395;">
-                <<< </button>
-                  <span>Page {{ currentBPage }} of {{ totalBPages }}</span>
-                  <button @click="nextBPage" :disabled="currentBPage === totalBPages" style="color: #FD8395;"> >>>
-                  </button>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+              <button @click="previousBPage" :disabled="currentBPage === 1" style="color: #FD8395;"><<<</button>
+              <span>Page {{ currentBPage }} of {{ totalBPages }}</span>
+              <button @click="nextBPage" :disabled="currentBPage === totalBPages" style="color: #FD8395;">>></button>
             </div>
           </div>
           <!-- If no records are found -->
@@ -721,6 +745,48 @@ onIonViewWillEnter(async () => {
   await refreshCalendarData();
 });
 
+// Add these refs for delete confirmations
+const showMonthlyDeleteConfirmationModal = ref(false);
+const monthlyPlanToDelete = ref(null);
+const showImprovementDeleteConfirmationModal = ref(false);
+const improvementPlanToDelete = ref(null);
+
+// Monthly Plan delete confirmation handlers
+const openMonthlyDeleteConfirmationModal = (plan) => {
+  monthlyPlanToDelete.value = plan;
+  showMonthlyDeleteConfirmationModal.value = true;
+};
+
+const closeMonthlyDeleteConfirmationModal = () => {
+  showMonthlyDeleteConfirmationModal.value = false;
+  monthlyPlanToDelete.value = null;
+};
+
+const confirmMonthlyDelete = async () => {
+  if (monthlyPlanToDelete.value) {
+    await deleteMonthlyPlan(monthlyPlanToDelete.value.id);
+    closeMonthlyDeleteConfirmationModal();
+  }
+};
+
+// Improvement Plan delete confirmation handlers
+const openImprovementDeleteConfirmationModal = (plan) => {
+  improvementPlanToDelete.value = plan;
+  showImprovementDeleteConfirmationModal.value = true;
+};
+
+const closeImprovementDeleteConfirmationModal = () => {
+  showImprovementDeleteConfirmationModal.value = false;
+  improvementPlanToDelete.value = null;
+};
+
+const confirmImprovementDelete = async () => {
+  if (improvementPlanToDelete.value) {
+    await deleteImprovementPlan(improvementPlanToDelete.value.id);
+    closeImprovementDeleteConfirmationModal();
+  }
+};
+
 </script>
 
 <style scoped>
@@ -759,6 +825,15 @@ ion-button {
   --background-pressed: #ffadb9;
   --color: black;
 }
+
+ion-input {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 100%; 
+}
+
 
 .calendar-card {
   display: flex;
