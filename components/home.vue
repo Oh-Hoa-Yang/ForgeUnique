@@ -187,7 +187,7 @@ import { useAuthUser } from '~/composables/useAuthUser';
 import { VueSignaturePad } from '@selemondev/vue3-signature-pad';
 import { _backgroundColor, _maxWidth } from '#tailwind-config/theme';
 import { nextTick } from 'vue';
-import PullRefresh from 'pull-refresh-vue3';
+// import PullRefresh from 'pull-refresh-vue3';
 import { onIonViewWillEnter } from '@ionic/vue';
 
 const loading = ref(false);
@@ -206,127 +206,153 @@ const loading = ref(false);
 const { toastError, toastSuccess } = useAppToast();
 const { fetchUser } = useAuthUser();
 const user = useSupabaseUser();
+const supabase = useSupabaseClient();
 
 const router = useRouter();
 
-const appState = inject('appState');
-if (!appState) {
-  console.error('Failed to inject appState. Ensure App.vue provides it.');
-}
+// Comment out appState
+// const appState = inject('appState');
+// if (!appState) {
+//   console.error('Failed to inject appState. Ensure App.vue provides it.');
+// }
 
+// Direct refs for local state
+const monthlyExpense = ref(0);
+const todayExpense = ref(0);
+const budget = ref(0);
+
+// Initialize data
+const initializeData = async () => {
+  try {
+    // Make sure we have a user
+    if (!user.value) {
+      user.value = await fetchUser();
+      if (!user.value) {
+        toastError({ title: 'Error', description: 'User is not authenticated!' });
+        return;
+      }
+    }
+    await refreshAllData();
+  } catch (error) {
+    console.error('Error initializing data:', error);
+    toastError({ title: 'Error', description: 'Failed to initialize data' });
+  }
+};
+
+// Fetch budget from Supabase
 const fetchBudget = async () => {
-  if (!user.value) return;
+  if (!user.value) {
+    console.log('No user found for fetching budget');
+    return;
+  }
 
   try {
+    console.log('Fetching budget for user:', user.value.id);
     const { data, error } = await supabase
       .from('Users')
       .select('budget')
       .eq('user_id', user.value.id)
-      .single()
+      .single() 
 
     if (error) throw error;
 
-    if (data && data.budget) {
-      appState.budget = data.budget //Update appState with fetched budget
-      return data.budget;
-    }
-    return 0; //Return 0 if no budget is found
+    budget.value = data?.budget || 0;
+    console.log('Fetched budget:', budget.value);
   } catch (err) {
     console.error('Error fetching budget from supabase:', err.message);
-    return 0;
+    toastError({ title: 'Error', description: 'Failed to fetch budget' });
   }
 };
 
-//Reactive state for budget 
-const budget = computed(() => {
-  if (appState.budget === 0) {
-    fetchBudget().then((fetchedBudget) => {
-      appState.budget = fetchedBudget; // Update appState after manual fetch
-    });
-  }
-  return appState.budget;
-})
+// //Reactive state for budget 
+// const budget = computed(() => {
+//   if (appState.budget === 0) {
+//     fetchBudget().then((fetchedBudget) => { 
+//       appState.budget = fetchedBudget; // Update appState after manual fetch
+//     });
+//   }
+//   return appState.budget;
+// })
 
 const fetchExpenses = async () => {
-  if (!user.value) return;
+  if (!user.value) {
+    console.log('No user found for fetching expenses');
+    return;
+  }
 
   try {
+    console.log('Fetching expenses for user:', user.value.id);
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
-    const todayDate = currentDate.toISOString().split('T')[0];
 
-    // Logging the current local date and time
-    console.log("Current Date (local time):", currentDate.toISOString());
-
-    // Create a new Date object for Malaysia's date at midnight UTC (equivalent to Malaysia's midnight)
-    const malaysiaDateStart = new Date(Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()));
-
-    // Apply Malaysia's UTC+8 hours offset by adding 8 hours to the UTC midnight date
-    malaysiaDateStart.setHours(malaysiaDateStart.getHours() + 8); // UTC +8 = Malaysia Time
-
-    // Log Malaysia date at midnight
-    console.log("Malaysia Midnight Date (UTC+8):", malaysiaDateStart.toISOString());
-
-    // Set the start and end of Malaysia's day
-    const malaysiaDateEnd = new Date(malaysiaDateStart);
-    malaysiaDateEnd.setHours(23, 59, 59, 999); // Set to the end of day (11:59:59.999 PM)
-
-    // Convert the start of Malaysia day to YYYY-MM-DD format
-    const malaysiaDate = malaysiaDateStart.toISOString().split('T')[0]; 
-
-    // Log Malaysia date for comparison
-    console.log("Malaysia Date (for comparison):", malaysiaDate);  // This should show today's date in Malaysia Time (YYYY-MM-DD)
+    // Create a new Date object for Malaysia's current time (UTC+8)
+    const malaysiaDate = new Date(currentDate.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
     
+    // Format Malaysia's date to YYYY-MM-DD for comparison
+    const malaysiaDateString = malaysiaDate.toLocaleString('en-US', { 
+      timeZone: 'Asia/Kuala_Lumpur',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).split('/').join('-');
+
+    console.log('Current Malaysia Date:', malaysiaDateString);
+
     const { data: expenses, error } = await supabase
       .from('Expenses')
       .select('expenseAmount, expenseDate')
       .eq('user_id', user.value.id);
 
-    if (error) throw error;
-
-    let fetchedMonthlyExpense = 0;
-    let fetchedTodayExpense = 0;
-
-    if (expenses) {
-      fetchedMonthlyExpense = expenses
-        .filter((expense) => {
-          const expenseDate = new Date(expense.expenseDate);
-          return (
-            expenseDate.getFullYear() === currentYear &&
-            expenseDate.getMonth() + 1 === currentMonth
-          );
-        })
-        .reduce((sum, expense) => sum + expense.expenseAmount, 0);
-
-      fetchedTodayExpense = expenses
-        .filter((expense) => {
-          const expenseDate = expense.expenseDate;
-          return expenseDate === malaysiaDate;
-        })
-        .reduce((sum, expense) => sum + expense.expenseAmount, 0);
+    if (error) {
+      console.error('Error fetching expenses:', error);
+      throw error;
     }
 
-    appState.monthlyExpense = fetchedMonthlyExpense;
-    appState.todayExpense = fetchedTodayExpense;
+    console.log('Fetched expenses:', expenses);
 
-    return { monthlyExpense: fetchedMonthlyExpense, todayExpense: fetchedTodayExpense };
+    // Calculate monthly expenses
+    const total = expenses ? expenses.filter((expense) => {
+      const expenseDate = new Date(expense.expenseDate);
+      return (
+        expenseDate.getFullYear() === currentYear &&
+        expenseDate.getMonth() + 1 === currentMonth
+      );
+    })
+    .reduce((sum, expense) => sum + (expense.expenseAmount || 0), 0)
+    : 0;
+
+    // Calculate today's expenses (using Malaysia timezone)
+    const todayTotal = expenses ? expenses
+      .filter(expense => {
+        console.log('Comparing expense date:', expense.expenseDate, 'with Malaysia date:', malaysiaDateString);
+        // Convert both dates to YYYY-MM-DD format for comparison
+        const expenseDateObj = new Date(expense.expenseDate);
+        const expenseDateString = expenseDateObj.toLocaleString('en-US', {
+          timeZone: 'Asia/Kuala_Lumpur',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).split('/').join('-');
+        
+        return expenseDateString === malaysiaDateString;
+      })
+      .reduce((sum, expense) => sum + (expense.expenseAmount || 0), 0)
+      : 0;
+
+    console.log('Monthly total:', total);
+    console.log('Today total:', todayTotal);
+
+    monthlyExpense.value = total;
+    todayExpense.value = todayTotal;
+
   } catch (err) {
     console.error('Error fetching expenses from Supabase:', err.message);
-    return { monthlyExpense: 0, todayExpense: 0 };
+    toastError({ title: 'Error', description: 'Failed to fetch expenses' });
   }
 };
 
-// Reactive state for expenses
-const monthlyExpense = computed(() => appState.monthlyExpense);
-const todayExpense = computed(() => appState.todayExpense);
-
-
-
-
-
-
-//Signature Pad Options in Sketch Canvas of template
+// Signature Pad Options in Sketch Canvas of template
 const signatureOptions = ref({
   penColor: 'black',
   backgroundColor: 'white',
@@ -387,8 +413,6 @@ const itemsPerPage = ref(5);
 const totalPages = ref(1);
 
 const currentPageNumber = ref(1); //CANVAS use
-
-const supabase = useSupabaseClient();
 
 // Fetch sketchbooks in A to Z order
 const fetchSketchbooks = async () => {
@@ -615,57 +639,8 @@ const onSketchEnd = async () => {
   }
 };
 
-const nextSketchPage = async () => {
-  if (!isSaved.value) {
-    await saveCanvas(); // Save the current page before navigating
-  }
-
-  currentPageNumber.value++;
-
-  await nextTick();
-
-  //Explicitly clear the canvas before loading the new page
-  if (signaturePad.value && typeof signaturePad.value.clear === 'function') {
-    signaturePad.value.clear();
-  }
-
-  // //Check if the next poge exists before navigating 
-  // const nextPage = await fetchPage(nextPageNumber);
-
-  // if (!nextPage) {
-  //   //If the next page doesn't exist, create it
-  //   await createPage(nextPageNumber);
-  // }
-
-  // currentPageNumber.value = nextPageNumber;
-  await loadCanvasData();
-};
-
-//PAGE NAV FOR SKETCH - CANVAS
-const prevPage = async () => {
-  if (currentPageNumber.value > 1) {
-    if (!isSaved.value) {
-      await saveCanvas(); // Save the current page before navigating
-    }
-
-    currentPageNumber.value--;
-
-    await nextTick(); //Ensure the DOM is ready before clearing the pad
-
-    //Explicitly clear the canvas before loading the previous page 
-    if (signaturePad.value && typeof signaturePad.value.clear === 'function') {
-      signaturePad.value.clear();
-    }
-    await loadCanvasData();
-  } else {
-    console.log('Your are already on the first page')
-  }
-};
-
-const loadCanvasData = async () => {
-  const currentPage = await fetchPage(currentPageNumber.value);
-
-  //Ensure the signaturePad is initialized 
+const   loadCanvasData = async () => {
+  // Ensure the signaturePad is initialized 
   if (!signaturePad.value) {
     console.error('Signature pad is not initialized.');
     return;
@@ -674,8 +649,10 @@ const loadCanvasData = async () => {
   //Clear the canvas first before loading any data
   signaturePad.value.clearCanvas();
 
+  const currentPage = await fetchPage(currentPageNumber.value);
+
   if (!currentPage || !currentPage.id) {
-    console.error('Invalid page');
+    console.log('No page data found for page', currentPageNumber.value);
     return;
   }
 
@@ -696,9 +673,12 @@ const loadCanvasData = async () => {
 
       //Ensure signaturePad is available and initialized 
       if (signaturePad.value && typeof signaturePad.value.fromDataURL === 'function') {
+        // Force a fresh fetch of the image by adding a timestamp
+        const timestamp = new Date().getTime();
+        const imageUrlWithTimestamp = `${imageUrl}?t=${timestamp}`;
         //Load the image into canvas 
-        signaturePad.value.fromDataURL(imageUrl);
-        console.log('Image loaded on canvas');
+        signaturePad.value.fromDataURL(imageUrlWithTimestamp);
+        console.log('Image loaded on canvas with timestamp:', timestamp);
       } else {
         console.error('Signature pad not initialized properly');
       }
@@ -711,21 +691,53 @@ const loadCanvasData = async () => {
   }
 }
 
-const createPage = async (pageNumber) => {
-  const { data, error } = await supabase
-    .from('SketchPages')
-    .insert([{ page_number: pageNumber, sketch_id: selectedSketch.value.id }])
-    .select('*')
-    .single()
-
-  if (error) {
-    console.error('Error creating new pages: ', error)
-    throw error;
+const nextSketchPage = async () => {
+  if (!isSaved.value) {
+    await saveCanvas(); // Save the current page before navigating
   }
-  console.log('New page created: ', data)
-  return data;
-}
 
+  currentPageNumber.value++;
+  await nextTick();
+
+  //Explicitly clear the canvas before loading the new page
+  if (signaturePad.value && typeof signaturePad.value.clear === 'function') {
+    signaturePad.value.clear();
+  }
+
+  await loadCanvasData();
+  // Reset undo/redo stacks for the new page
+  undoStack.value = [];
+  redoStack.value = [];
+};
+
+const prevPage = async () => {
+  if (currentPageNumber.value > 1) {
+    if (!isSaved.value) {
+      await saveCanvas(); // Save the current page before navigating
+    }
+
+    currentPageNumber.value--;
+    await nextTick();
+
+    //Explicitly clear the canvas before loading the previous page 
+    if (signaturePad.value && typeof signaturePad.value.clear === 'function') {
+      signaturePad.value.clear();
+    }
+    await loadCanvasData();
+    // Reset undo/redo stacks for the new page
+    undoStack.value = [];
+    redoStack.value = [];
+  } else {
+    console.log('You are already on the first page')
+  }
+};
+
+// Add a watch on currentPageNumber to ensure fresh data is loaded when page changes
+watch(currentPageNumber, async (newPage, oldPage) => {
+  if (newPage !== oldPage) {
+    await loadCanvasData();
+  }
+});
 
 //BACK FUNCTION FOR CANVAS TO BOOK TITLE SELECTION
 const backToSketchbookList = () => {
@@ -1005,19 +1017,36 @@ const closeConfirmationModal = () => {
 //New add to replace PullRefresh
 const refreshAllData = async () => {
   try {
+    await fetchBudget();
     await fetchExpenses();
     await fetchTodos();
     await fetchSketchbooks();
-    await fetchBudget();
+    // If there's a selected sketch, reload its data
+    if (selectedSketch.value) {
+      await loadCanvasData();
+    }
   } catch (error) {
     console.error('Error refreshing data:', error);
     toastError({ title: 'Error', description: 'Failed to refresh data' });
   }
 };
 
+// Initialize data when component mounts
+onMounted(async () => {
+  await initializeData();
+});
+
 // Use Ionic's lifecycle hook to refresh data when view enters
 onIonViewWillEnter(async () => {
   await refreshAllData();
+});
+
+// Add a watch on selectedSketch to ensure canvas data is loaded when sketch is selected
+watch(selectedSketch, async (newSketch) => {
+  if (newSketch) {
+    await nextTick();
+    await loadCanvasData();
+  }
 });
 
 // Add pagination variables for todos
