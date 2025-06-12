@@ -224,6 +224,19 @@ const addExpense = async () => {
   }
 
   try {
+    // First, fetch the user's email from Users table
+    const { data: userData, error: userError } = await supabase
+      .from('Users')
+      .select('email')
+      .eq('user_id', user.value.id)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user email:', userError);
+      toastError({ title: 'Error', description: 'Failed to fetch user data.' });
+      return;
+    }
+
     // Convert selected date to the local timezone (Malaysia: Asia/Kuala_Lumpur)
     const expenseDate = new Date(date.value.getTime() - date.value.getTimezoneOffset() * 60000)
       .toISOString()
@@ -243,6 +256,7 @@ const addExpense = async () => {
           expenseDescription: expenseDescription.value,
           recurringSchedule: recurringSchedule.value,
           user_id: user.value.id,
+          userEmail: userData.email, // Add the user's email
           lastRecurringDate: expenseDate,
         }
       ]);
