@@ -2,11 +2,11 @@
   <!-- Main Page with Content -->
   <ion-page id="main-content">
     <!-- Main Content (imported component) -->
-     <div class="custom-background">
+     <div class="custom-background h-full">
       <div class="container mx-auto">
        <ion-card class="expense-card mx-4">
          <h1 style="text-align: center; font-weight: bold; color: black;">EXPENSE</h1>
-         <h4 style="font-style: italic;">**Select the categories below to <b style="color: black;">ADD</b> your expense.</h4>
+         <h4 style="font-style: italic;" class="pl-10 mb-4">**Select the categories below to <b style="color: black;">ADD</b> your expense.</h4>
  
          <!-- Categories Grid -->
          <div class="grid grid-cols-5 gap-3 my-4 md:grid-cols-4 max-sm:grid-cols-2 gap-4">
@@ -303,14 +303,10 @@ onIonViewWillEnter(async () => {
 <style scoped>
 .custom-background {
   background: #FFEDF5;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  height: auto;
 }
 
 .container {
@@ -320,24 +316,20 @@ onIonViewWillEnter(async () => {
   width: 100%;
   flex: 1;
   box-sizing: border-box;
-  border-radius: 8px;
   overscroll-behavior: contain;
+  padding: 20px;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
-  overflow-y: auto;
 }
 
 .expense-card {
+  background: white;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  /* width: 100%; */
   display: flex;
   flex-direction: column;
-  /* flex: 1; */
-  align-items: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  background-color: white;
-  overflow-y: auto;
-  max-height: 100vh;
-  height: 100%;
-  /* Ensure card background color is visible */
 }
 
 .category-btn {

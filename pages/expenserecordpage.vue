@@ -1,7 +1,7 @@
 <template>
   <!-- Main Page with Content -->
   <ion-page id="main-content">
-    <div class="custom-background">
+    <div class="custom-background h-full">
       <!-- Pull to refresh component -->
     <!-- <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
       loosing-text="Release to refresh" loading-text="Loading..." success-text="Refreshed successfully"
@@ -301,6 +301,7 @@ onMounted(fetchRecords);
   width: 100%;
   display: flex;
   flex-direction: column;
+  height: auto;
 }
 
 .container {
