@@ -45,7 +45,7 @@
               <!-- Pie Chart -->
               <div>
                 <ClientOnly>
-                  <apexchart
+                  <VueApexCharts
                     v-if="series.length > 0"
                     type="pie"
                     height="350"
@@ -104,7 +104,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useSupabaseClient, useSupabaseUser } from '#imports';
 import { onIonViewWillEnter } from '@ionic/vue';
 import { useRouter } from 'vue-router';
-import { arrowBackOutline } from 'ionicons/icons';
+import VueApexCharts from 'vue3-apexcharts';
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
