@@ -16,16 +16,19 @@
           <span v-else>Verify</span>
         </ion-button>
       </form>
-      <router-link style="text-align:center; color:#FD8395;" to="/">
-        <p>Return</p>
-      </router-link>
+      <div class="text-center">
+        <span fill="clear" @click="goBack" class="lets-icons--back" style="text-align: center; color: #FD8395; min-width: 0; --padding-start: 0; --padding-end: 0;">Return</span>
+      </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
 import { useAppToast } from '~/composables/useAppToast';
+import { useRouter } from 'vue-router';
+
 const router = useRouter();
+const goBack = () => router.back();
 
 definePageMeta({
   layout: 'auth'
