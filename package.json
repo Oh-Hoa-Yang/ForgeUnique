@@ -25,13 +25,15 @@
     "@nuxtjs/supabase": "^1.5.1",
     "@popperjs/core": "^2.11.8",
     "@selemondev/vue3-signature-pad": "^1.1.0",
+    "apexcharts": "^4.7.0",
     "capacitor-voice-recorder": "^6.0.3",
     "crypto-js": "^4.2.0",
     "luxon": "^3.5.0",
     "nuxt": "^3.13.2",
     "pull-refresh-vue3": "^0.3.1",
     "v-calendar": "^3.1.2",
-    "vue": "latest"
+    "vue": "latest",
+    "vue3-apexcharts": "^1.8.0"
   },
   "devDependencies": {
     "@capacitor/cli": "6.1.0",

@@ -26,6 +26,17 @@
               <h3 style="font-weight: bold;">To-Do List</h3>
               <button @click="openAddTodoModal" style="font-size: 24px; padding: 5px 10px; color: #FD8395;">+</button>
             </div>
+            <div class="flex justify-between items-center text-sm">
+              <span>
+                <Icon name="material-symbols:flag-2" />
+              </span>
+              <span>
+                Description
+              </span>
+              <span class="mr-4">
+                Actions
+              </span>
+            </div>
             <ul>
               <li v-for="todo in paginatedTodos" :key="todo.id" style="margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">

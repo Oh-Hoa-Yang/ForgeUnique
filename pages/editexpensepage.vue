@@ -487,8 +487,9 @@ const confirmDelete = async () => {
 
 .modal-buttons {
   display: flex;
+  text-align: center;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
 /* Amount part */

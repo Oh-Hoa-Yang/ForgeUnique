@@ -2,6 +2,15 @@
   <div class="custom-background">
     <div class="container mx-auto">
     <ion-card>
+      <div class="flex justify-between items-center mb-4">
+        <button fill="clear" @click="goBack" style="min-width: 0; --padding-start: 0; --padding-end: 0;">
+          <span class="lets-icons--back"></span>
+        </button>
+        <div>
+        <h5 style="font-weight: bold; text-align: center; flex: 1;">YEARLY PLAN</h5>
+      </div>
+      <div class="opacity-0">Hidden</div>
+      </div>
       <div class="calendar-card">
       <VCalendar color="pink" :attributes="attrs" is-dark="{}" expanded />
       <!-- <VDatePicker class="calendar" v-model="date" /> -->
@@ -96,8 +105,11 @@
 import 'v-calendar/style.css';
 import { useAppToast } from '~/composables/useAppToast';
 import { onIonViewWillEnter } from '@ionic/vue';
+import { useRouter } from 'vue-router';
 
 const { toastError, toastSuccess } = useAppToast();
+const router = useRouter();
+const goBack = () => router.back();
 
 const refreshYearlyPlans = async () => {
   try {
@@ -467,5 +479,14 @@ select {
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M8 9h8v10H8z' opacity='0.3'/%3E%3Cpath fill='%23ff65bc' d='m15.5 4l-1-1h-5l-1 1H5v2h14V4zM6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM8 9h8v10H8z'/%3E%3C/svg%3E");
+}
+
+.lets-icons--back {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='m4 10l-.707.707L2.586 10l.707-.707zm17 8a1 1 0 1 1-2 0zM8.293 15.707l-5-5l1.414-1.414l5 5zm-5-6.414l5-5l1.414 1.414l-5 5zM4 9h10v2H4zm17 7v2h-2v-2zm-7-7a7 7 0 0 1 7 7h-2a5 5 0 0 0-5-5z'/%3E%3C/svg%3E");
 }
 </style>

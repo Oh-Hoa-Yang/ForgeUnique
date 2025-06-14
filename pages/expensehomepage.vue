@@ -32,12 +32,16 @@
            
            <!-- Expense budget Button with display  -->
              <ion-button class="budget-button" @click="openModal">
-               Budget ({{ budget }})
+               Set Budget ({{ budget }})
              </ion-button>
            
            <!-- Expense Record Button -->
              <ion-button class="record-button" @click="router.push('/expenserecordpage')">
                Record
+             </ion-button>
+           <!-- Expense Report Button -->
+             <ion-button class="record-button" @click="router.push('/AnalyticsReport')">
+               Expense Report
              </ion-button>
          </div>
        </ion-card>
