@@ -1,6 +1,6 @@
 <template>
   <!-- Main Page with Content -->
-  <ion-page id="main-content">
+  <ion-page id="main-content" class="bg-[#FFEDF5]">
     <!-- Main Content (imported component) -->
      <div class="custom-background">
       <div class="container mx-auto">

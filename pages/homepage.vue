@@ -1,9 +1,9 @@
 <template>
   <!-- Main Page with Content -->
-  <ion-page id="main-content" :inert="isMenuVisible">
+  <ion-page id="main-content" :inert="isMenuVisible" class="bg-[#FFEDF5]">
     <!-- Main Content (imported component) -->
       <Home />
-  </ion-page>
+</ion-page>
 </template>
 
 <script setup>

@@ -1,5 +1,5 @@
 <template>
-  <ion-page id="main-content">
+  <ion-page id="main-content" class="bg-[#FFEDF5]">
     <div class="custom-background h-full">
       <div class="container mx-auto">
         <ion-card class="expense-card mx-4">

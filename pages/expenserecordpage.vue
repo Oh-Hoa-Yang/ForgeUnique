@@ -1,6 +1,6 @@
 <template>
   <!-- Main Page with Content -->
-  <ion-page id="main-content">
+  <ion-page id="main-content" class="bg-[#FFEDF5]">
     <div class="custom-background h-full">
       <!-- Pull to refresh component -->
     <!-- <PullRefresh v-model="loading" @refresh="handleRefresh" style="background-color: #FFD6E5; color: black; font-weight: bold;" pulling-text="Pull to refresh"
@@ -34,6 +34,16 @@
                 @input="filterRecords">
               </ion-input>
             </ion-item>
+          </div>
+
+          <!-- Year and Month Selectors -->
+          <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;" class="mx-10">
+            <select v-model="selectedYear" @change="updateFilteredRecords" class="year-selector">
+              <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
+            </select>
+            <select v-model="selectedMonth" @change="updateFilteredRecords" class="month-selector">
+              <option v-for="(month, idx) in months" :key="idx" :value="idx">{{ month }}</option>
+            </select>
           </div>
 
           <!-- Expense Categories and Records -->
@@ -110,6 +120,15 @@ const searchQuery = ref('');
 const dropdownState = ref({});
 const monthlyExpense = ref(0);
 const loading = ref(false);
+const allRecords = ref([]);
+const now = new Date();
+const selectedYear = ref(now.getFullYear());
+const selectedMonth = ref(now.getMonth() + 1); // Default to current month (1-based)
+const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+const months = [
+  'All', 'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 const adjustToUTC = (date) => {
   const utcDate = new Date(date);
@@ -150,43 +169,46 @@ const calculateMonthlyExpense = (allRecords) => {
 };
 
 // Fetch ALL records from Supabase
-const fetchRecords = async () => {
+const fetchAllRecords = async () => {
   loading.value = true;
-
   try {
     const { data, error } = await supabase
       .from('Expenses')
       .select('*')
-      // .eq('user_id', user.value.id)
-      // .gte('expenseDate', currentMonthStart.toISOString())
-      // .lte('expenseDate', currentMonthEnd.toISOString()); // Filter by date range
       .eq('user_id', user.value.id);
     if (error) {
       console.error('Error fetching records:', error.message);
       return;
     }
-    // defaultRecords.value =  data;
-    // records.value = data;
-    
-    defaultRecords.value = data || []; // Store all records
-    
-    // If there's a search query, filter by search
-    if (searchQuery.value.trim()) {
-      records.value = data.filter((record) =>
-        record.expenseDescription.toLowerCase().includes(searchQuery.value.toLowerCase())
-      );
-    } else {
-      // Otherwise, show only current month records
-      records.value = filterCurrentMonthRecords(data);
-    }
-
-    // Calculate monthly expense (always for current month regardless of search)
-    monthlyExpense.value = calculateMonthlyExpense(data);
+    allRecords.value = data || [];
+    updateFilteredRecords();
   } catch (error) {
     console.error('Error fetching records:', error);
   } finally {
     loading.value = false;
   }
+};
+
+const updateFilteredRecords = () => {
+  // Filter allRecords for selected year/month or all months
+  const filtered = (allRecords.value || []).filter(record => {
+    const d = new Date(record.expenseDate);
+    return (
+      d.getFullYear() === selectedYear.value &&
+      (selectedMonth.value === 0 || d.getMonth() + 1 === selectedMonth.value)
+    );
+  });
+  defaultRecords.value = filtered;
+  // If there's a search query, filter by search
+  if (searchQuery.value.trim()) {
+    records.value = filtered.filter((record) =>
+      record.expenseDescription.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+  } else {
+    records.value = filtered;
+  }
+  // Calculate monthly expense for selected period
+  monthlyExpense.value = filtered.reduce((sum, expense) => sum + (expense.expenseAmount || 0), 0);
 };
 
 // const handleRefresh = async () => {
@@ -208,7 +230,7 @@ watch(searchQuery, (newQuery) => {
 // Refresh records
 const refreshRecords = async () => {
   try {
-    await fetchRecords();
+    await fetchAllRecords();
   } catch (error) {
     console.error('Error refreshing records:', error);
     toastError({ title: 'Error', description: 'Failed to refresh expense record data.' });
@@ -216,9 +238,8 @@ const refreshRecords = async () => {
 };
 
 // Fetch data when entering the page
-onIonViewWillEnter(async () => {
-  await refreshRecords();
-});
+onIonViewWillEnter(fetchAllRecords);
+onMounted(fetchAllRecords);
 
 // const fetchAllRecords = async () => {
 //   try {
@@ -291,8 +312,6 @@ const formatDate = (date) => {
 };
 
 const formatAmount = (amount) => amount.toFixed(2);
-
-onMounted(fetchRecords);
 </script>
 
 <style scoped>
@@ -533,7 +552,7 @@ onMounted(fetchRecords);
   height: 50px;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none'%3E%3Cpath d='m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z'/%3E%3Cpath fill='%23ff65bc' d='M17 4c1.106 0 1.955.843 2.584 1.75l.213.321l.195.32q.093.157.178.308c.787 1.407 1.472 3.244 1.925 5.059c.45 1.801.699 3.682.54 5.161C22.475 18.404 21.71 20 20 20c-1.534 0-2.743-.82-3.725-1.621l-1.11-.931C14.242 16.692 13.232 16 12 16s-2.243.692-3.164 1.448l-1.11.93C6.742 19.18 5.533 20 4 20c-1.711 0-2.476-1.596-2.635-3.081c-.158-1.48.09-3.36.54-5.161c.453-1.815 1.138-3.652 1.925-5.059l.178-.309l.195-.319l.213-.321C5.045 4.843 5.894 4 7 4c.51 0 1.017.124 1.515.27l.593.182q.147.045.292.086c.865.248 1.75.462 2.6.462s1.735-.214 2.6-.462l.885-.267C15.983 4.124 16.49 4 17 4M8.5 8a2.5 2.5 0 1 0 0 5a2.5 2.5 0 0 0 0-5m7 0a1 1 0 0 0-1 1v.5H14a1 1 0 1 0 0 2h.5v.5a1 1 0 1 0 2 0v-.5h.5a1 1 0 1 0 0-2h-.5V9a1 1 0 0 0-1-1m-7 2a.5.5 0 1 1 0 1a.5.5 0 0 1 0-1'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none'%3E%3Cpath d='m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z'/%3E%3Cpath fill='%23ff65bc' d='M17 4c1.106 0 1.955.843 2.584 1.75l.213.321l.195.32q.093.157.178.308c.787 1.407 1.472 3.244 1.925 5.059c.45 1.801.699 3.682.54 5.161C22.475 18.404 21.71 20 20 20c-1.534 0-2.743-.82-3.725-1.621l-1.11-.931C14.242 16.692 13.232 16 12 16s-2.243.692-3.164 1.448l-1.11.93C6.742 19.18 5.533 20 4 20c-1.711 0-2.476-1.596-2.635-3.081c-.158-1.48.09-3.36.54-5.161c.453-1.815 1.138-3.652 1.925-5.059l.178-.309l.195-.319l.213-.321C5.045 4.843 5.894 4 7 4M8.5 8a2.5 2.5 0 1 0 0 5a2.5 2.5 0 0 0 0-5m7 0a1 1 0 0 0-1 1v.5H14a1 1 0 1 0 0 2h.5v.5a1 1 0 1 0 2 0v-.5h.5a1 1 0 1 0 0-2h-.5V9a1 1 0 0 0-1-1m-7 2a.5.5 0 1 1 0 1a.5.5 0 0 1 0-1'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 .iconamoon--gift-duotone {
@@ -615,5 +634,15 @@ onMounted(fetchRecords);
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M6 10.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 0 0 0-3m4.5 1.5a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0m6 0a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0'/%3E%3C/svg%3E");
+}
+
+.year-selector, .month-selector {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  margin: 0 10px;
+  border: 2px solid #ddd;
+  background-color: white;
+  color: #ff4e68;
 }
 </style>
