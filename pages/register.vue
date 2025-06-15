@@ -166,7 +166,7 @@ const handleRegister = async () => {
       email: email.value,
       password: password.value,
       options: {
-        emailRedirectTo: 'https://forgeunique.vercel.app/finishregistered',
+        emailRedirectTo: 'https://forgeunique.netlify.app/finishregistered',
       },
     });
 

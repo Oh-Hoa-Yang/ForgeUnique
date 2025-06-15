@@ -7,7 +7,7 @@
         </div>
         <p style="padding: 20px; text-align: start;">To make sure you are more securely manage your password, open the
           link below at the <b>BROWSER / WEBSITE :</b><br></p>
-        <p style="text-align: center;"><b>https://forgeunique.vercel.app/forgot_password</b></p>
+        <p style="text-align: center;"><b>https://forgeunique.netlify.app/forgot_password</b></p>
         <ion-button class="nav-button" router-link="/login">Back To Login</ion-button>
       </ion-card>
     </ion-content>
