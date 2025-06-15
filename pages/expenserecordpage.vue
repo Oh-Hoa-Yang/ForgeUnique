@@ -46,6 +46,13 @@
             </select>
           </div>
 
+          <!-- Today's Expenses Button -->
+          <div style="display: flex; justify-content: center; margin: 15px 0;">
+            <ion-button class="today-button" @click="showTodayExpenses">
+              Today's Expenses
+            </ion-button>
+          </div>
+
           <!-- Expense Categories and Records -->
           <div v-for="category in categoriesWithRecords" :key="category.name">
             <div v-if="category.records.length > 0" class="category-section">
@@ -316,6 +323,27 @@ const formatDate = (date) => {
 };
 
 const formatAmount = (amount) => amount.toFixed(2);
+
+// Add this function to handle today's expenses filter
+const showTodayExpenses = () => {
+  const today = new Date();
+  selectedYear.value = today.getFullYear();
+  selectedMonth.value = today.getMonth() + 1;
+  
+  // Filter records for today
+  const filtered = (allRecords.value || []).filter(record => {
+    const recordDate = new Date(record.expenseDate);
+    return (
+      recordDate.getFullYear() === today.getFullYear() &&
+      recordDate.getMonth() === today.getMonth() &&
+      recordDate.getDate() === today.getDate()
+    );
+  });
+  
+  defaultRecords.value = filtered;
+  records.value = filtered;
+  monthlyExpense.value = filtered.reduce((sum, expense) => sum + (expense.expenseAmount || 0), 0);
+};
 </script>
 
 <style scoped>
@@ -648,5 +676,34 @@ const formatAmount = (amount) => amount.toFixed(2);
   border: 2px solid #ddd;
   background-color: white;
   color: #ff4e68;
+}
+
+.today-button {
+  --background: #FFD6E5;
+  --background-activated: #ffadb9;
+  --background-focused: #ffadb9;
+  --background-hover: #ffadb9;
+  --background-pressed: #ffadb9;
+  --color: black;
+  font-size: 16px;
+  height: 40px;
+  width: 200px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ic--round-today {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 16H5V8h14zM7 10h5v5H7z'/%3E%3C/svg%3E");
+}
+
+.mr-2 {
+  margin-right: 8px;
 }
 </style>
