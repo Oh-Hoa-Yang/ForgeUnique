@@ -1,6 +1,6 @@
 <template>
   <ion-app>
-    <ion-content class="ion-padding custom-background" :scroll-y="false">
+    <ion-content class="ion-padding custom-background">
       <!-- Main Content -->
       <slot />
     </ion-content>
@@ -14,21 +14,21 @@ definePageMeta({
 })
 </script>
 
-<style scoped>
+<style>
 .custom-background {
   --background: #FFEDF5;
-  overflow: hidden;
 }
 
-:deep(.ion-page) {
-  overflow: hidden;
+.ion-page {
+  overflow: auto !important;
 }
 
-:deep(.scroll-y) {
-  overflow: hidden !important;
+ion-content {
+  --overflow: auto !important;
 }
 
-:deep(ion-content) {
-  --overflow: hidden;
+/* Ensure content is scrollable */
+:deep(.ion-content-scroll-host) {
+  overflow: auto !important;
 }
 </style> 
