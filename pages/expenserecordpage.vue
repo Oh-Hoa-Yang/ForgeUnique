@@ -304,7 +304,11 @@ const goToEditExpense = (record) => {
 // const formatDate = (date) => new Date(date).toLocaleDateString();
 const formatDate = (date) => {
   try {
-    return new Date(date).toLocaleDateString();
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   } catch (error) {
     console.error('Error formatting date:', date, error);
     return date; // Return original value if parsing fails
