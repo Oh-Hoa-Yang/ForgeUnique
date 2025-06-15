@@ -147,7 +147,24 @@ const chartOptions = {
     }
   },
   labels: [],
-  colors: ['#FF4560', '#00E396', '#FEB019', '#008FFB', '#775DD0', '#3F51B5', '#1abc9c', '#e67e22', '#9b59b6', '#34495e', '#e84393', '#00b894', '#fdcb6e', '#636e72', '#d35400', '#2d3436'],
+  colors: [
+    '#FFB3C6', // Soft Pink
+    '#FFD6E0', // Light Pink
+    '#B5EAD7', // Pastel Mint
+    '#C7CEEA', // Pastel Blue
+    '#FFF1BA', // Light Yellow
+    '#FFDAC1', // Peach
+    '#E2F0CB', // Light Green
+    '#B5D6D6', // Soft Aqua
+    '#F3B0C3', // Pastel Rose
+    '#C9C9FF', // Lavender
+    '#FFDEB4', // Light Apricot
+    '#B5B9FF', // Soft Periwinkle
+    '#F7C8E0', // Light Magenta
+    '#D4F1F4', // Very Light Blue
+    '#F6DFEB', // Very Light Pink
+    '#F9F9C5'  // Very Light Yellow
+  ],
   legend: {
     position: 'bottom',
     fontSize: '14px',
