@@ -19,8 +19,19 @@
               <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
             </select>
             <select v-model="selectedMonth" @change="updateFilteredData" class="month-selector">
+              <option value="All">All</option>
               <option v-for="(month, idx) in months" :key="idx" :value="idx + 1">{{ month }}</option>
             </select>
+          </div>
+
+          <!-- Yearly Trends Button -->
+          <div class="flex justify-center space-x-4 my-4">
+            <button
+              @click="showYearlyTrends = !showYearlyTrends"
+              :class="['analytics-btn', showYearlyTrends ? 'active' : '']"
+            >
+              {{ showYearlyTrends ? 'Hide Yearly Trends' : 'Show Yearly Trends' }}
+            </button>
           </div>
 
           <!-- Loading State -->
@@ -36,62 +47,73 @@
 
           <!-- Content -->
           <div v-else class="bg-white rounded-lg shadow-lg mb-6">
-            <h2 class="text-xl font-semibold mb-4 text-center">Expenses by Category</h2>
-            <!-- No Data State -->
-            <div v-if="!hasData" class="text-center py-8 text-gray-500">
-              No expense data available for this month.
-            </div>
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Pie Chart -->
-              <div>
-                <ClientOnly>
-                  <VueApexCharts
-                    v-if="series.length > 0"
-                    type="pie"
-                    height="350"
-                    :options="chartOptions"
-                    :series="series"
-                  />
-                </ClientOnly>
+            <template v-if="!showYearlyTrends">
+              <h2 class="text-xl font-semibold mb-4 text-center">Expenses by Category</h2>
+              <!-- No Data State -->
+              <div v-if="!hasData" class="text-center py-8 text-gray-500">
+                No expense data available for this month.
               </div>
-              <!-- Category Details -->
-              <div class="space-y-4">
-                <div v-for="(category, index) in categoryData" :key="index" class="flex items-center justify-between p-3 bg-gray-50 rounded">
-                  <div class="flex items-center">
-                    <div class="w-4 h-4 rounded-full mr-2" :style="{ backgroundColor: chartOptions.colors[index % chartOptions.colors.length] }"></div>
-                    <span class="font-medium">{{ category.name }}</span>
-                  </div>
-                  <div class="text-right">
-                    <div class="font-semibold">RM{{ isNaN(category.amount) ? '0.00' : category.amount.toFixed(2) }}</div>
-                    <div class="text-sm text-gray-600">{{ isNaN(category.percentage) ? '0' : category.percentage }}%</div>
+              <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Pie Chart -->
+                <div>
+                  <ClientOnly>
+                    <VueApexCharts
+                      v-if="series.length > 0"
+                      type="pie"
+                      height="350"
+                      :options="chartOptions"
+                      :series="series"
+                    />
+                  </ClientOnly>
+                </div>
+                <!-- Category Details -->
+                <div class="space-y-4">
+                  <div v-for="(category, index) in categoryData" :key="index" class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <div class="flex items-center">
+                      <div class="w-4 h-4 rounded-full mr-2" :style="{ backgroundColor: chartOptions.colors[index % chartOptions.colors.length] }"></div>
+                      <span class="font-medium">{{ category.name }}</span>
+                    </div>
+                    <div class="text-right">
+                      <div class="font-semibold">RM{{ isNaN(category.amount) ? '0.00' : category.amount.toFixed(2) }}</div>
+                      <div class="text-sm text-gray-600">{{ isNaN(category.percentage) ? '0' : category.percentage }}%</div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Details Table -->
-            <div v-if="filteredExpenses.length > 0" class="mt-8 overflow-x-auto">
-              <h3 class="text-lg font-semibold mb-2">Detailed Expenses</h3>
-              <table class="min-w-full bg-white border border-gray-200 rounded">
-                <thead>
-                  <tr>
-                    <th class="px-4 py-2 border-b">Date</th>
-                    <th class="px-4 py-2 border-b">Category</th>
-                    <th class="px-4 py-2 border-b">Description</th>
-                    <th class="px-4 py-2 border-b">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="expense in filteredExpenses" :key="expense.id">
-                    <td class="px-4 py-2 border-b">{{ formatDate(expense.expenseDate) }}</td>
-                    <td class="px-4 py-2 border-b">{{ expense.category }}</td>
-                    <td class="px-4 py-2 border-b">{{ expense.expenseDescription }}</td>
-                    <td class="px-4 py-2 border-b">RM{{ Number(expense.expenseAmount).toFixed(2) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
+              <!-- Details Table -->
+              <div v-if="filteredExpenses.length > 0" class="mt-8 overflow-x-auto">
+                <h3 class="text-lg font-semibold mb-2">Detailed Expenses</h3>
+                <table class="min-w-full bg-white border border-gray-200 rounded">
+                  <thead>
+                    <tr>
+                      <th class="px-4 py-2 border-b">Date</th>
+                      <th class="px-4 py-2 border-b">Category</th>
+                      <th class="px-4 py-2 border-b">Description</th>
+                      <th class="px-4 py-2 border-b">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="expense in filteredExpenses" :key="expense.id">
+                      <td class="px-4 py-2 border-b">{{ formatDate(expense.expenseDate) }}</td>
+                      <td class="px-4 py-2 border-b">{{ expense.category }}</td>
+                      <td class="px-4 py-2 border-b">{{ expense.expenseDescription }}</td>
+                      <td class="px-4 py-2 border-b">RM{{ Number(expense.expenseAmount).toFixed(2) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </template>
+            <template v-else>
+              <h2 class="text-xl font-semibold mb-4 text-center">Yearly Monthly Spent ({{ selectedYear }})</h2>
+              <ClientOnly>
+                <VueApexCharts
+                  type="line"
+                  height="350"
+                  :options="yearlyTrendsOptions"
+                  :series="yearlyTrendsSeries"
+                />
+              </ClientOnly>
+            </template>
           </div>
         </ion-card>
       </div>
@@ -115,6 +137,7 @@ const categoryData = ref([]);
 const loading = ref(true);
 const error = ref(null);
 const errorDetails = ref(null);
+const showYearlyTrends = ref(false);
 
 const now = new Date();
 const selectedYear = ref(now.getFullYear());
@@ -208,6 +231,9 @@ const updateFilteredData = () => {
   // Filter allExpenses for selected year/month
   const filtered = (allExpenses.value || []).filter(expense => {
     const d = new Date(expense.expenseDate);
+    if (selectedMonth.value === 'All') {
+      return d.getFullYear() === selectedYear.value;
+    }
     return (
       d.getFullYear() === selectedYear.value &&
       d.getMonth() + 1 === selectedMonth.value
@@ -262,6 +288,27 @@ const goBack = () => router.back();
 
 onMounted(fetchAllExpenses);
 onIonViewWillEnter(fetchAllExpenses);
+
+// Yearly Trends Chart Data
+const yearlyTrendsSeries = computed(() => [{
+  name: 'Total Spent',
+  data: Array.from({ length: 12 }, (_, i) => {
+    return allExpenses.value
+      .filter(exp => {
+        const d = new Date(exp.expenseDate);
+        return d.getFullYear() === selectedYear.value && d.getMonth() === i;
+      })
+      .reduce((sum, exp) => sum + Number(exp.expenseAmount), 0);
+  })
+}]);
+const yearlyTrendsOptions = {
+  chart: { type: 'line', animations: { enabled: true, easing: 'easeinout', speed: 800 } },
+  colors: ['#FFB3C6'],
+  stroke: { curve: 'smooth', width: 3 },
+  xaxis: { categories: months, labels: { style: { colors: '#666' } } },
+  yaxis: { labels: { formatter: value => `RM ${value.toFixed(2)}` } },
+  tooltip: { y: { formatter: value => `RM ${value.toFixed(2)}` } }
+};
 </script>
 
 <style scoped>
@@ -312,5 +359,34 @@ onIonViewWillEnter(fetchAllExpenses);
   border: 2px solid #ddd;
   background-color: white;
   color: #ff4e68;
+}
+
+.analytics-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: #FFEDF5;
+  color: #ff4e68;
+  border: 2px solid #ff4e68;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin: 0 4px;
+  min-width: 120px;
+  text-align: center;
+}
+.analytics-btn:hover {
+  background-color: #ff4e68;
+  color: white;
+}
+.analytics-btn.active {
+  background-color: #ff4e68;
+  color: white;
+}
+@media (max-width: 640px) {
+  .analytics-btn {
+    padding: 6px 12px;
+    min-width: 100px;
+    font-size: 0.9rem;
+  }
 }
 </style> 
