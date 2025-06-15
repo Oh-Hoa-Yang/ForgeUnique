@@ -41,7 +41,7 @@
              </ion-button>
            <!-- Expense Report Button -->
              <ion-button class="record-button" @click="router.push('/AnalyticsReport')">
-               Expense Report
+               Analytics Report
              </ion-button>
          </div>
        </ion-card>
