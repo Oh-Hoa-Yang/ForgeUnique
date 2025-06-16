@@ -168,10 +168,57 @@
   
             <!-- Tool Selection -->
             <div class="tool-selection">
-              <button @click="selectTool('black')">⚫️ Black</button>
-              <button @click="selectTool('blue')">🔵 Blue</button>
-              <button @click="selectTool('red')">🔴 Red</button>
-              <button @click="selectTool('eraser')"><span class="solar--eraser-bold-duotone"></span> Eraser</button>
+              <div class="color-palette">
+                <button 
+                  v-for="color in colors" 
+                  :key="color.name"
+                  @click="selectTool(color.name)"
+                  :class="{ active: selectedColor === color.name }"
+                  :style="{ backgroundColor: color.value }"
+                  class="color-button"
+                  :title="color.name"
+                ></button>
+                <div class="custom-color-container">
+                  <input 
+                    type="color" 
+                    v-model="customColor"
+                    @input="selectCustomColor"
+                    class="custom-color-picker"
+                    title="Custom Color"
+                  />
+                  <span class="custom-color-label">Custom</span>
+                </div>
+              </div>
+              <!-- Pen Thickness Control -->
+              <div v-if="selectedColor !== 'eraser'" class="pen-control">
+                <div class="pen-size-label">
+                  <span class="material-symbols-outlined">edit</span>
+                  Pen Size: {{ penSize }}px
+                </div>
+                <input 
+                  type="range" 
+                  v-model="penSize" 
+                  min="0.5" 
+                  max="3" 
+                  step="0.1"
+                  class="pen-slider"
+                />
+              </div>
+              <!-- Eraser Size Control -->
+              <div v-if="selectedColor === 'eraser'" class="eraser-control">
+                <div class="eraser-size-label">
+                  <span class="solar--eraser-bold-duotone"></span>
+                  Eraser Size: {{ eraserSize }}px
+                </div>
+                <input 
+                  type="range" 
+                  v-model="eraserSize" 
+                  min="1" 
+                  max="20" 
+                  step="1"
+                  class="eraser-slider"
+                />
+              </div>
             </div>
   
             <div class="canvas-controls">
@@ -185,7 +232,9 @@
               <div class="signature-container h-full border border-black-100">
                 <vue-signature-pad 
                   ref="signaturePad" 
-                  :options="signatureOptions"  
+                  :options="signatureOptions"
+                  :maxWidth="getPenWidth"
+                  :minWidth="getPenWidth"
                   class="signature-canvas"
                   @end="onSketchEnd" 
                 />
@@ -396,23 +445,48 @@ const fetchExpenses = async () => {
 const signatureOptions = ref({
   penColor: 'black',
   backgroundColor: 'white',
-  maxWidth: 0.5,
-  minwidth: 0.5,
   canvasWidth: 728,
   canvasHeight: 800,
 })
 
-const selectTool = (tool) => {
-  if (tool === 'black') {
-    signatureOptions.value.penColor = 'black'; // Set to black
-  } else if (tool === 'blue') {
-    signatureOptions.value.penColor = 'blue'; // Set to blue
-  } else if (tool === 'red') {
-    signatureOptions.value.penColor = 'red'; // Set to red
-  } else if (tool === 'eraser') {
-    signatureOptions.value.penColor = 'white'; // Set to eraser (white)
+const colors = [
+  { name: 'black', value: '#000000' },
+  { name: 'navy', value: '#000080' },
+  { name: 'blue', value: '#0000FF' },
+  { name: 'teal', value: '#008080' },
+  { name: 'green', value: '#008000' },
+  { name: 'olive', value: '#808000' },
+  { name: 'purple', value: '#800080' },
+  { name: 'maroon', value: '#800000' },
+  { name: 'red', value: '#FF0000' },
+  { name: 'orange', value: '#FFA500' },
+  { name: 'yellow', value: '#FFFF00' },
+  { name: 'pink', value: '#FFC0CB' },
+  { name: 'brown', value: '#A52A2A' },
+  { name: 'gray', value: '#808080' },
+  { name: 'eraser', value: '#FFFFFF' }
+];
+
+const selectedColor = ref('black');
+
+const eraserSize = ref(5);
+
+const penSize = ref(0.5);
+
+const selectTool = (color) => {
+  selectedColor.value = color;
+  if (color === 'eraser') {
+    signatureOptions.value.penColor = 'white';
+  } else {
+    const selectedColorObj = colors.find(c => c.name === color);
+    signatureOptions.value.penColor = selectedColorObj.value;
   }
-}
+};
+
+const updateEraserSize = () => {
+  // No need to manually update the width, it's handled by the props
+  console.log('Eraser size updated to:', eraserSize.value);
+};
 
 const signaturePad = ref(null) //Refer to the Sketch Canvas of template too for vue-signature-pad
 
@@ -1152,6 +1226,21 @@ const closeSketchDeleteModal = () => {
   selectedSketch.value = null;
 };
 
+const customColor = ref('#000000');
+
+const selectCustomColor = () => {
+  selectedColor.value = 'custom';
+  signatureOptions.value.penColor = customColor.value;
+};
+
+// Update the VueSignaturePad component props
+const getPenWidth = computed(() => {
+  if (selectedColor.value === 'eraser') {
+    return eraserSize.value;
+  }
+  return penSize.value;
+});
+
 </script>
 
 
@@ -1360,5 +1449,177 @@ ion-input {
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff65bc' d='m4 10l-.707.707L2.586 10l.707-.707zm17 8a1 1 0 1 1-2 0zM8.293 15.707l-5-5l1.414-1.414l5 5zm-5-6.414l5-5l1.414 1.414l-5 5zM4 9h10v2H4zm17 7v2h-2v-2zm-7-7a7 7 0 0 1 7 7h-2a5 5 0 0 0-5-5z'/%3E%3C/svg%3E");
+}
+
+.tool-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+}
+
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.color-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+  position: relative;
+}
+
+.color-button:hover {
+  transform: scale(1.1);
+}
+
+.color-button.active {
+  border-color: #ff65bc;
+  transform: scale(1.1);
+}
+
+.color-button[title="eraser"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fa65bc' d='M14.952 3c-1.037 0-1.872.835-3.542 2.505l-4.91 4.91l7.085 7.085l4.91-4.91C20.165 10.92 21 10.085 21 9.048c0-1.038-.835-1.873-2.505-3.543S15.99 3 14.952 3' opacity='0.5'/%3E%3Cpath fill='%23fa65bc' d='M13.585 17.5L6.5 10.415l-.995.995C3.835 13.08 3 13.915 3 14.952c0 1.038.835 1.873 2.505 3.543S8.01 21 9.048 21c1.037 0 1.872-.835 3.542-2.505z'/%3E%3Cpath fill='%23fa65bc' d='M9.033 21H9zm.03 0c.796-.006 1.476-.506 2.51-1.5H21a.75.75 0 0 1 0 1.5z' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 70%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.custom-color-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.custom-color-picker {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-appearance: none;
+  background: none;
+}
+
+.custom-color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: 50%;
+}
+
+.custom-color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+.custom-color-picker::-moz-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+.custom-color-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.eraser-control {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.eraser-size-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #666;
+  font-size: 14px;
+}
+
+.eraser-slider {
+  width: 100%;
+  height: 5px;
+  -webkit-appearance: none;
+  background: #ddd;
+  border-radius: 5px;
+  outline: none;
+}
+
+.eraser-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #ff65bc;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.eraser-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #ff65bc;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.pen-control {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pen-size-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #666;
+  font-size: 14px;
+}
+
+.pen-slider {
+  width: 100%;
+  height: 5px;
+  -webkit-appearance: none;
+  background: #ddd;
+  border-radius: 5px;
+  outline: none;
+}
+
+.pen-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #ff65bc;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.pen-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #ff65bc;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
 }
 </style>
