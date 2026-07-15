@@ -80,5 +80,4 @@ SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 SUPABASE_SERVICE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90cWNvZHp4Z2p0ZnN3eHZpcXR4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyMDgzNjgzMSwiZXhwIjoyMDM2NDEyODMxfQ.ie8JNpPBpD1hcTYx69QwKKp9oBqsrMPEBJwstH-PCrg" -->
 
 
-[▶️ ![Watch the FULL Video Demo on Google Drive](<img width="736" height="1080" alt="Expense Interface" src="https://github.com/user-attachments/assets/a2c466e1-b394-4952-85fc-85cc68a8cd68" />
-)]https://drive.google.com/file/d/124KeCkQU_uBbbYn5SpGVuVmxu4IZ748v/view?usp=sharing
+[▶️ ![Watch the FULL Video Demo on Google Drive](/public/Expense Interface.png)]https://drive.google.com/file/d/124KeCkQU_uBbbYn5SpGVuVmxu4IZ748v/view?usp=sharing
