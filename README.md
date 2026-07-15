@@ -78,3 +78,6 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 SUPABASE_URL="https://otqcodzxgjtfswxviqtx.supabase.co"
 SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90cWNvZHp4Z2p0ZnN3eHZpcXR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjA4MzY4MzEsImV4cCI6MjAzNjQxMjgzMX0.9fXj-L3eKobdQHbReueKkE09i67x158eBLQgoP2bSZY"
 SUPABASE_SERVICE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90cWNvZHp4Z2p0ZnN3eHZpcXR4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyMDgzNjgzMSwiZXhwIjoyMDM2NDEyODMxfQ.ie8JNpPBpD1hcTYx69QwKKp9oBqsrMPEBJwstH-PCrg" -->
+
+
+[▶️ ![Watch the Video Demo on Google Drive](thumbnail.png)]https://drive.google.com/file/d/124KeCkQU_uBbbYn5SpGVuVmxu4IZ748v/view?usp=sharing
